@@ -53,9 +53,7 @@ def extract_steiner_tree(sp_tree, X):
             self.pred = pred
         
         def tree_edge(self, e):
-            print(e)
             self.pred[int(e.target())] = int(e.source())
-            print(self.pred)
     
     vis = Visitor(pred)
     
