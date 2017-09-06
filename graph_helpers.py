@@ -4,6 +4,8 @@ from graph_tool import Graph, GraphView
 from graph_tool.search import bfs_search, BFSVisitor
 from graph_tool.topology import random_spanning_tree
 
+from collections import defaultdict
+
 
 def build_graph_from_edges(edges):
     """returns Graph (a new one)
@@ -104,3 +106,68 @@ def extract_steiner_tree(sp_tree, terminals):
 def gen_random_spanning_tree(g):
     efilt = random_spanning_tree(g)
     return GraphView(g, efilt=efilt)
+
+
+def contract_graph_by_nodes(g, nodes, weights=None):
+    """
+    contract graph by nodes (only for undirected)
+
+    note: the supernode is node 0 in the new graph
+
+    Params:
+    ----------
+    g: Graph, undirected
+    weights: edge_property_map
+    nodes: list of ints
+
+    Returns:
+    ----------
+    - Graph: a contracted graph where `nodes` are merged into a supernode
+    - edge_property_map: new weight
+    """
+    if len(nodes) == 1:
+        return g, weights
+
+    nodes = set(nodes)
+
+    # print('nodes:', nodes)
+    
+    # re-align the nodes
+    # `v \in nodes` are considered node 0
+    # get the old node to new node mapping
+    o2n_map = {}
+    c = 1
+    for v in g.vertices():
+        v = int(v)
+        if v not in nodes:
+            o2n_map[v] = c
+            c += 1
+        else:
+            o2n_map[v] = 0
+    # print('o2n_map:', o2n_map)
+
+    # calculate new edges and new weights
+    e2w = defaultdict(float)
+    for e in g.edges():
+        u, v = map(int, [e.source(), e.target()])
+        nu, nv = sorted([o2n_map[u], o2n_map[v]])
+        if weights:
+            e2w[(nu, nv)] += weights[g.edge(u, v)]
+        else:
+            e2w[(nu, nv)] += 1
+
+    # print('e2w:', e2w)
+
+    # create the new graph
+    new_g = Graph(directed=False)
+    for _ in range(g.num_vertices() - len(nodes) + 1):
+        new_g.add_vertex()
+
+    for u, v in e2w:
+        new_g.add_edge(u, v)
+
+    new_weights = new_g.new_edge_property('float')
+    for (u, v), w in e2w.items():
+        new_weights[new_g.edge(u, v)] = w
+
+    return new_g, new_weights
