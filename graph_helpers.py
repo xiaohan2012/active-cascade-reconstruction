@@ -171,3 +171,4 @@ def contract_graph_by_nodes(g, nodes, weights=None):
         new_weights[new_g.edge(u, v)] = w
 
     return new_g, new_weights
+
