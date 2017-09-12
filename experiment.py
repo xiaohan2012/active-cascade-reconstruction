@@ -8,15 +8,15 @@ from eval_helpers import infection_precision_recall
 from graph_helpers import isolate_node
 
 
-def gen_input(g, p=0.1, q=0.1):
-    s, c, _ = si(g, p)
+def gen_input(g, stop_fraction=0.25, p=0.1, q=0.1):
+    s, c, _ = si(g, p, stop_fraction=stop_fraction)
     obs = observe_cascade(c, s, q)
     return obs, c
 
 
 def one_round_experiment(g, obs, c, q_gen, query_method, n_queries=None):
     """
-    str query_method: {'random', 'ours'}
+    str query_method: {'random', 'ours', 'pagerank}
     """    
     efilt = g.new_edge_property('bool')
     efilt.set_value(True)
@@ -29,7 +29,7 @@ def one_round_experiment(g, obs, c, q_gen, query_method, n_queries=None):
         n_queries = len(q_gen.pool)
         
     for i in range(n_queries):
-        if query_method == 'random':
+        if query_method in {'random', 'pagerank'}:
             q = q_gen.select_query()
         elif query_method == 'ours':
             q = q_gen.select_query(g, inf_nodes)

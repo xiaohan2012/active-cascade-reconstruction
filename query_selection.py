@@ -1,6 +1,7 @@
 import numpy as np
 import random
 from core import uncertainty_scores
+from graph_tool.centrality import pagerank
 
 
 class BaseQueryGenerator():
@@ -48,7 +49,7 @@ class OurQueryGenerator(BaseQueryGenerator):
         vfilt.a = True
         g.set_vertex_filter(vfilt)
         
-    def _select_query(self, g, obs):
+    def _select_query(self, g, inf_nodes):
         """we need to ensure all visible nodes in `g` are in the same component
         because of the node/query isolation process during active learning, edges are removed
         thus, there might not be spanning tree the new graph
@@ -63,7 +64,7 @@ class OurQueryGenerator(BaseQueryGenerator):
         self._hide_isolated_nods(g)
         
         scores = uncertainty_scores(
-            g, obs,
+            g, inf_nodes,
             self.num_spt,
             self.num_stt,
             self.method)
@@ -73,3 +74,17 @@ class OurQueryGenerator(BaseQueryGenerator):
         self._show_all_nodes(g)
         return q
 
+
+class PRQueryGenerator(BaseQueryGenerator):
+    """rank node by pagerank score
+    """
+    def __init__(self, g, *args):
+        rank = pagerank(g)
+        self.pr = {}
+        for v in g.vertices():
+            self.pr[int(v)] = rank[v]
+            
+        super(PRQueryGenerator, self).__init__(g, *args)
+
+    def _select_query(self):
+        return max(self.pool, key=self.pr.__getitem__)
