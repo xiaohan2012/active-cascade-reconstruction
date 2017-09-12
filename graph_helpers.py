@@ -172,3 +172,48 @@ def contract_graph_by_nodes(g, nodes, weights=None):
 
     return new_g, new_weights
 
+
+def extract_edges_from_pred(source, target, pred):
+    """edges from `target` to `source` using predecessor map, `pred`"""
+    edges = []
+    c = target
+    while c != source and pred[c] != -1:
+        edges.append((pred[c], c))
+        c = pred[c]
+    return edges
+
+
+class DistPredVisitor(BFSVisitor):
+    """visitor to track distance and predecessor"""
+
+    def __init__(self, pred, dist):
+        """np.ndarray"""
+        self.pred = pred
+        self.dist = dist
+
+    def tree_edge(self, e):
+        s, t = int(e.source()), int(e.target())
+        self.pred[t] = s
+        self.dist[t] = self.dist[s] + 1
+
+
+def init_visitor(g, root):
+    dist = np.ones(g.num_vertices()) * -1
+    dist[root] = 0
+    pred = np.ones(g.num_vertices(), dtype=int) * -1
+    vis = DistPredVisitor(pred, dist)
+    return vis
+
+
+def is_tree(t):
+    # num nodes = num edges+1
+    if t.num_vertices() != (t.num_edges() + 1):
+        return False
+
+    # all nodes have degree > 0
+    vs = list(map(int, t.vertices()))
+    degs = t.degree_property_map('out').a[vs]
+    if np.all(degs > 0) == 0:
+        return False
+
+    return True
