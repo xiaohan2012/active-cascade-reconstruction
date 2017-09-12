@@ -1,8 +1,10 @@
 import numpy as np
 import itertools
+from copy import copy
 from graph_tool import Graph, GraphView
 from graph_tool.search import bfs_search, BFSVisitor
 from graph_tool.topology import random_spanning_tree
+
 
 from collections import defaultdict
 
@@ -42,7 +44,7 @@ def extract_edges(g):
 def extract_steiner_tree(sp_tree, terminals):
     """given spanning tree and terminal nodes, extract the steiner tree that spans terminals
     
-    Param:
+    Args:
     ------------
 
     sp_tree: spanning tree
@@ -61,8 +63,12 @@ def extract_steiner_tree(sp_tree, terminals):
 
     running time: O(E)
     """
+    terminals = copy(terminals)  # iterative use of obs
+
     if not isinstance(terminals, list):
         terminals = list(set(terminals))
+
+    assert len(terminals) > 0
 
     pred = dict(zip(range(sp_tree.num_vertices()), itertools.repeat(None)))
 
@@ -217,3 +223,41 @@ def is_tree(t):
         return False
 
     return True
+
+
+def isolate_node(g, n):
+    """mask out adjacent edges to `n` in `g`
+    """
+    efilt = g.get_edge_filter()[0]
+    if efilt is None:
+        efilt = g.new_edge_property('bool')
+
+    incident_edges = g.vertex(n).out_edges()
+
+    for e in incident_edges:
+        efilt[e] = False
+    g.set_edge_filter(efilt)
+
+
+def hide_node(g, n):
+    """mask out node `n`
+    """
+    vfilt = g.get_vertex_filter()[0]
+
+    if vfilt is None:
+        vfilt = g.new_vertex_property('bool')
+        vfilt.set_value(True)
+
+    vfilt[n] = False
+    g.set_vertex_filter(vfilt)
+
+
+def add_ve_filters(g):
+    """so that we won't get null vertex_filter or edge_filter
+    """
+    efilt = g.new_edge_property('bool')
+    efilt.set_value(True)
+    vfilt = g.new_vertex_property('bool')
+    vfilt.set_value(True)
+
+    return GraphView(g, efilt=efilt, vfilt=vfilt)
