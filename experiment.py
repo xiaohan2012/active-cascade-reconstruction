@@ -2,10 +2,10 @@ from graph_tool import GraphView
 from graph_tool.generation import lattice
 
 from cascade_generator import si, observe_cascade
-from query_selection import RandomQueryGenerator, OurQueryGenerator
+from query_selection import OurQueryGenerator
 from inference import infer_infected_nodes
 from eval_helpers import infection_precision_recall
-from graph_helpers import isolate_node
+from graph_helpers import isolate_node, add_ve_filters
 
 
 def gen_input(g, stop_fraction=0.25, p=0.1, q=0.1):
@@ -13,7 +13,7 @@ def gen_input(g, stop_fraction=0.25, p=0.1, q=0.1):
     obs = observe_cascade(c, s, q)
     return obs, c
 
-
+# @profile
 def one_round_experiment(g, obs, c, q_gen, query_method, n_queries=None):
     """
     str query_method: {'random', 'ours', 'pagerank}
@@ -53,5 +53,6 @@ def one_round_experiment(g, obs, c, q_gen, query_method, n_queries=None):
 if __name__ == '__main__':
     g = lattice((10, 10))
     obs, c = gen_input(g)
-    score = one_round_experiment(g, obs, c)
+    our_gen = OurQueryGenerator(add_ve_filters(g), obs, num_spt=20, num_stt=5)
+    score = one_round_experiment(g, obs, c, our_gen, 'ours', 20)
     print(score)
