@@ -94,13 +94,12 @@ def extract_steiner_tree(sp_tree, terminals):
     s = terminals[0]
     bfs_search(sp_tree, source=s, visitor=vis)
 
-    # print('\n')
-    # print('s', s)
-
     while len(terminals) > 0:
         x = terminals.pop()
-        print('x', x)
 
+        if vfilt[x]:
+            continue
+        
         vfilt[x] = True
         
         # get edges from x to s
@@ -108,18 +107,14 @@ def extract_steiner_tree(sp_tree, terminals):
         while y >= 0:
             # 0 can be node, `while y` is wrong
 
-            # print('edge(x, y)', (x, y))
-            
             efilt[sp_tree.edge(x, y)] = True
 
             if vfilt[y]:
-                # print('{} visited'.format(y))
                 break
             
             vfilt[y] = True
             x = y
             y = vis.pred[x]
-            print('new y: {}'.format(y))
 
     return GraphView(sp_tree, vfilt=vfilt, efilt=efilt)
 
