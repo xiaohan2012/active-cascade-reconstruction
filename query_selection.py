@@ -78,13 +78,18 @@ class OurQueryGenerator(BaseQueryGenerator):
 class PRQueryGenerator(BaseQueryGenerator):
     """rank node by pagerank score
     """
-    def __init__(self, g, *args):
-        rank = pagerank(g)
+    def __init__(self, g, obs, *args, **kwargs):
+        # personalized vector for pagerank
+        pers = g.new_vertex_property('float')
+        for o in obs:
+            pers[o] = 1 / len(obs)
+        rank = pagerank(g, pers=pers)
+
         self.pr = {}
         for v in g.vertices():
             self.pr[int(v)] = rank[v]
             
-        super(PRQueryGenerator, self).__init__(g, *args)
+        super(PRQueryGenerator, self).__init__(g, obs, *args, **kwargs)
 
     def _select_query(self):
         return max(self.pool, key=self.pr.__getitem__)
