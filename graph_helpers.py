@@ -42,7 +42,7 @@ def extract_edges(g):
 
 
 def extract_steiner_tree(sp_tree, terminals):
-    """given spanning tree and terminal nodes, extract the steiner tree that spans terminals
+    """given spanning tree and terminal nodes, extract the minimum steiner tree that spans terminals
     
     Args:
     ------------
@@ -56,9 +56,9 @@ def extract_steiner_tree(sp_tree, terminals):
     
     algorithm idea:
 
-    1. BFS from `s \in terminals`, to the other terminals, `terminals - {s}`
-    2. BFS back from `v \in terminals-{s}` to s and collect the edges
-       - note that BFS is terminated if some node is already traversed
+    1. BFS from any `s \in terminals`, to the other terminals, `terminals - {s}`
+    2. traverse back from each `v \in terminals-{s}` to s and collect the edges
+       - note that traversal is terminated if some node is already traversed
          (in other words, edges are added already)
 
     running time: O(E)
@@ -70,7 +70,9 @@ def extract_steiner_tree(sp_tree, terminals):
 
     assert len(terminals) > 0
 
-    pred = dict(zip(range(sp_tree.num_vertices()), itertools.repeat(None)))
+    # predecessor map
+    pred = dict(zip(range(sp_tree.num_vertices()),
+                    itertools.repeat(-1)))
 
     class Visitor(BFSVisitor):
         """record the predecessor"""
@@ -89,22 +91,35 @@ def extract_steiner_tree(sp_tree, terminals):
     vfilt = sp_tree.new_vertex_property('bool')
     vfilt.set_value(False)
     
-    s = terminals.pop()
+    s = terminals[0]
     bfs_search(sp_tree, source=s, visitor=vis)
 
-    vfilt[s] = True
+    # print('\n')
+    # print('s', s)
+
     while len(terminals) > 0:
         x = terminals.pop()
-        vfilt[x] = True
+        print('x', x)
 
+        vfilt[x] = True
+        
+        # get edges from x to s
         y = vis.pred[x]
-        while y:
+        while y >= 0:
+            # 0 can be node, `while y` is wrong
+
+            # print('edge(x, y)', (x, y))
+            
             efilt[sp_tree.edge(x, y)] = True
-            vfilt[y] = True
-            if not vfilt[y]:
+
+            if vfilt[y]:
+                # print('{} visited'.format(y))
                 break
+            
+            vfilt[y] = True
             x = y
             y = vis.pred[x]
+            print('new y: {}'.format(y))
 
     return GraphView(sp_tree, vfilt=vfilt, efilt=efilt)
 
