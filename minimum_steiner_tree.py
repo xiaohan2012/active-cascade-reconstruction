@@ -20,8 +20,7 @@ def build_closure(g, terminals,
     terminals = list(terminals)
     gc = Graph(directed=False)
 
-    for _ in range(g.num_vertices()):
-        gc.add_vertex()
+    gc.add_vertex(g.num_vertices())
 
     edges_with_weight = set()
     r2pred = {}  # root to predecessor map (from bfs)

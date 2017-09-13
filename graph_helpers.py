@@ -1,12 +1,11 @@
 import numpy as np
 import itertools
 from copy import copy
+from collections import defaultdict
+
 from graph_tool import Graph, GraphView
 from graph_tool.search import bfs_search, BFSVisitor
 from graph_tool.topology import random_spanning_tree, label_components
-
-
-from collections import defaultdict
 
 
 def build_graph_from_edges(edges):
@@ -214,9 +213,9 @@ class DistPredVisitor(BFSVisitor):
 
 
 def init_visitor(g, root):
-    dist = np.ones(g.num_vertices()) * -1
+    dist = defaultdict(lambda: -1)
     dist[root] = 0
-    pred = np.ones(g.num_vertices(), dtype=int) * -1
+    pred = defaultdict(lambda: -1)
     vis = DistPredVisitor(pred, dist)
     return vis
 
