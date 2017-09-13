@@ -75,10 +75,11 @@ def min_steiner_tree(g, obs_nodes, debug=False, verbose=False):
             tree_edges.add(((i, j)))
             
     tree_nodes = list(set(itertools.chain(*tree_edges)))
-    vfilt_value = np.zeros(g.num_vertices())
-    vfilt_value[tree_nodes] = 1
+
     vfilt = g.new_vertex_property('bool')
-    vfilt.set_2d_array(vfilt_value)
+    vfilt.set_value(False)
+    for n in tree_nodes:
+        vfilt[n] = True
     
     efilt = g.new_edge_property('bool')
     for i, j in tree_edges:
