@@ -1,7 +1,8 @@
 import numpy as np
 import pytest
+from graph_tool import Graph
 from query_selection import RandomQueryGenerator, OurQueryGenerator, PRQueryGenerator
-from graph_helpers import isolate_node, add_ve_filters
+from graph_helpers import isolate_node, remove_filters, hide_disconnected_components
 from experiment import gen_input
 from fixture import g, obs
 
@@ -20,26 +21,34 @@ def test_random(g, obs):
 
 
 def test_our_method(g):
-    # make sure it runnable
+    # make sure it is runnable
     obs, c = gen_input(g)
-    gv = add_ve_filters(g)
+    gv = remove_filters(g)
 
     q_gen = OurQueryGenerator(gv, obs, num_spt=20, num_stt=5)
     qs = set()
     n_queries = 10
 
+    graph_changed = False
     inf_nodes = list(obs)
     for i in range(n_queries):
         q = q_gen.select_query(gv, inf_nodes)
         qs.add(q)
         if c[q] == -1:
             isolate_node(gv, q)
+            hide_disconnected_components(gv, inf_nodes)
+            q_gen.update_pool(gv)
+            graph_changed = True
         else:
             inf_nodes.append(q)
 
     assert len(qs) == n_queries
-    assert gv.num_edges() < g.num_edges()
-    assert gv.num_vertices() == g.num_vertices()
+    if graph_changed:
+        assert gv.num_edges() < g.num_edges()
+        assert gv.num_vertices() < g.num_vertices()
+    else:
+        assert gv.num_edges() == g.num_edges()
+        assert gv.num_vertices() == g.num_vertices()
 
 
 def test_pagerank(g, obs):
