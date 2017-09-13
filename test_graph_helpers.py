@@ -6,7 +6,7 @@ from graph_helpers import (extract_steiner_tree, filter_graph_by_edges,
                            extract_edges, extract_nodes,
                            remove_filters,
                            contract_graph_by_nodes,
-                           isolate_disconnected_components)
+                           hide_disconnected_components)
 
 
 def test_extract_steiner_tree():
@@ -74,7 +74,7 @@ def test_isolate_disconnected_components():
     g = remove_filters(Graph(directed=False))
     g.add_vertex(4)
         
-    isolate_disconnected_components(g, [0, 2])  # 1, 3 are isolated
+    hide_disconnected_components(g, [0, 2])  # 1, 3 are isolated
     assert set(extract_nodes(g)) == {0, 2}
 
     ######### case 2 #######
@@ -83,7 +83,7 @@ def test_isolate_disconnected_components():
     g.add_edge(0, 1)
     g.add_edge(1, 2)
 
-    isolate_disconnected_components(g, [0])
+    hide_disconnected_components(g, [0])
     assert set(extract_nodes(g)) == {0, 1, 2}
     
 

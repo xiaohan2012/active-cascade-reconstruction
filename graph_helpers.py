@@ -242,7 +242,7 @@ def isolate_node(g, n):
     incident_edges = g.vertex(n).out_edges()
 
     for e in incident_edges:
-        print('isolate node: hiding {}'.format(e))
+        # print('isolate node: hiding {}'.format(e))
         efilt[e] = False
     g.set_edge_filter(efilt)
 
@@ -270,7 +270,7 @@ def remove_filters(g):
     return GraphView(g, efilt=efilt, vfilt=vfilt, directed=False)
 
 
-def isolate_disconnected_components(g, pivots):
+def hide_disconnected_components(g, pivots):
     """
     given a graph (might be disconnected) and some nodes (pivots) in it.
 
