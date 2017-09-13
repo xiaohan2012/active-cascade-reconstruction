@@ -1,4 +1,3 @@
-import numpy as np
 import random
 from core import uncertainty_scores
 from graph_tool.centrality import pagerank
@@ -42,7 +41,7 @@ class OurQueryGenerator(BaseQueryGenerator):
         self.num_stt = num_stt
         self.method = method
         super(OurQueryGenerator, self).__init__(*args)
-        
+
     def _select_query(self, g, inf_nodes):
         scores = uncertainty_scores(
             g, inf_nodes,
