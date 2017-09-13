@@ -55,7 +55,8 @@ def one_round_experiment(g, obs, c, q_gen, query_method,
             inf_nodes.append(q)
         preds = infer_infected_nodes(g, inf_nodes)
 
-        scores = list(infection_precision_recall(preds, c, inf_nodes))
+        # TODO: should we set aside queried nodes during evaluation?
+        scores = list(infection_precision_recall(preds, c, obs))
         performance.append(scores)
     return performance
 
