@@ -3,7 +3,7 @@ import itertools
 from copy import copy
 from graph_tool import Graph, GraphView
 from graph_tool.search import bfs_search, BFSVisitor
-from graph_tool.topology import random_spanning_tree
+from graph_tool.topology import random_spanning_tree, label_components
 
 
 from collections import defaultdict
@@ -70,8 +70,8 @@ def extract_steiner_tree(sp_tree, terminals):
 
     assert len(terminals) > 0
 
-    # predecessor map
-    pred = dict(zip(range(sp_tree.num_vertices()),
+    # predecessor map, int -> int
+    pred = dict(zip(extract_nodes(sp_tree),
                     itertools.repeat(-1)))
 
     class Visitor(BFSVisitor):
@@ -237,37 +237,60 @@ def is_tree(t):
 
 def isolate_node(g, n):
     """mask out adjacent edges to `n` in `g`
+    **with side-effect**
     """
     efilt = g.get_edge_filter()[0]
-    if efilt is None:
-        efilt = g.new_edge_property('bool')
-
     incident_edges = g.vertex(n).out_edges()
 
     for e in incident_edges:
+        print('isolate node: hiding {}'.format(e))
         efilt[e] = False
     g.set_edge_filter(efilt)
 
 
 def hide_node(g, n):
     """mask out node `n`
+    **with side-effect**
     """
     vfilt = g.get_vertex_filter()[0]
-
-    if vfilt is None:
-        vfilt = g.new_vertex_property('bool')
-        vfilt.set_value(True)
-
     vfilt[n] = False
     g.set_vertex_filter(vfilt)
 
 
-def add_ve_filters(g):
-    """so that we won't get null vertex_filter or edge_filter
+def remove_filters(g):
+    """
+    remove all filters and add filter with all entries on
+
+    so that we won't get null vertex_filter or edge_filter
     """
     efilt = g.new_edge_property('bool')
     efilt.set_value(True)
     vfilt = g.new_vertex_property('bool')
     vfilt.set_value(True)
 
-    return GraphView(g, efilt=efilt, vfilt=vfilt)
+    return GraphView(g, efilt=efilt, vfilt=vfilt, directed=False)
+
+
+def isolate_disconnected_components(g, pivots):
+    """
+    given a graph (might be disconnected) and some nodes (pivots) in it.
+
+    hide the components in `g` in which no pivot is in
+
+    **with side effect**
+    """    
+    prop = label_components(g)[0]
+    v2c = {v: prop[v] for v in g.vertices()}
+    c2vs = defaultdict(set)
+    for v, c in v2c.items():
+        c2vs[c].add(v)
+
+    vs_to_show = set()
+    for v in pivots:
+        vs_to_show |= c2vs[v2c[v]]
+
+    vfilt = g.get_vertex_filter()[0]
+    vfilt.set_value(False)
+    for v in vs_to_show:
+        vfilt[v] = True
+    g.set_vertex_filter(vfilt)
