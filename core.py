@@ -65,7 +65,9 @@ def uncertainty_count(n, trees):
     return min(yes, no)
 
 
-def uncertainty_scores(g, obs, num_spt=100, num_stt=25, method='count'):
+def uncertainty_scores(g, obs, num_spt=100, num_stt=25,
+                       method='count',
+                       use_resample=True):
     """
     calculate uncertainty scores based on sampled steiner trees
 
@@ -76,6 +78,7 @@ def uncertainty_scores(g, obs, num_spt=100, num_stt=25, method='count'):
     int `num_spt`: number of spanning trees
     int `num_stt`: number of steiner trees
     str `method`: {'count', 'entropy'}
+    bool `use_resample`: wheter use SIR or not
 
     Returns:
 
@@ -87,23 +90,26 @@ def uncertainty_scores(g, obs, num_spt=100, num_stt=25, method='count'):
         st = extract_steiner_tree(rand_t, obs)
         steiner_tree_pool.append(st)
 
-    # two sets of scores
-    det_scores = [det_score_of_steiner_tree(st, g)
-                  for st in steiner_tree_pool]
-    real_scores = np.exp([-st.num_edges()
-                          for st in steiner_tree_pool])
+    if use_resample:
+        # two sets of scores
+        det_scores = [det_score_of_steiner_tree(st, g)
+                      for st in steiner_tree_pool]
+        real_scores = np.exp([-st.num_edges()
+                              for st in steiner_tree_pool])
 
-    # normalize into proba
-    sampling_importance = real_scores / np.array(det_scores)
-    sampling_importance /= sampling_importance.sum()
+        # normalize into proba
+        sampling_importance = real_scores / np.array(det_scores)
+        sampling_importance /= sampling_importance.sum()
 
-    # st trees to choose
-    resampled_ids = np.random.choice(
-        np.arange(len(steiner_tree_pool)), num_stt, replace=False,
-        p=sampling_importance)
+        # st trees to choose
+        resampled_ids = np.random.choice(
+            np.arange(len(steiner_tree_pool)), num_stt, replace=False,
+            p=sampling_importance)
 
-    tree_samples = [steiner_tree_pool[i]
-                    for i in resampled_ids]
+        tree_samples = [steiner_tree_pool[i]
+                        for i in resampled_ids]
+    else:
+        tree_samples = steiner_tree_pool
 
     if method == 'count':
         uncert = uncertainty_count

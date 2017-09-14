@@ -4,7 +4,8 @@ from cascade_generator import si, observe_cascade
 from query_selection import OurQueryGenerator
 from inference import infer_infected_nodes
 from eval_helpers import infection_precision_recall
-from graph_helpers import isolate_node, remove_filters
+from graph_helpers import (isolate_node, remove_filters,
+                           hide_disconnected_components)
 
 
 def gen_input(g, stop_fraction=0.25, p=0.1, q=0.1):
@@ -12,13 +13,18 @@ def gen_input(g, stop_fraction=0.25, p=0.1, q=0.1):
     obs = observe_cascade(c, s, q)
     return obs, c
 
-
-def one_round_experiment(g, obs, c, q_gen, query_method, n_queries=None,
+# @profile
+def one_round_experiment(g, obs, c, q_gen, query_method,
+                         n_queries=None,
                          debug=False):
     """
     str query_method: {'random', 'ours', 'pagerank}
     """
-    g = remove_filters(g)  # protect the original graph
+    if not debug:
+        # if debug, we need to check how the graph is changed
+        g = remove_filters(g)  # protect the original graph
+
+    assert not g.is_directed()
     
     performance = []
     inf_nodes = list(obs)
@@ -34,12 +40,17 @@ def one_round_experiment(g, obs, c, q_gen, query_method, n_queries=None,
         else:
             raise ValueError('no such method..')
 
+        if debug:
+            print('query: {}'.format(q))
+
         if c[q] == -1:
             # uninfected
             # remove it from graph
             # ignore for now
             # filter the node will change the vertex index
             isolate_node(g, q)
+            hide_disconnected_components(g, inf_nodes)
+            q_gen.update_pool(g)
         else:
             inf_nodes.append(q)
         preds = infer_infected_nodes(g, inf_nodes)

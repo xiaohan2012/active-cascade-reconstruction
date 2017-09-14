@@ -36,10 +36,12 @@ class RandomQueryGenerator(BaseQueryGenerator):
 
 class OurQueryGenerator(BaseQueryGenerator):
     """OUR CONTRIBUTION"""
-    def __init__(self, *args, num_spt=100, num_stt=25, method='count'):
+    def __init__(self, *args, num_spt=100, num_stt=25, method='count', use_resample=False):
         self.num_spt = num_spt
         self.num_stt = num_stt
         self.method = method
+        self.use_resample = use_resample
+
         super(OurQueryGenerator, self).__init__(*args)
 
     def _select_query(self, g, inf_nodes):
@@ -47,7 +49,8 @@ class OurQueryGenerator(BaseQueryGenerator):
             g, inf_nodes,
             self.num_spt,
             self.num_stt,
-            self.method)
+            self.method,
+            use_resample=self.use_resample)
         q = max(self._pool, key=scores.__getitem__)
         return q
 
