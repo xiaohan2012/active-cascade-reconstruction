@@ -41,7 +41,7 @@ def extract_nodes(g):
 def extract_edges(g):
     return [(int(u), int(v)) for u, v in g.edges()]
 
-
+@profile
 def extract_steiner_tree(sp_tree, terminals):
     """given spanning tree and terminal nodes, extract the minimum steiner tree that spans terminals
     
@@ -116,11 +116,16 @@ def extract_steiner_tree(sp_tree, terminals):
             y = vis.pred[x]
 
     # get the filters
+    # vfilt = sp_tree.new_vertex_property('bool')
+    # vfilt.set_value(False)
+    # for v, flag in vdict.items():
+    #     if flag:
+    #         vfilt[v] = True
     vfilt = sp_tree.new_vertex_property('bool')
-    vfilt.set_value(False)
+    vfilt.a = False
     for v, flag in vdict.items():
         if flag:
-            vfilt[v] = True
+            vfilt.a[v] = True
 
     efilt = sp_tree.new_edge_property('bool')
     efilt.set_value(False)

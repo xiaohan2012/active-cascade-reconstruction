@@ -64,7 +64,7 @@ def uncertainty_count(n, trees):
     yes, no = node_occurrence_freq(n, trees)
     return min(yes, no)
 
-
+@profile
 def uncertainty_scores(g, obs, num_spt=100, num_stt=25,
                        method='count',
                        use_resample=True):

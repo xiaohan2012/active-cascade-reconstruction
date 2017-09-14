@@ -13,7 +13,7 @@ def gen_input(g, stop_fraction=0.25, p=0.1, q=0.1):
     obs = observe_cascade(c, s, q)
     return obs, c
 
-# @profile
+@profile
 def one_round_experiment(g, obs, c, q_gen, query_method,
                          n_queries=None,
                          debug=False):
@@ -62,6 +62,6 @@ def one_round_experiment(g, obs, c, q_gen, query_method,
 if __name__ == '__main__':
     g = lattice((10, 10))
     obs, c = gen_input(g)
-    our_gen = OurQueryGenerator(remove_filters(g), obs, num_spt=20, num_stt=5)
-    score = one_round_experiment(g, obs, c, our_gen, 'ours', 20)
+    our_gen = OurQueryGenerator(remove_filters(g), obs, num_spt=100, num_stt=5, use_resample=False)
+    score = one_round_experiment(g, obs, c, our_gen, 'ours', 2)
     print(score)
