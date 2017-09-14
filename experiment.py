@@ -33,7 +33,7 @@ def one_round_experiment(g, obs, c, q_gen, query_method, n_queries=None,
             q = q_gen.select_query(g, inf_nodes)
         else:
             raise ValueError('no such method..')
-        if debu
+
         if c[q] == -1:
             # uninfected
             # remove it from graph

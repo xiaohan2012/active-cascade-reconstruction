@@ -2,9 +2,11 @@ import numpy as np
 import itertools
 from copy import copy
 from collections import defaultdict
+from itertools import repeat
 
-from graph_tool import Graph, GraphView
+from graph_tool import Graph, GraphView, load_graph
 from graph_tool.search import bfs_search, BFSVisitor
+from graph_tool.generation import lattice
 from graph_tool.topology import random_spanning_tree, label_components
 
 
@@ -83,12 +85,10 @@ def extract_steiner_tree(sp_tree, terminals):
             self.pred[int(e.target())] = int(e.source())
     
     vis = Visitor(pred)
-    
-    efilt = sp_tree.new_edge_property('bool')
-    efilt.set_value(False)
 
-    vfilt = sp_tree.new_vertex_property('bool')
-    vfilt.set_value(False)
+    st_edges = set()
+    vdict = dict(zip(extract_nodes(sp_tree),
+                     repeat(False)))
     
     s = terminals[0]
     bfs_search(sp_tree, source=s, visitor=vis)
@@ -96,24 +96,36 @@ def extract_steiner_tree(sp_tree, terminals):
     while len(terminals) > 0:
         x = terminals.pop()
 
-        if vfilt[x]:
+        if vdict[x]:
             continue
         
-        vfilt[x] = True
+        vdict[x] = True
         
         # get edges from x to s
         y = vis.pred[x]
         while y >= 0:
             # 0 can be node, `while y` is wrong
 
-            efilt[sp_tree.edge(x, y)] = True
+            st_edges.add((x, y))
 
-            if vfilt[y]:
+            if vdict[y]:
                 break
             
-            vfilt[y] = True
+            vdict[y] = True
             x = y
             y = vis.pred[x]
+
+    # get the filters
+    vfilt = sp_tree.new_vertex_property('bool')
+    vfilt.set_value(False)
+    for v, flag in vdict.items():
+        if flag:
+            vfilt[v] = True
+
+    efilt = sp_tree.new_edge_property('bool')
+    efilt.set_value(False)
+    for i, j in st_edges:
+        efilt[sp_tree.edge(i, j)] = True
 
     return GraphView(sp_tree, vfilt=vfilt, efilt=efilt)
 
@@ -293,3 +305,13 @@ def hide_disconnected_components(g, pivots):
     for v in vs_to_show:
         vfilt[v] = True
     g.set_vertex_filter(vfilt)
+
+
+def load_graph_by_name(name):
+    if name == 'grid':
+        shape = (10, 10)
+        g = lattice(shape)
+    else:
+        g = load_graph('data/{}/graph.gt'.format(name))
+    assert not g.is_directed()
+    return remove_filters(g)  # add shell
