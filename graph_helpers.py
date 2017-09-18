@@ -41,7 +41,7 @@ def extract_nodes(g):
 def extract_edges(g):
     return [(int(u), int(v)) for u, v in g.edges()]
 
-@profile
+# @profile
 def extract_steiner_tree(sp_tree, terminals):
     """given spanning tree and terminal nodes, extract the minimum steiner tree that spans terminals
     
@@ -313,10 +313,27 @@ def hide_disconnected_components(g, pivots):
 
 
 def load_graph_by_name(name):
-    if name == 'grid':
+    if name == 'lattice':
         shape = (10, 10)
         g = lattice(shape)
     else:
         g = load_graph('data/{}/graph.gt'.format(name))
     assert not g.is_directed()
     return remove_filters(g)  # add shell
+
+
+class GraphWrapper():
+    """for graph equality"""
+    def __init__(self, g):
+        self._g = g
+        self._nodes = set(extract_nodes(g))
+        self._edges = set(map(lambda e: tuple(sorted(e)), extract_edges(g)))
+        
+    def __eq__(self, other):
+        return self._nodes == other._nodes and self._edges == other._edges
+    
+    def __ne(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash(tuple(self._nodes | self._edges))
