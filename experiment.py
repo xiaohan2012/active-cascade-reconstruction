@@ -13,7 +13,7 @@ def gen_input(g, stop_fraction=0.25, p=0.1, q=0.1):
     obs = observe_cascade(c, s, q)
     return obs, c
 
-@profile
+# @profile
 def one_round_experiment(g, obs, c, q_gen, query_method,
                          n_queries=None,
                          debug=False):
