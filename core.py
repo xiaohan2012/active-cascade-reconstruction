@@ -64,8 +64,21 @@ def uncertainty_count(n, trees):
     yes, no = node_occurrence_freq(n, trees)
     return min(yes, no)
 
-@profile
-def uncertainty_scores(g, obs, num_spt=100, num_stt=25,
+
+def sample_steiner_trees(g, obs, n_samples):
+    """sample `n_samples` steiner trees that span `obs` in `g`
+    """
+    steiner_tree_samples = []
+    for _ in range(n_samples):
+        rand_t = gen_random_spanning_tree(g)
+        st = extract_steiner_tree(rand_t, obs)
+        steiner_tree_samples.append(st)
+    return steiner_tree_samples
+
+
+# @profile
+def uncertainty_scores(g, obs, steiner_tree_samples=None,
+                       num_spt=100, num_stt=25,
                        method='count',
                        use_resample=True):
     """
@@ -75,6 +88,7 @@ def uncertainty_scores(g, obs, num_spt=100, num_stt=25,
 
     Graph `g`
     list of int `obs`: list of observed nodes
+    steiner_tree_samples: list of steiner trees (*before* resampling)
     int `num_spt`: number of spanning trees
     int `num_stt`: number of steiner trees
     str `method`: {'count', 'entropy'}
@@ -84,18 +98,15 @@ def uncertainty_scores(g, obs, num_spt=100, num_stt=25,
 
     dict of (int, float): node to uncertainty score
     """
-    steiner_tree_pool = []
-    for _ in range(num_spt):
-        rand_t = gen_random_spanning_tree(g)
-        st = extract_steiner_tree(rand_t, obs)
-        steiner_tree_pool.append(st)
+    if steiner_tree_samples is None:
+        steiner_tree_samples = sample_steiner_trees(g, obs, num_spt)
 
     if use_resample:
         # two sets of scores
         det_scores = [det_score_of_steiner_tree(st, g)
-                      for st in steiner_tree_pool]
+                      for st in steiner_tree_samples]
         real_scores = np.exp([-st.num_edges()
-                              for st in steiner_tree_pool])
+                              for st in steiner_tree_samples])
 
         # normalize into proba
         sampling_importance = real_scores / np.array(det_scores)
@@ -103,13 +114,13 @@ def uncertainty_scores(g, obs, num_spt=100, num_stt=25,
 
         # st trees to choose
         resampled_ids = np.random.choice(
-            np.arange(len(steiner_tree_pool)), num_stt, replace=False,
+            np.arange(len(steiner_tree_samples)), num_stt, replace=False,
             p=sampling_importance)
 
-        tree_samples = [steiner_tree_pool[i]
-                        for i in resampled_ids]
+        tree_samples_resampled = [steiner_tree_samples[i]
+                                  for i in resampled_ids]
     else:
-        tree_samples = steiner_tree_pool
+        tree_samples_resampled = steiner_tree_samples
 
     if method == 'count':
         uncert = uncertainty_count
@@ -119,6 +130,6 @@ def uncertainty_scores(g, obs, num_spt=100, num_stt=25,
         raise ValueError('unknown method')
     
     non_obs_nodes = set(extract_nodes(g)) - set(obs)
-    r = {n: uncert(n, tree_samples)
+    r = {n: uncert(n, tree_samples_resampled)
          for n in non_obs_nodes}
     return r
