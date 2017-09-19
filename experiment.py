@@ -1,5 +1,6 @@
 from graph_tool.generation import lattice
 
+from tqdm import tqdm
 from cascade_generator import si, observe_cascade
 from query_selection import OurQueryGenerator
 from inference import infer_infected_nodes
@@ -16,7 +17,8 @@ def gen_input(g, stop_fraction=0.25, p=0.1, q=0.1):
 # @profile
 def one_round_experiment(g, obs, c, q_gen, query_method,
                          n_queries=None,
-                         debug=False):
+                         debug=False,
+                         log=False):
     """
     str query_method: {'random', 'ours', 'pagerank}
     """
@@ -31,8 +33,13 @@ def one_round_experiment(g, obs, c, q_gen, query_method,
 
     if n_queries is None:
         n_queries = len(q_gen.pool)
-        
-    for i in range(n_queries):
+
+    if log:
+        iters = tqdm(range(n_queries), total=n_queries)
+    else:
+        iters = range(n_queries)
+
+    for i in iters:
         if query_method in {'random', 'pagerank'}:
             q = q_gen.select_query()
         elif query_method == 'ours':
@@ -63,5 +70,5 @@ if __name__ == '__main__':
     g = lattice((10, 10))
     obs, c = gen_input(g)
     our_gen = OurQueryGenerator(remove_filters(g), obs, num_spt=100, num_stt=5, use_resample=False)
-    score = one_round_experiment(g, obs, c, our_gen, 'ours', 2)
+    score = one_round_experiment(g, obs, c, our_gen, 'ours', 10, log=True)
     print(score)
