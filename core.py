@@ -1,11 +1,10 @@
-import random
 import numpy as np
 from scipy.stats import entropy
 
 from linalg_helpers import num_spanning_trees_dense
 from graph_helpers import (contract_graph_by_nodes,
                            extract_nodes, extract_steiner_tree,
-                           gen_random_spanning_tree)
+                           has_vertex, gen_random_spanning_tree)
 
 
 def det_score_of_steiner_tree(st, g):
@@ -37,7 +36,7 @@ def resample(steiner_trees, g, m):
     resampled_ids = np.random.choice(np.arange(len(steiner_trees)), m, replace=False, p=sampling_importance)
     return [steiner_trees[i] for i in resampled_ids]
 
-
+# @profile
 def node_occurrence_freq(n, trees):
     """count how many times node `n` occures in `trees`
     returns (int, int), (yes it is in, not it's not)
@@ -45,10 +44,9 @@ def node_occurrence_freq(n, trees):
     yes = 1  # smoothing
     no = 1
     for t in trees:
-        try:
-            t.vertex(n)
+        if has_vertex(t, n):
             yes += 1
-        except ValueError:
+        else:
             no += 1
     return yes, no
 
@@ -64,23 +62,29 @@ def uncertainty_count(n, trees):
     yes, no = node_occurrence_freq(n, trees)
     return min(yes, no)
 
-
-def sample_steiner_trees(g, obs, n_samples):
+# @profile
+def sample_steiner_trees(g, obs, n_samples, sp_trees=None):
     """sample `n_samples` steiner trees that span `obs` in `g`
+
+    `sp_trees`: list of gt.GraphView, the spanning trees sampled in prior.
     """
     steiner_tree_samples = []
-    for _ in range(n_samples):
-        rand_t = gen_random_spanning_tree(g)
+    for i in range(n_samples):
+        if sp_trees is not None:
+            rand_t = sp_trees[i]
+        else:
+            rand_t = gen_random_spanning_tree(g)
         st = extract_steiner_tree(rand_t, obs)
         steiner_tree_samples.append(st)
     return steiner_tree_samples
 
 
-# @profile
-def uncertainty_scores(g, obs, steiner_tree_samples=None,
+def uncertainty_scores(g, obs,
                        num_spt=100, num_stt=25,
                        method='count',
-                       use_resample=True):
+                       use_resample=True,
+                       steiner_tree_samples=None,
+                       spanning_tree_samples=None):
     """
     calculate uncertainty scores based on sampled steiner trees
 
@@ -88,18 +92,19 @@ def uncertainty_scores(g, obs, steiner_tree_samples=None,
 
     Graph `g`
     list of int `obs`: list of observed nodes
-    steiner_tree_samples: list of steiner trees (*before* resampling)
     int `num_spt`: number of spanning trees
     int `num_stt`: number of steiner trees
     str `method`: {'count', 'entropy'}
     bool `use_resample`: wheter use SIR or not
+    steiner_tree_samples: list of steiner trees (*before* resampling)
+    spanning_tree_samples: list of spanning trees already sampled (for sample reuse)
 
     Returns:
 
     dict of (int, float): node to uncertainty score
     """
     if steiner_tree_samples is None:
-        steiner_tree_samples = sample_steiner_trees(g, obs, num_spt)
+        steiner_tree_samples = sample_steiner_trees(g, obs, num_spt, spanning_tree_samples)
 
     if use_resample:
         # two sets of scores

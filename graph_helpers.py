@@ -73,7 +73,7 @@ def extract_steiner_tree(sp_tree, terminals):
 
     # predecessor map, int -> int
     pred = dict(zip(extract_nodes(sp_tree),
-                    itertools.repeat(-1)))
+                    itertools.repeat((-1, None))))
 
     class Visitor(BFSVisitor):
         """record the predecessor"""
@@ -82,7 +82,9 @@ def extract_steiner_tree(sp_tree, terminals):
             self.pred = pred
         
         def tree_edge(self, e):
-            self.pred[int(e.target())] = int(e.source())
+            # stores (source, edge)
+            # because getting edge is expensive in graph_tool
+            self.pred[int(e.target())] = (int(e.source()), e)
     
     vis = Visitor(pred)
 
@@ -102,18 +104,18 @@ def extract_steiner_tree(sp_tree, terminals):
         vdict[x] = True
         
         # get edges from x to s
-        y = vis.pred[x]
+        y, e = vis.pred[x]
         while y >= 0:
             # 0 can be node, `while y` is wrong
 
-            st_edges.add((x, y))
+            st_edges.add(e)
 
             if vdict[y]:
                 break
             
             vdict[y] = True
             x = y
-            y = vis.pred[x]
+            y, e = vis.pred[x]
 
     # get the filters
     # vfilt = sp_tree.new_vertex_property('bool')
@@ -128,9 +130,14 @@ def extract_steiner_tree(sp_tree, terminals):
             vfilt.a[v] = True
 
     efilt = sp_tree.new_edge_property('bool')
-    efilt.set_value(False)
-    for i, j in st_edges:
-        efilt[sp_tree.edge(i, j)] = True
+    # efilt.set_value(False)
+    efilt.a = 0
+
+    # for i, j in st_edges:
+    #     e = sp_tree.edge(i, j, all_edges=False)
+    #     efilt[e] = True
+    for e in st_edges:
+        efilt[e] = True
 
     return GraphView(sp_tree, vfilt=vfilt, efilt=efilt)
 
@@ -337,3 +344,8 @@ class GraphWrapper():
 
     def __hash__(self):
         return hash(tuple(self._nodes | self._edges))
+
+
+def has_vertex(g, i):
+    # to avoid calling g.vertex
+    return g._Graph__filter_state['vertex_filter'][0].a[i] > 0

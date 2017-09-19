@@ -1,7 +1,7 @@
 import random
 from core import uncertainty_scores
 from graph_tool.centrality import pagerank
-from graph_helpers import extract_nodes
+from graph_helpers import extract_nodes, gen_random_spanning_tree
 
 
 class BaseQueryGenerator():
@@ -42,15 +42,20 @@ class OurQueryGenerator(BaseQueryGenerator):
         self.method = method
         self.use_resample = use_resample
 
+        self.spanning_trees = [gen_random_spanning_tree(args[0])
+                               for _ in range(num_spt)]
+
         super(OurQueryGenerator, self).__init__(*args)
 
     def _select_query(self, g, inf_nodes):
         scores = uncertainty_scores(
             g, inf_nodes,
-            self.num_spt,
-            self.num_stt,
-            self.method,
-            use_resample=self.use_resample)
+            num_spt=self.num_spt,
+            num_stt=self.num_stt,
+            method=self.method,
+            use_resample=self.use_resample,
+            steiner_tree_samples=None,
+            spanning_tree_samples=self.spanning_trees)
         q = max(self._pool, key=scores.__getitem__)
         return q
 
@@ -68,7 +73,7 @@ class PRQueryGenerator(BaseQueryGenerator):
         self.pr = {}
         for v in g.vertices():
             self.pr[int(v)] = rank[v]
-            
+
         super(PRQueryGenerator, self).__init__(g, obs, *args, **kwargs)
 
     def _select_query(self):
