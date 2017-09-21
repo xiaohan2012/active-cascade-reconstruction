@@ -1,12 +1,11 @@
-from graph_tool.generation import lattice
-
 from tqdm import tqdm
 from cascade_generator import si, observe_cascade
 from query_selection import OurQueryGenerator
 from inference import infer_infected_nodes
 from eval_helpers import infection_precision_recall
 from graph_helpers import (isolate_node, remove_filters,
-                           hide_disconnected_components)
+                           hide_disconnected_components,
+                           load_graph_by_name)
 
 
 def gen_input(g, stop_fraction=0.25, p=0.1, q=0.1):
@@ -67,8 +66,8 @@ def one_round_experiment(g, obs, c, q_gen, query_method,
     return performance
 
 if __name__ == '__main__':
-    g = lattice((10, 10))
+    g = load_graph_by_name('karate')
     obs, c = gen_input(g)
-    our_gen = OurQueryGenerator(remove_filters(g), obs, num_spt=100, num_stt=5, use_resample=False)
+    our_gen = OurQueryGenerator(remove_filters(g), obs, num_spt=100, num_stt=5, use_resample=True)
     score = one_round_experiment(g, obs, c, our_gen, 'ours', 10, log=True)
     print(score)

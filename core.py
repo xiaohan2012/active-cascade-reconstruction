@@ -6,7 +6,7 @@ from graph_helpers import (contract_graph_by_nodes,
                            extract_nodes, extract_steiner_tree,
                            has_vertex, gen_random_spanning_tree)
 
-
+# @profile
 def det_score_of_steiner_tree(st, g):
     """
     Param:
@@ -78,7 +78,7 @@ def sample_steiner_trees(g, obs, n_samples, sp_trees=None):
         steiner_tree_samples.append(st)
     return steiner_tree_samples
 
-
+# @profile
 def uncertainty_scores(g, obs,
                        num_spt=100, num_stt=25,
                        method='count',
