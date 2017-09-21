@@ -146,7 +146,7 @@ def gen_random_spanning_tree(g):
     efilt = random_spanning_tree(g)
     return GraphView(g, efilt=efilt)
 
-
+# @profile
 def contract_graph_by_nodes(g, nodes, weights=None):
     """
     contract graph by nodes (only for undirected)
@@ -199,15 +199,17 @@ def contract_graph_by_nodes(g, nodes, weights=None):
 
     # create the new graph
     new_g = Graph(directed=False)
-    for _ in range(g.num_vertices() - len(nodes) + 1):
-        new_g.add_vertex()
+    # for _ in range(g.num_vertices() - len(nodes) + 1):
+    #     new_g.add_vertex()
 
+    edges = []
     for u, v in e2w:
-        new_g.add_edge(u, v)
+        e = new_g.add_edge(u, v)
+        edges.append(e)
 
     new_weights = new_g.new_edge_property('float')
-    for (u, v), w in e2w.items():
-        new_weights[new_g.edge(u, v)] = w
+    for e, w in zip(edges, e2w.values()):
+        new_weights[e] = w
 
     return new_g, new_weights
 
@@ -287,9 +289,9 @@ def remove_filters(g):
     so that we won't get null vertex_filter or edge_filter
     """
     efilt = g.new_edge_property('bool')
-    efilt.set_value(True)
+    efilt.a = True
     vfilt = g.new_vertex_property('bool')
-    vfilt.set_value(True)
+    vfilt.a = True
 
     return GraphView(g, efilt=efilt, vfilt=vfilt, directed=False)
 
