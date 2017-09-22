@@ -63,12 +63,16 @@ def uncertainty_count(n, trees):
     return min(yes, no)
 
 # @profile
-def sample_steiner_trees(g, obs, n_samples, sp_trees=None):
+def sample_steiner_trees(g, obs, n_samples=None, sp_trees=None):
     """sample `n_samples` steiner trees that span `obs` in `g`
 
     `sp_trees`: list of gt.GraphView, the spanning trees sampled in prior.
     """
     steiner_tree_samples = []
+    if n_samples is None:
+        assert sp_trees
+        n_samples = len(sp_trees)
+        
     for i in range(n_samples):
         if sp_trees is not None:
             rand_t = sp_trees[i]
