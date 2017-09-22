@@ -15,14 +15,16 @@ def gen_input(g, stop_fraction=0.25, p=0.1, q=0.1):
 
 # @profile
 def one_round_experiment(g, obs, c, q_gen, query_method,
-                         inference_method,
-                         sp_trees=None,
+                         inference_method='sampling',
                          n_queries=None,
+                         return_details=False,
                          debug=False,
                          log=False):
     """
     str query_method: {'random', 'ours', 'pagerank}
     inference_method: {'min_steiner_tree', 'sampling'}
+
+    return_details: bool, whether queries and eval detials should be teturned
     """
     if not debug:
         # if debug, we need to check how the graph is changed
@@ -33,6 +35,9 @@ def one_round_experiment(g, obs, c, q_gen, query_method,
     performance = []
     inf_nodes = list(obs)
 
+    queries = []
+    details = []
+     
     if n_queries is None:
         n_queries = len(q_gen.pool)
 
@@ -52,6 +57,8 @@ def one_round_experiment(g, obs, c, q_gen, query_method,
         if debug:
             print('query: {}'.format(q))
 
+        queries.append(q)
+
         if c[q] == -1:
             # uninfected
             # remove it from graph
@@ -62,12 +69,20 @@ def one_round_experiment(g, obs, c, q_gen, query_method,
             q_gen.update_pool(g)
         else:
             inf_nodes.append(q)
-        preds = infer_infected_nodes(g, inf_nodes, method=inference_method, sp_trees=sp_trees)
+        preds = infer_infected_nodes(g, inf_nodes, method=inference_method)
         preds = set(preds)
 
-        scores = list(infection_precision_recall(preds, c, obs))
-        performance.append(scores)
-    return performance
+        scores = list(infection_precision_recall(preds, c, obs, return_details=return_details))
+        performance.append(scores[:2])
+
+        if return_details:
+            detail = scores[-1]
+            details.append(detail)
+
+    if return_details:
+        return performance, queries, details
+    else:
+        return performance
 
 if __name__ == '__main__':
     g = load_graph_by_name('karate')
