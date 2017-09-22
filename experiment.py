@@ -15,11 +15,14 @@ def gen_input(g, stop_fraction=0.25, p=0.1, q=0.1):
 
 # @profile
 def one_round_experiment(g, obs, c, q_gen, query_method,
+                         inference_method,
+                         sp_trees=None,
                          n_queries=None,
                          debug=False,
                          log=False):
     """
     str query_method: {'random', 'ours', 'pagerank}
+    inference_method: {'min_steiner_tree', 'sampling'}
     """
     if not debug:
         # if debug, we need to check how the graph is changed
@@ -59,7 +62,8 @@ def one_round_experiment(g, obs, c, q_gen, query_method,
             q_gen.update_pool(g)
         else:
             inf_nodes.append(q)
-        preds = infer_infected_nodes(g, inf_nodes)
+        preds = infer_infected_nodes(g, inf_nodes, method=inference_method, sp_trees=sp_trees)
+        preds = set(preds)
 
         scores = list(infection_precision_recall(preds, c, obs))
         performance.append(scores)

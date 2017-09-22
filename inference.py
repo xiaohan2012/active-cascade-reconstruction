@@ -3,7 +3,6 @@ from minimum_steiner_tree import min_steiner_tree
 from core import sample_steiner_trees, node_occurrence_freq
 from graph_helpers import extract_nodes
 
-
 def infer_infected_nodes(g, obs, method="min_steiner_tree", **kwargs):
     """besides observed infections, infer other infected nodes
     if method is 'sampling', then `kwargs` has 3 cases:
