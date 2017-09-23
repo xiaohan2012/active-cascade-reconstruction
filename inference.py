@@ -33,7 +33,6 @@ def infer_infected_nodes(g, obs, method="min_steiner_tree", **kwargs):
             st_trees = sample_steiner_trees(g, obs, n_samples,
                                             subset_size=subset_size,
                                             sp_trees=None)
-
         min_inf_proba = kwargs.get('min_inf_proba', 0.5)
         inf_probas = np.array([node_occurrence_freq(n, st_trees)[0]
                                for n in extract_nodes(g)]) / len(st_trees)

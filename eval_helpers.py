@@ -13,14 +13,17 @@ def infection_precision_recall(preds, c, obs, return_details=False):
     dict: detail of correct, fp, np keyed by the name
     """
     all_infs = set((c >= 0).nonzero()[0])
-    # print('all_infs:', all_infs)
     remain_infs = all_infs - set(obs)
-    correct = preds.intersection(remain_infs)
     preds -= set(obs)
-    # print('correct: ', correct)
-    # print("preds: ", preds)
-    # print('remain_infs: ', remain_infs)
-    precision = len(correct) / len(preds)
+    
+    correct = preds.intersection(remain_infs)
+
+    try:
+        precision = len(correct) / len(preds)
+    except ZeroDivisionError:
+        assert len(correct) == 0
+        precision = 0.0
+        
     recall = len(correct) / len(remain_infs)
 
     if not return_details:

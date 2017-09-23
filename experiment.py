@@ -16,6 +16,8 @@ def gen_input(g, stop_fraction=0.25, p=0.1, q=0.1):
 # @profile
 def one_round_experiment(g, obs, c, q_gen, query_method,
                          inference_method='sampling',
+                         n_spanning_tree_samples=100,
+                         subset_size=None,
                          n_queries=None,
                          return_details=False,
                          debug=False,
@@ -69,7 +71,9 @@ def one_round_experiment(g, obs, c, q_gen, query_method,
             q_gen.update_pool(g)
         else:
             inf_nodes.append(q)
-        preds = infer_infected_nodes(g, inf_nodes, method=inference_method)
+        preds = infer_infected_nodes(g, inf_nodes, method=inference_method,
+                                     n_samples=n_spanning_tree_samples,
+                                     subset_size=subset_size)
         preds = set(preds)
 
         scores = list(infection_precision_recall(preds, c, obs, return_details=return_details))
@@ -77,6 +81,7 @@ def one_round_experiment(g, obs, c, q_gen, query_method,
 
         if return_details:
             detail = scores[-1]
+            detail['obs'] = inf_nodes
             details.append(detail)
 
     if return_details:
