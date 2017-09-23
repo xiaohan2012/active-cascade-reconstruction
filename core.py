@@ -63,10 +63,17 @@ def uncertainty_count(n, trees):
     return min(yes, no)
 
 # @profile
-def sample_steiner_trees(g, obs, n_samples=None, sp_trees=None):
+def sample_steiner_trees(g, obs,
+                         n_samples=None,
+                         subset_size=None,
+                         tree_cost_func=lambda t: t.num_edges(),
+                         sp_trees=None):
     """sample `n_samples` steiner trees that span `obs` in `g`
 
     `sp_trees`: list of gt.GraphView, the spanning trees sampled in prior.
+    `subset_size`: None or int, if given,
+        top-`n_subset` trees from `n_samples` steiner trees will be taken (from small to )
+        the sorting order is determined by `tree_cost_func`, the larger the cost, the latter
     """
     steiner_tree_samples = []
     if n_samples is None:
@@ -80,7 +87,11 @@ def sample_steiner_trees(g, obs, n_samples=None, sp_trees=None):
             rand_t = gen_random_spanning_tree(g)
         st = extract_steiner_tree(rand_t, obs)
         steiner_tree_samples.append(st)
-    return steiner_tree_samples
+    if subset_size is None:
+        return steiner_tree_samples
+    else:
+        assert subset_size > 0
+        return list(sorted(steiner_tree_samples, key=tree_cost_func))[:subset_size]
 
 # @profile
 def uncertainty_scores(g, obs,
