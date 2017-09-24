@@ -41,8 +41,7 @@ def node_occurrence_freq(n, trees):
     """count how many times node `n` occures in `trees`
     returns (int, int), (yes it is in, not it's not)
     """
-    yes = 1  # smoothing
-    no = 1
+    yes, no = 0, 0
     for t in trees:
         if has_vertex(t, n):
             yes += 1

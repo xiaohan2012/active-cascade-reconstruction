@@ -1,6 +1,9 @@
 import seaborn as sns
 import numpy as np
+import matplotlib
 
+from inference import infection_probability
+from graph_tool.draw import graph_draw
 from matplotlib.colors import ListedColormap
 
 
@@ -89,3 +92,39 @@ class QueryIllustrator():
     @classmethod
     def build_colormap(cls):
         return ListedColormap(cls.palette().as_hex())
+
+
+class InfectionProbability():
+    def __init__(self, g,
+                 pos,
+                 output_size=(300, 300),
+                 vertex_size=20,
+                 vcmap=matplotlib.cm.Reds):
+        self.g = g
+        self.pos = pos
+        self.output_size = output_size
+        self.vertex_size = vertex_size
+        self.vcmap = vcmap
+
+    def plot(self, obs, ax=None, **kwargs):
+        """kwargs: refer to `inference.infection_probability`"""
+        inf_probas = infection_probability(self.g, obs, **kwargs)
+        vcolor = self.g.new_vertex_property('float')
+        vcolor.set_value(0)
+        vcolor.a = inf_probas
+
+        vshape = self.g.new_vertex_property('string')
+        vshape.set_value('circle')
+
+        for o in obs:
+            vcolor[o] = 0
+            vshape[o] = 'square'
+
+        graph_draw(self.g,
+                   pos=self.pos,
+                   vcmap=self.vcmap,
+                   output_size=self.output_size,
+                   vertex_size=self.vertex_size,
+                   vertex_fill_color=vcolor,
+                   vertex_shape=vshape,
+                   mplfig=ax)
