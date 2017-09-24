@@ -31,7 +31,7 @@ def infection_probability(g, obs, **kwargs):
     return inf_probas
 
 
-def infer_infected_nodes(g, obs, method="min_steiner_tree", **kwargs):
+def infer_infected_nodes(g, obs, use_proba=True, method="min_steiner_tree", **kwargs):
     """besides observed infections, infer other infected nodes
     if method is 'sampling', refer to infection_probability,
 
@@ -43,6 +43,9 @@ def infer_infected_nodes(g, obs, method="min_steiner_tree", **kwargs):
         remain_infs = set(map(int, st.vertices()))
         return remain_infs
     else:  # sampling
-        min_inf_proba = kwargs.get('min_inf_proba', 0.5)
         inf_probas = infection_probability(g, obs, **kwargs)
-        return (inf_probas >= min_inf_proba).nonzero()[0]
+        if use_proba:
+            return inf_probas
+        else:
+            min_inf_proba = kwargs.get('min_inf_proba', 0.5)
+            return (inf_probas >= min_inf_proba).nonzero()[0]
