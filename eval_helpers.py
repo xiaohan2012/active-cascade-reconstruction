@@ -1,3 +1,6 @@
+import numpy as np
+
+
 def infection_precision_recall(preds, c, obs, return_details=False):
     """
     given set of inferred infected nodes and ground truth, return precision and recall
@@ -36,3 +39,13 @@ def infection_precision_recall(preds, c, obs, return_details=False):
                   'rec': recall}
         
         return precision, recall, detail
+
+
+def top_k_infection_precision_recall(inf_probas, c, obs, k):
+    """
+    take the top k infections ordered by inf_probas, from high to low
+
+    and then calculate the precision and recall w.r.t to obs
+    """
+    inf_nodes = set(np.argsort(inf_probas)[::-1][:k])
+    return infection_precision_recall(inf_nodes, c, obs, return_details=False)
