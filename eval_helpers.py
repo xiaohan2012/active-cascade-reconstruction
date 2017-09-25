@@ -1,8 +1,7 @@
-import numpy as np
 from graph_helpers import extract_nodes
 
 
-def infection_precision_recall(preds, c, obs, return_details=False):
+def infection_precision_recall(preds, c, obs):
     """
     given set of inferred infected nodes and ground truth, return precision and recall
 
@@ -14,7 +13,6 @@ def infection_precision_recall(preds, c, obs, return_details=False):
     Return:
     float: precison
     float: recall
-    dict: detail of correct, fp, np keyed by the name
     """
     all_infs = set((c >= 0).nonzero()[0])
     remain_infs = all_infs - set(obs)
@@ -22,24 +20,10 @@ def infection_precision_recall(preds, c, obs, return_details=False):
     
     correct = preds.intersection(remain_infs)
 
-    try:
-        precision = len(correct) / len(preds)
-    except ZeroDivisionError:
-        assert len(correct) == 0
-        precision = 0.0
-        
+    precision = len(correct) / len(preds)
     recall = len(correct) / len(remain_infs)
 
-    if not return_details:
-        return precision, recall
-    else:
-        detail = {'correct': correct,
-                  'fp': preds - correct,  # is not infected but classified as infected
-                  'fn': remain_infs - preds,  # is infected but classified as not infected
-                  'prec': precision,
-                  'rec': recall}
-        
-        return precision, recall, detail
+    return precision, recall
 
 
 def top_k_infection_precision_recall(g, inf_probas, c, obs, k):
@@ -57,4 +41,4 @@ def top_k_infection_precision_recall(g, inf_probas, c, obs, k):
         if i not in obs:
             inf_nodes.append(i)
             
-    return infection_precision_recall(set(inf_nodes), c, obs, return_details=False)
+    return infection_precision_recall(set(inf_nodes), c, obs)

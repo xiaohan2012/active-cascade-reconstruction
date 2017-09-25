@@ -1,32 +1,37 @@
 from tqdm import tqdm
 from cascade_generator import si, observe_cascade
 from query_selection import OurQueryGenerator
-from inference import infer_infected_nodes
-from eval_helpers import infection_precision_recall
+from inference import infection_probability
+from eval_helpers import top_k_infection_precision_recall
 from graph_helpers import (isolate_node, remove_filters,
                            hide_disconnected_components,
                            load_graph_by_name)
 
 
-def gen_input(g, stop_fraction=0.25, p=0.1, q=0.1):
+def gen_input(g, stop_fraction=0.25, p=0.5, q=0.1):
     s, c, _ = si(g, p, stop_fraction=stop_fraction)
     obs = observe_cascade(c, s, q)
     return obs, c
 
 # @profile
-def one_round_experiment(g, obs, c, q_gen, query_method,
+def one_round_experiment(g, obs, c, q_gen, query_method, ks,
                          inference_method='sampling',
                          n_spanning_tree_samples=100,
                          subset_size=None,
-                         n_queries=None,
+                         n_queries=10,
                          return_details=False,
                          debug=False,
                          log=False):
     """
     str query_method: {'random', 'ours', 'pagerank}
     inference_method: {'min_steiner_tree', 'sampling'}
+    ks: k values in top-`k` for evaluation
 
-    return_details: bool, whether queries and eval detials should be teturned
+    return_details: bool, whether queries should be teturned
+
+    Return:
+
+    dict: k -> [(precision, recall), ...]
     """
     if not debug:
         # if debug, we need to check how the graph is changed
@@ -34,15 +39,11 @@ def one_round_experiment(g, obs, c, q_gen, query_method,
 
     assert not g.is_directed()
     
-    performance = []
+    performance = {k: [] for k in ks}  # grouped by k values
     inf_nodes = list(obs)
 
     queries = []
-    details = []
      
-    if n_queries is None:
-        n_queries = len(q_gen.pool)
-
     if log:
         iters = tqdm(range(n_queries), total=n_queries)
     else:
@@ -71,21 +72,21 @@ def one_round_experiment(g, obs, c, q_gen, query_method,
             q_gen.update_pool(g)
         else:
             inf_nodes.append(q)
-        preds = infer_infected_nodes(g, inf_nodes, method=inference_method,
-                                     n_samples=n_spanning_tree_samples,
-                                     subset_size=subset_size)
-        preds = set(preds)
 
-        scores = list(infection_precision_recall(preds, c, obs, return_details=return_details))
-        performance.append(scores[:2])
+        if inference_method == 'sampling':
+            probas = infection_probability(g, inf_nodes,
+                                           n_samples=n_spanning_tree_samples,
+                                           subset_size=subset_size)
+        else:
+            print('try {} later'.format(inference_method))
 
-        if return_details:
-            detail = scores[-1]
-            detail['obs'] = inf_nodes
-            details.append(detail)
+        for k in ks:
+            scores = top_k_infection_precision_recall(
+                g, probas, c, obs, k)
+            performance[k].append(scores)
 
     if return_details:
-        return performance, queries, details
+        return performance, queries
     else:
         return performance
 
