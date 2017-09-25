@@ -4,7 +4,7 @@ import matplotlib
 
 from inference import infection_probability
 from graph_tool.draw import graph_draw
-from matplotlib.colors import ListedColormap
+from graph_helpers import extract_nodes, isolate_node, hide_disconnected_components, remove_filters
 
 
 def lattice_node_pos(g, shape):
@@ -15,39 +15,76 @@ def lattice_node_pos(g, shape):
     return pos
 
 
+OBS, QUERY, DEFAULT = range(3)
+
+SIZE_ZERO = 0
+SIZE_SMALL = 10
+SIZE_MEDIUM = 20
+SIZE_LARGE = 30
+
+SHAPE_CIRCLE = 'circle'
+SHAPE_PENTAGON = 'pentagon'
+SHAPE_HEXAGON = 'hexagon'
+SHAPE_SQUARE = 'square'
+SHAPE_TRIANGLE = 'triangle'
+
+
 class QueryIllustrator():
     """illustrate the querying process"""
 
-    OBS, QUERY, CORRECT, FP, FN, DEFAULT = range(6)
+    def __init__(self, g, obs, c,
+                 pos,
+                 output_size=(300, 300),
+                 vertex_size=20,
+                 vcmap=matplotlib.cm.Reds):
+        self.g_bak = g
+        self.g = remove_filters(g)  # refresh
+        self.obs = obs
+        self.c = c
 
-    SIZE_ZERO = 0
-    SIZE_SMALL = 10
-    SIZE_MEDIUM = 20
-    SIZE_LARGE = 30
+        self.pos = pos
+        self.output_size = output_size
+        self.vertex_size = vertex_size
+        self.vcmap = vcmap
+        
+        self.inf_nodes = set((self.c >= 0).nonzero()[0])
+        
+        self.obs_inf = set(self.obs)
+        self.obs_uninf = set()
+        self.hidden_inf = self.inf_nodes - self.obs_inf
+        self.hidden_uninf = set(extract_nodes(g)) - self.inf_nodes
+        
+    def add_query(self, query):
+        if self.c[query] >= 0:  # infected
+            self.obs_inf |= {query}
+            self.hidden_inf -= {query}
+        else:
+            self.obs_uninf |= {query}
+            self.hidden_uninf -= {query}
+            isolate_node(self.g, query)
+            hide_disconnected_components(self.g, self.obs_inf)
 
-    SHAPE_CIRCLE = 'circle'
-    SHAPE_PENTAGON = 'pentagon'
-    SHAPE_HEXAGON = 'hexagon'
-    SHAPE_SQUARE = 'square'
-    SHAPE_TRIANGLE = 'triangle'
-    
-    @classmethod
-    def colors(cls):
-        colors = [""] * 6
-        colors[cls.OBS] = 'pumpkin'
-        colors[cls.QUERY] = "bright sky blue"
-        colors[cls.CORRECT] = 'light green'
-        colors[cls.FP] = 'salmon'
-        colors[cls.FN] = 'grey'
-        colors[cls.DEFAULT] = 'pale grey'
-        return colors
+    def plot_snapshot(self, query, n_samples, ax=None):
+        """plot one snap shot using one query and update node infection/observailability
+        n_samples: num of samples used for inference
+        """
+        self.add_query(query)
+        probas = infection_probability(self.g, self.obs_inf, n_samples=n_samples)
+        vcolor = self.node_colors(probas)
 
-    @classmethod
-    def palette(cls):
-        return sns.xkcd_palette(cls.colors())
+        vshape = self.node_shapes(query)
+        vshape[query] = SHAPE_PENTAGON  # hack, override it
 
-    @classmethod
-    def node_properties_by_group(cls, g, value_groups, dtype, default_val):
+        graph_draw(self.g_bak,  # use the very earliest graph 
+                   pos=self.pos,
+                   vcmap=self.vcmap,
+                   output_size=self.output_size,
+                   vertex_size=self.vertex_size,
+                   vertex_fill_color=vcolor,
+                   vertex_shape=vshape,
+                   mplfig=ax)
+        
+    def node_properties_by_group(self, g, value_groups, dtype, default_val):
         """
         value_groups: dict of (dtype, list): (value, list of nodes)
         """
@@ -58,40 +95,22 @@ class QueryIllustrator():
                 vprop[i] = val
         return vprop
 
-    @classmethod
-    def node_sizes(cls, g, obs, queries, correct, fp, fn):
-        groups = [(cls.SIZE_SMALL, obs),
-                  (cls.SIZE_LARGE, queries),
-                  (cls.SIZE_MEDIUM, correct),
-                  (cls.SIZE_MEDIUM, fp),
-                  (cls.SIZE_MEDIUM, fn)]
-        return cls.node_properties_by_group(g, groups, 'int', cls.SIZE_ZERO)
+    def node_shapes(self, query):
+        groups = [(SHAPE_PENTAGON, [query]),
+                  (SHAPE_SQUARE, self.obs_inf | self.obs_uninf),
+                  (SHAPE_CIRCLE, self.hidden_inf),
+                  (SHAPE_TRIANGLE, self.hidden_uninf)]
+        return self.node_properties_by_group(self.g_bak, groups, 'string', SHAPE_CIRCLE)
 
-    @classmethod
-    def node_shapes(cls, g, obs, queries, correct, fp, fn):
-        groups = [(cls.SHAPE_CIRCLE, obs),
-                  (cls.SHAPE_HEXAGON, queries),
-                  (cls.SHAPE_CIRCLE, correct),
-                  (cls.SHAPE_SQUARE, fp),
-                  (cls.SHAPE_TRIANGLE, fn)]
-        return cls.node_properties_by_group(g, groups, 'string', cls.SHAPE_CIRCLE)
-    
-    @classmethod
-    def node_colors(cls, g, obs, queries, correct, fp, fn):
-        groups = [(cls.OBS, obs),
-                  (cls.QUERY, queries),
-                  (cls.CORRECT, correct),
-                  (cls.FP, fp),
-                  (cls.FN, fn)]
-        # prevent over-writing
-        for v, grp in groups:
-            if v in {cls.CORRECT, cls.FP, cls.FN}:
-                grp -= set(queries)
-        return cls.node_properties_by_group(g, groups, 'int', cls.DEFAULT)
-       
-    @classmethod
-    def build_colormap(cls):
-        return ListedColormap(cls.palette().as_hex())
+    def node_colors(self, probas):
+        color = self.g_bak.new_vertex_property('float')
+        color.a = 0
+
+        # might be fewer vertices in g than g_bak
+        # because of vertex removal
+        for v, proba in zip(self.g.vertices(), probas):
+            color[v] = proba
+        return color
 
 
 class InfectionProbability():

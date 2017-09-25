@@ -118,7 +118,7 @@ def uncertainty_scores(g, obs,
     dict of (int, float): node to uncertainty score
     """
     if steiner_tree_samples is None:
-        steiner_tree_samples = sample_steiner_trees(g, obs, num_spt, spanning_tree_samples)
+        steiner_tree_samples = sample_steiner_trees(g, obs, num_spt, sp_trees=spanning_tree_samples)
 
     if use_resample:
         # two sets of scores
