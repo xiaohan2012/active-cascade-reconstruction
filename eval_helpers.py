@@ -1,4 +1,5 @@
 import numpy as np
+from graph_helpers import extract_nodes
 
 
 def infection_precision_recall(preds, c, obs, return_details=False):
@@ -41,11 +42,19 @@ def infection_precision_recall(preds, c, obs, return_details=False):
         return precision, recall, detail
 
 
-def top_k_infection_precision_recall(inf_probas, c, obs, k):
+def top_k_infection_precision_recall(g, inf_probas, c, obs, k):
     """
     take the top k infections ordered by inf_probas, from high to low
 
     and then calculate the precision and recall w.r.t to obs
     """
-    inf_nodes = set(np.argsort(inf_probas)[::-1][:k])
-    return infection_precision_recall(inf_nodes, c, obs, return_details=False)
+    # rank and exclude the observed nodes first
+    n2proba = {n: proba for n, proba in zip(extract_nodes(g), inf_probas)}
+    inf_nodes = []
+    for i in sorted(n2proba, key=n2proba.__getitem__, reverse=True):
+        if len(inf_nodes) == k:
+            break
+        if i not in obs:
+            inf_nodes.append(i)
+            
+    return infection_precision_recall(set(inf_nodes), c, obs, return_details=False)
