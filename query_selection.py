@@ -6,6 +6,7 @@ from graph_helpers import extract_nodes, gen_random_spanning_tree
 
 class BaseQueryGenerator():
     def __init__(self, g, obs):
+        self.g = g
         self._pool = set(extract_nodes(g)) - set(obs)
 
     def select_query(self, *args, **kwargs):
@@ -42,12 +43,14 @@ class OurQueryGenerator(BaseQueryGenerator):
         self.method = method
         self.use_resample = use_resample
 
-        self.spanning_trees = [gen_random_spanning_tree(args[0])
-                               for _ in range(num_spt)]
-
         super(OurQueryGenerator, self).__init__(*args)
 
     def _select_query(self, g, inf_nodes):
+        # need to resample the spanning trees
+        # because in theory, uninfected nodes can be removed from the graph
+        self.spanning_trees = [gen_random_spanning_tree(self.g)
+                               for _ in range(self.num_spt)]
+        
         scores = uncertainty_scores(
             g, inf_nodes,
             num_spt=self.num_spt,
