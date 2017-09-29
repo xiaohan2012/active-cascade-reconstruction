@@ -2,8 +2,12 @@ import random
 import math
 import numpy as np
 from copy import copy
-from graph_tool import Graph
 
+from graph_tool import Graph, GraphView
+from graph_tool.all import shortest_distance
+
+
+MAXINT = np.iinfo(np.int32).max
 
 def observe_cascade(c, source, q, method='uniform', source_includable=False):
     """
@@ -55,3 +59,37 @@ def si(g, p, source=None, stop_fraction=0.5):
     for u, v in edges:
         tree.add_edge(u, v)
     return source, infection_times, tree
+
+
+def sample_graph_by_p(g, p):
+    """
+    for IC model
+    graph_tool version of sampling a graph
+    mask the edge according to probability p and return the masked graph"""
+    flags = (np.random.random(g.num_edges()) <= p)
+    p = g.new_edge_property('bool')
+    p.set_2d_array(flags)
+    return GraphView(g, efilt=p)
+
+
+def get_infection_time(g, source):
+    """for IC model
+    """
+    time = shortest_distance(g, source=source).a
+    time[time == MAXINT] = -1
+    return time
+
+
+def ic(g, p, source=None):
+    """
+    graph_tool version of simulating cascade
+    return np.ndarray on vertices as the infection time in cascade
+    uninfected node has dist -1
+    """
+    if source is None:
+        source = random.choice(np.arange(g.num_vertices(), dtype=int))
+    gv = sample_graph_by_p(g, p)
+
+    times = get_infection_time(gv, source)
+    
+    return source, times, None
