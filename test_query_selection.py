@@ -1,9 +1,8 @@
 import numpy as np
 import pytest
-from graph_tool import Graph
-from query_selection import RandomQueryGenerator, OurQueryGenerator, PRQueryGenerator
-from graph_helpers import isolate_node, remove_filters, hide_disconnected_components
-from experiment import gen_input
+from query_selection import RandomQueryGenerator, EntropyQueryGenerator, PRQueryGenerator
+from simulator import Simulator
+from graph_helpers import remove_filters
 from fixture import g, obs
 
 
@@ -20,35 +19,20 @@ def test_random(g, obs):
         q_gen.select_query()
 
 
-def test_our_method(g):
-    # make sure it is runnable
-    obs, c = gen_input(g)
+def test_entropy_method(g):
     gv = remove_filters(g)
-
-    q_gen = OurQueryGenerator(gv, obs, num_spt=20, num_stt=5)
-    qs = set()
+    q_gen = EntropyQueryGenerator(gv, obs, num_stt=20)
+    sim = Simulator(gv, q_gen)
     n_queries = 10
-
-    graph_changed = False
-    inf_nodes = list(obs)
-    for i in range(n_queries):
-        q = q_gen.select_query(gv, inf_nodes)
-        qs.add(q)
-        if c[q] == -1:
-            isolate_node(gv, q)
-            hide_disconnected_components(gv, inf_nodes)
-            q_gen.update_pool(gv)
-            graph_changed = True
-        else:
-            inf_nodes.append(q)
-
+    qs, aux = sim.run(n_queries)
+    
     assert len(qs) == n_queries
-    if graph_changed:
+    if aux['graph_changed']:
+        assert gv.num_vertices() < g.num_vertices
         assert gv.num_edges() < g.num_edges()
-        assert gv.num_vertices() < g.num_vertices()
     else:
+        assert gv.num_vertices() == g.num_vertices
         assert gv.num_edges() == g.num_edges()
-        assert gv.num_vertices() == g.num_vertices()
 
 
 def test_pagerank(g, obs):

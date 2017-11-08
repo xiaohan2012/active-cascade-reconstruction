@@ -1,7 +1,7 @@
 import numpy as np
 from tqdm import tqdm
 from cascade_generator import si, ic, observe_cascade
-from query_selection import OurQueryGenerator
+from query_selection import EntropyQueryGenerator
 from inference import infection_probability
 from eval_helpers import top_k_infection_precision_recall
 from graph_helpers import (isolate_node, remove_filters,
@@ -103,6 +103,6 @@ def one_round_experiment(g, obs, c, q_gen, query_method, ks,
 if __name__ == '__main__':
     g = load_graph_by_name('karate')
     obs, c = gen_input(g)
-    our_gen = OurQueryGenerator(remove_filters(g), obs, num_spt=100, num_stt=5, use_resample=True)
+    our_gen = EntropyQueryGenerator(remove_filters(g), obs, num_spt=100, num_stt=5, use_resample=True)
     score = one_round_experiment(g, obs, c, our_gen, 'ours', 10, log=True)
     print(score)

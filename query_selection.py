@@ -1,7 +1,8 @@
 import random
-from core import uncertainty_scores
+from core import uncertainty_scores, sample_steiner_trees
+from core1 import query_score
 from graph_tool.centrality import pagerank
-from graph_helpers import extract_nodes, gen_random_spanning_tree
+from graph_helpers import extract_nodes
 
 
 class BaseQueryGenerator():
@@ -35,30 +36,28 @@ class RandomQueryGenerator(BaseQueryGenerator):
         return random.choice(list(self._pool))
 
 
-class OurQueryGenerator(BaseQueryGenerator):
+class EntropyQueryGenerator(BaseQueryGenerator):
     """OUR CONTRIBUTION"""
-    def __init__(self, *args, num_spt=100, num_stt=25, method='count', use_resample=False):
-        self.num_spt = num_spt
+    def __init__(self, *args, num_stt=25, method='entropy', use_resample=False):
         self.num_stt = num_stt
         self.method = method
         self.use_resample = use_resample
 
-        super(OurQueryGenerator, self).__init__(*args)
+        super(EntropyQueryGenerator, self).__init__(*args)
 
     def _select_query(self, g, inf_nodes):
         # need to resample the spanning trees
         # because in theory, uninfected nodes can be removed from the graph
-        self.spanning_trees = [gen_random_spanning_tree(self.g)
-                               for _ in range(self.num_spt)]
+        self.steiner_tree_samples = sample_steiner_trees(
+            self.g, inf_nodes,
+            n_samples=self.num_stt)
         
         scores = uncertainty_scores(
             g, inf_nodes,
-            num_spt=self.num_spt,
             num_stt=self.num_stt,
             method=self.method,
             use_resample=self.use_resample,
-            steiner_tree_samples=None,
-            spanning_tree_samples=self.spanning_trees)
+            steiner_tree_samples=self.steiner_tree_samples)
         q = max(self._pool, key=scores.__getitem__)
         return q
 
@@ -81,3 +80,23 @@ class PRQueryGenerator(BaseQueryGenerator):
 
     def _select_query(self):
         return max(self._pool, key=self.pr.__getitem__)
+
+
+class PredictionErrorQueryGenerator(BaseQueryGenerator):
+    """OUR CONTRIBUTION"""
+    def __init__(self, *args, num_stt=25):
+        self.num_stt = num_stt
+
+        super(PredictionErrorQueryGenerator, self).__init__(*args)
+
+    def _select_query(self, g, inf_nodes):
+        steiner_tree_samples = sample_steiner_trees(
+            self.g, inf_nodes,
+            n_samples=self.num_stt)
+
+        T = [set(extract_nodes(t)) for t in steiner_tree_samples]  # node set
+        
+        best_q = min(self._pool,
+                     key=lambda q: query_score(q, T,
+                                               set(self._pool) - {q}))
+        return best_q
