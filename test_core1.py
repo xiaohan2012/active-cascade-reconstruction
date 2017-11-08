@@ -1,0 +1,33 @@
+import pytest
+from core1 import matching_trees, prediction_error, query_score
+from scipy.stats import entropy
+
+@pytest.fixture
+def T():
+    return [
+        {0, 1, 2},
+        {1, 2},
+        {1, 2, 3},
+        {1, 2, 3, 4},
+    ]
+
+
+def test_matching_trees(T):
+    assert matching_trees(T, 0, 1) == [{0, 1, 2}]
+    assert matching_trees(T, 1, 0) == []
+    assert matching_trees(T, 4, 0) == T[:3]
+
+
+def test_prediction_error(T):
+    error = prediction_error(0, 0, T, [3, 4])
+    expected = -entropy([1/3, 2/3]) * 2
+    assert error == expected
+
+    error = prediction_error(0, 1, T, [3, 4])
+    assert error == 0
+
+
+def test_query_score(T):
+    score = query_score(0, T, [3, 4])
+    expected = -entropy([1/3, 2/3]) * 2 * 3/4
+    assert expected == score
