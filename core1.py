@@ -19,9 +19,14 @@ def prediction_error(q, y_hat, T, hidden_nodes):
 
     error = 0
     for u in hidden_nodes:
-        p = len(matching_trees(sub_T, u, 0)) / len(sub_T)
-        loss = -entropy([p, 1-p])
-        error += loss
+        try:
+            p = len(matching_trees(sub_T, u, 0)) / len(sub_T)
+            loss = -entropy([p, 1-p])
+            error += loss
+        except ZeroDivisionError:
+            # entropy is zero
+            pass
+
     return error
 
 

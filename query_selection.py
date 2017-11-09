@@ -6,9 +6,15 @@ from graph_helpers import extract_nodes
 
 
 class BaseQueryGenerator():
-    def __init__(self, g, obs):
+    def __init__(self, g, obs=None):
         self.g = g
-        self._pool = set(extract_nodes(g)) - set(obs)
+        if obs is not None:
+            self.receive_observation(obs)
+        else:
+            self._pool = None
+        
+    def receive_observation(self, obs):
+        self._pool = set(extract_nodes(self.g)) - set(obs)
 
     def select_query(self, *args, **kwargs):
         assert self._pool, 'no more node to query'
@@ -65,20 +71,20 @@ class EntropyQueryGenerator(BaseQueryGenerator):
 class PRQueryGenerator(BaseQueryGenerator):
     """rank node by pagerank score
     """
-    def __init__(self, g, obs, *args, **kwargs):
+    def receive_observation(self, obs):
         # personalized vector for pagerank
-        pers = g.new_vertex_property('float')
+        pers = self.g.new_vertex_property('float')
         for o in obs:
             pers[o] = 1 / len(obs)
-        rank = pagerank(g, pers=pers)
+        rank = pagerank(self.g, pers=pers)
 
         self.pr = {}
-        for v in g.vertices():
+        for v in self.g.vertices():
             self.pr[int(v)] = rank[v]
 
-        super(PRQueryGenerator, self).__init__(g, obs, *args, **kwargs)
-
-    def _select_query(self):
+        super(PRQueryGenerator, self).receive_observation(obs)
+        
+    def _select_query(self, *args, **kwargs):
         return max(self._pool, key=self.pr.__getitem__)
 
 
