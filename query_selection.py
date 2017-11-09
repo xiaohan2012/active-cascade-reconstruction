@@ -101,8 +101,12 @@ class PredictionErrorQueryGenerator(BaseQueryGenerator):
             n_samples=self.num_stt)
 
         T = [set(extract_nodes(t)) for t in steiner_tree_samples]  # node set
-        
-        best_q = min(self._pool,
-                     key=lambda q: query_score(q, T,
-                                               set(self._pool) - {q}))
+
+        def score(q):
+            s = query_score(q, T,
+                            set(self._pool) - {q})
+            # print('query {}: {}'.format(q, s))
+            return q
+        best_q = min(self._pool, key=score)
+        # print('best_q', best_q)
         return best_q

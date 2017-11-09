@@ -71,11 +71,12 @@ class QueryIllustrator():
         self.add_query(query)
         probas = infection_probability(self.g, self.obs_inf, n_samples=n_samples)
         vcolor = self.node_colors(probas)
+        vcolor[query] = 1  # highlight query
 
         vshape = self.node_shapes(query)
         vshape[query] = SHAPE_PENTAGON  # hack, override it
 
-        graph_draw(self.g_bak,  # use the very earliest graph 
+        graph_draw(self.g_bak,  # use the very earliest graph
                    pos=self.pos,
                    vcmap=self.vcmap,
                    output_size=self.output_size,
