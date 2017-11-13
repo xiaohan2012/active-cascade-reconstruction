@@ -21,8 +21,7 @@ def prediction_error(q, y_hat, T, hidden_nodes):
     for u in hidden_nodes:
         try:
             p = len(matching_trees(sub_T, u, 0)) / len(sub_T)
-            loss = -entropy([p, 1-p])
-            error += loss
+            error += entropy([p, 1-p])
         except ZeroDivisionError:
             # entropy is zero
             pass
@@ -33,7 +32,12 @@ def prediction_error(q, y_hat, T, hidden_nodes):
 def query_score(q, T, hidden_nodes):
     assert q not in hidden_nodes
     score = 0
-    for y_hat in [0, 1]:
-        p = len(matching_trees(T, q, y_hat)) / len(T)
-        score += p * prediction_error(q, y_hat, T, hidden_nodes)
+    if True:
+        for y_hat in [0, 1]:
+            p = len(matching_trees(T, q, y_hat)) / len(T)
+            score += p * prediction_error(q, y_hat, T, hidden_nodes)
+            if q in {0, 89, 99, 9}:  # debug
+                print('p(q={}, y={})={}'.format(q, y_hat, p))
+    else:
+        score += prediction_error(q, 1, T, hidden_nodes)
     return score
