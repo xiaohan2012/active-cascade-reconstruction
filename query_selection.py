@@ -107,12 +107,12 @@ class PredictionErrorQueryGenerator(BaseQueryGenerator):
                             set(self._pool) - {q})
             return s
         q2score = {q: score(q) for q in self._pool}
-        top = 10
-        top_qs = list(sorted(q2score, key=q2score.__getitem__))[:top]
+        # top = 10
+        # top_qs = list(sorted(q2score, key=q2score.__getitem__))[:top]
 
-        print('top score queries:')
-        for q in top_qs:
-            print('{}({:.2f})'.format(q, q2score[q]))
+        # print('top score queries:')
+        # for q in top_qs:
+        #     print('{}({:.2f})'.format(q, q2score[q]))
             
         best_q = min(self._pool, key=q2score.__getitem__)
         # print('best_q', best_q)
