@@ -102,3 +102,8 @@ ENV/
 
 *~
 *.lprof
+
+cascade/
+data/
+figs/
+outputs/

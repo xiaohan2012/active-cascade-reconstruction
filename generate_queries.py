@@ -18,7 +18,7 @@ def load_cascades(dirname):
         yield p, pkl.load(open(p, 'rb'))
 
 
-graph_name = 'karate'
+graph_name = 'dolphin'
 n_queries = 10
 n_samples = 100
 output_dir = 'outputs/queries/{}'.format(graph_name)
