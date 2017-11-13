@@ -1,11 +1,9 @@
-
 # coding: utf-8
-
-# In[10]:
 
 
 import os
 import pickle as pkl
+import argparse
 from helpers import load_cascades
 from inference import infection_probability
 from graph_helpers import load_graph_by_name
@@ -13,38 +11,25 @@ from tqdm import tqdm
 from joblib import Parallel, delayed
 
 
-# In[2]:
+parser = argparse.ArgumentParser(description='')
+parser.add_argument('-g', '--graph', help='graph name')
+parser.add_argument('-s', '--n_samples', default=100, help='number of samples')
 
+args = parser.parse_args()
 
-graph_name = 'dolphin'
-
-
-# In[3]:
-
+graph_name = args.graph
+n_samples = args.n_samples
 
 query_dirname = 'outputs/queries/'
 inf_proba_dirname = 'outputs/inf_probas'
 
 
-# In[4]:
-
-
-g =load_graph_by_name(graph_name)
-
-
-# In[5]:
-
+g = load_graph_by_name(graph_name)
 
 cascades = load_cascades('cascade/' + graph_name)
 
 
-# In[6]:
-
-
 methods = ['pagerank', 'random', 'entropy', 'prediction_error']
-
-
-# In[8]:
 
 
 def one_round(g, obs, c, c_path, method, query_dirname, inf_proba_dirname):
@@ -57,7 +42,7 @@ def one_round(g, obs, c, c_path, method, query_dirname, inf_proba_dirname):
     probas_list = []
     for q in queries:
         obs_tmp.append(q)
-        probas = infection_probability(g, obs_tmp, n_samples=100)
+        probas = infection_probability(g, obs_tmp, n_samples=n_samples)
         probas_list.append(probas)
 
     probas_dir = os.path.join(inf_proba_dirname, graph_name, method)
@@ -67,10 +52,6 @@ def one_round(g, obs, c, c_path, method, query_dirname, inf_proba_dirname):
     pkl.dump(probas_list, open(path, 'wb'))
 
 
-# In[11]:
-
-
-Parallel(n_jobs=-1)(delayed(one_round)(g, obs, c, c_path, method, query_dirname, inf_proba_dirname)
+Parallel(n_jobs=-1)(delayed(one_round)(g, obs, c, path, method, query_dirname, inf_proba_dirname)
                     for path, (obs, c) in tqdm(cascades)
                     for method in methods)
-

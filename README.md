@@ -5,13 +5,9 @@
 - `simulate_cascades.py`: simulate cascades and dump to files
 - `generate_queries.py`: produce queries and dump to files
 - `infer_from_queries.py`: infer the infection probabilities from queries
+- `evaluate_from_inf_probas.py`: evaluate infer the infection probabilities (TODO)
 
 # todo
-
-- [ ] efficient determinant computation on consecutive states
-- [ ] random spanning tree sampling
-- [ ] truncate the spanning tree to steiner tree
-- [ ] metropolis-hasting algorithm for steiner tree sampling
 
 # time
 

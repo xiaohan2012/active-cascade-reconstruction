@@ -1,27 +1,31 @@
 # coding: utf-8
 
 import pickle as pkl
-import glob
 import os
-from tqdm import tqdm
+import argparse
 
+from tqdm import tqdm
 
 from query_selection import (RandomQueryGenerator, EntropyQueryGenerator,
                              PRQueryGenerator, PredictionErrorQueryGenerator)
 from simulator import Simulator
 from joblib import Parallel, delayed
 from graph_helpers import remove_filters, load_graph_by_name
+from helpers import load_cascades
 
+parser = argparse.ArgumentParser(description='')
+parser.add_argument('-g', '--graph', help='graph name')
+parser.add_argument('-n', '--n_queries', default=10, help='number of queries')
+parser.add_argument('-s', '--n_samples', default=100, help='number of samples')
 
-def load_cascades(dirname):
-    for p in glob.glob(dirname+'/*.pkl'):
-        yield p, pkl.load(open(p, 'rb'))
+parser.add_argument('-d', '--output_dir', default='outputs/queries', help='output directory')
 
+args = parser.parse_args()
 
-graph_name = 'dolphin'
-n_queries = 10
-n_samples = 100
-output_dir = 'outputs/queries/{}'.format(graph_name)
+graph_name = args.graph
+n_queries = args.n_queries
+n_samples = args.n_samples
+output_dir = '{}/{}'.format(args.output_dir, graph_name)
 
 
 g = load_graph_by_name(graph_name)
@@ -31,7 +35,7 @@ strategies = [
     (RandomQueryGenerator, {}, 'random'),
     (PRQueryGenerator, {}, 'pagerank'),
     (EntropyQueryGenerator, {'num_stt': n_samples, 'method': 'entropy', 'use_resample': False}, 'entropy'),
-    (PredictionErrorQueryGenerator, {'num_stt': n_samples}, 'prediction_error'), 
+    (PredictionErrorQueryGenerator, {'num_stt': n_samples}, 'prediction_error'),
 ]
 
 
