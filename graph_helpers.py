@@ -321,6 +321,14 @@ def hide_disconnected_components(g, pivots):
     g.set_vertex_filter(vfilt)
 
 
+def observe_uninfected_node(g, n, obs):
+    """wrapper of isolate_node and hide_disconnected_components
+    with side effect
+    """
+    isolate_node(g, n)
+    hide_disconnected_components(g, obs)
+
+
 def load_graph_by_name(name):
     if name == 'lattice':
         shape = (10, 10)

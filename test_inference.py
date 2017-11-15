@@ -1,11 +1,43 @@
 import numpy as np
-from inference import infer_infected_nodes
-from graph_helpers import gen_random_spanning_tree
+from inference import infer_infected_nodes, infection_probability
+from graph_helpers import (gen_random_spanning_tree, extract_nodes,
+                           remove_filters,
+                           observe_uninfected_node)
 from core import sample_steiner_trees
 from fixture import g, obs
 
 
+def test_inf_probas_shape(g, obs):
+    g = remove_filters(g)
+    n = g.num_vertices()
+    all_nodes = extract_nodes(g)
+    remaining_nodes = list(set(all_nodes) - set(obs))
+
+    # first round
+    removed = remaining_nodes[0]
+
+    observe_uninfected_node(g, removed, obs)
+    
+    probas = infection_probability(g, obs, n_samples=10)
+    assert probas.shape == (n,)
+    assert probas[removed] == 0
+    for o in obs:
+        assert probas[o] == 1.0
+
+    # second tround
+    removed = remaining_nodes[1]
+
+    observe_uninfected_node(g, removed, obs)
+    
+    probas = infection_probability(g, obs, n_samples=100)
+    assert probas.shape == (n,)
+    assert probas[removed] == 0
+    for o in obs:
+        assert probas[o] == 1.0
+        
+
 def test_infer_infected_nodes_sampling_approach(g, obs):
+    g = remove_filters(g)
     n_samples = 100
     sp_trees = [gen_random_spanning_tree(g) for _ in range(n_samples)]
 

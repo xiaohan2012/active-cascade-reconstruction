@@ -26,8 +26,13 @@ def infection_probability(g, obs, **kwargs):
         st_trees = sample_steiner_trees(g, obs, n_samples,
                                         subset_size=subset_size,
                                         sp_trees=None)
-    inf_probas = np.array([node_occurrence_freq(n, st_trees)[0]
-                           for n in extract_nodes(g)]) / len(st_trees)
+    n_nodes = len(g._Graph__filter_state['vertex_filter'][0].a)
+    remainig_nodes = extract_nodes(g)
+    # print(remainig_nodes)
+    proba_values = np.array([node_occurrence_freq(n, st_trees)[0]
+                             for n in remainig_nodes]) / len(st_trees)
+    inf_probas = np.zeros(n_nodes)
+    inf_probas[remainig_nodes] = proba_values
     return inf_probas
 
 

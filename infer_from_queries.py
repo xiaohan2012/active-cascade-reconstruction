@@ -7,7 +7,7 @@ import argparse
 from helpers import load_cascades
 from inference import infection_probability
 from graph_helpers import (load_graph_by_name, remove_filters,
-                           isolate_node, hide_disconnected_components)
+                           observe_uninfected_node)
 from tqdm import tqdm
 from joblib import Parallel, delayed
 
@@ -46,8 +46,9 @@ def one_round(g, obs, c, c_path, method, query_dirname, inf_proba_dirname):
         if c[q] >= 0:  # infected
             obs_inf |= {q}
         else:
-            isolate_node(g, q)
-            hide_disconnected_components(g, obs_inf)
+            observe_uninfected_node(g, q, obs_inf)
+            # isolate_node(g, q)
+            # hide_disconnected_components(g, obs_inf)
         
         probas = infection_probability(g, obs_inf, n_samples=n_samples)
         probas_list.append(probas)

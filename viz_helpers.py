@@ -1,10 +1,11 @@
-import seaborn as sns
 import numpy as np
 import matplotlib
 
 from inference import infection_probability
 from graph_tool.draw import graph_draw
-from graph_helpers import extract_nodes, isolate_node, hide_disconnected_components, remove_filters
+from graph_helpers import (extract_nodes,
+                           observe_uninfected_node,
+                           remove_filters)
 
 
 def lattice_node_pos(g, shape):
@@ -61,8 +62,7 @@ class QueryIllustrator():
         else:
             self.obs_uninf |= {query}
             self.hidden_uninf -= {query}
-            isolate_node(self.g, query)
-            hide_disconnected_components(self.g, self.obs_inf)
+            observe_uninfected_node(self.g, query, self.obs_inf)
 
     def plot_snapshot(self, query, n_samples, ax=None):
         """plot one snap shot using one query and update node infection/observailability
@@ -70,6 +70,7 @@ class QueryIllustrator():
         """
         self.add_query(query)
         probas = infection_probability(self.g, self.obs_inf, n_samples=n_samples)
+        # print(probas.shape)
         vcolor = self.node_colors(probas)
         vcolor[query] = 1  # highlight query
 
@@ -105,12 +106,13 @@ class QueryIllustrator():
 
     def node_colors(self, probas):
         color = self.g_bak.new_vertex_property('float')
-        color.a = 0
+        assert len(probas) == len(color.a)
+        color.a = probas
 
         # might be fewer vertices in g than g_bak
         # because of vertex removal
-        for v, proba in zip(self.g.vertices(), probas):
-            color[v] = proba
+        # for v, proba in zip(self.g.vertices(), probas):
+        #     color[v] = proba
         return color
 
 
