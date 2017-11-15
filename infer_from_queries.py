@@ -6,7 +6,8 @@ import pickle as pkl
 import argparse
 from helpers import load_cascades
 from inference import infection_probability
-from graph_helpers import load_graph_by_name
+from graph_helpers import (load_graph_by_name, remove_filters,
+                           isolate_node, hide_disconnected_components)
 from tqdm import tqdm
 from joblib import Parallel, delayed
 
@@ -33,7 +34,8 @@ methods = ['pagerank', 'random', 'entropy', 'prediction_error']
 
 
 def one_round(g, obs, c, c_path, method, query_dirname, inf_proba_dirname):
-    obs_tmp = obs.tolist()
+    g = remove_filters(g)
+    obs_inf = set(obs)
     # loop
     cid = os.path.basename(c_path).split('.')[0]
     query_log_path = os.path.join(query_dirname, graph_name, method, '{}.pkl'.format(cid))
@@ -41,8 +43,13 @@ def one_round(g, obs, c, c_path, method, query_dirname, inf_proba_dirname):
 
     probas_list = []
     for q in queries:
-        obs_tmp.append(q)
-        probas = infection_probability(g, obs_tmp, n_samples=n_samples)
+        if c[q] >= 0:  # infected
+            obs_inf |= {q}
+        else:
+            isolate_node(g, q)
+            hide_disconnected_components(g, obs_inf)
+        
+        probas = infection_probability(g, obs_inf, n_samples=n_samples)
         probas_list.append(probas)
 
     probas_dir = os.path.join(inf_proba_dirname, graph_name, method)
