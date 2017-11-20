@@ -15,8 +15,13 @@ from helpers import load_cascades
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('-g', '--graph', help='graph name')
-parser.add_argument('-n', '--n_queries', default=10, help='number of queries')
-parser.add_argument('-s', '--n_samples', default=100, help='number of samples')
+
+parser.add_argument('-c', '--cascade_dir',
+                    help='directory of generated cascades')
+parser.add_argument('-n', '--n_queries', default=10, type=int,
+                    help='number of queries')
+parser.add_argument('-s', '--n_samples', default=100, type=int,
+                    help='number of samples')
 
 parser.add_argument('-d', '--output_dir', default='outputs/queries', help='output directory')
 
@@ -25,7 +30,8 @@ args = parser.parse_args()
 graph_name = args.graph
 n_queries = args.n_queries
 n_samples = args.n_samples
-output_dir = '{}/{}'.format(args.output_dir, graph_name)
+# output_dir = '{}/{}'.format(args.output_dir, graph_name)
+output_dir = args.output_dir
 
 
 g = load_graph_by_name(graph_name)
@@ -54,7 +60,7 @@ def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir):
     outpath = os.path.join(d, c_id + '.pkl')
     pkl.dump(qs, open(outpath, 'wb'))
     
-cascade_generator = load_cascades('cascade/{}/'.format(graph_name))
+cascade_generator = load_cascades(args.cascade_dir)
 
 
 # run!
