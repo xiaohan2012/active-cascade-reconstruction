@@ -42,7 +42,7 @@ strategies = [
     # (RandomQueryGenerator, {}, 'random'),
     # (PRQueryGenerator, {}, 'pagerank'),
     # (EntropyQueryGenerator, {'num_stt': n_samples, 'method': 'entropy', 'use_resample': False}, 'entropy'),
-    (PredictionErrorQueryGenerator, {'num_stt': n_samples}, 'prediction_error'),
+    (PredictionErrorQueryGenerator, {'num_stt': n_samples, 'n_node_samples': 100}, 'prediction_error'),
 ]
 
 

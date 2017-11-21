@@ -20,7 +20,7 @@ def test_matching_trees(T):
 
 def test_prediction_error(T):
     error = prediction_error(0, 0, T, [3, 4])
-    expected = -entropy([1/3, 2/3]) * 2
+    expected = entropy([1/3, 2/3]) * 2
     assert error == expected
 
     error = prediction_error(0, 1, T, [3, 4])
@@ -29,5 +29,5 @@ def test_prediction_error(T):
 
 def test_query_score(T):
     score = query_score(0, T, [3, 4])
-    expected = -entropy([1/3, 2/3]) * 2 * 3/4
+    expected = entropy([1/3, 2/3]) * 2 * 3/4
     assert expected == score

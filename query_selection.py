@@ -1,6 +1,7 @@
 import random
+import numpy as np
 from core import uncertainty_scores, sample_steiner_trees
-from core1 import query_score
+from core1 import query_score, matching_trees
 from graph_tool.centrality import pagerank
 from graph_helpers import extract_nodes
 
@@ -90,9 +91,9 @@ class PRQueryGenerator(BaseQueryGenerator):
 
 class PredictionErrorQueryGenerator(BaseQueryGenerator):
     """OUR CONTRIBUTION"""
-    def __init__(self, *args, num_stt=25):
+    def __init__(self, *args, num_stt=25, n_node_samples=None):
         self.num_stt = num_stt
-
+        self.n_node_samples = n_node_samples
         super(PredictionErrorQueryGenerator, self).__init__(*args)
 
     def _select_query(self, g, inf_nodes):
@@ -102,9 +103,31 @@ class PredictionErrorQueryGenerator(BaseQueryGenerator):
 
         T = [set(extract_nodes(t)) for t in steiner_tree_samples]  # node set
 
+        # pruning nods that are sure to be infected/uninfected
+        self._pool = {i for i in self._pool
+                      if len(matching_trees(T, i, 0)) / len(T) not in {0, 1}}
+        
+        if ((self.n_node_samples is None) or self.n_node_samples >= len(self._pool)):
+            node_samples = self._pool
+        else:
+            cand_node_samples = list(self._pool)
+            node_sample_inf_proba = np.array([len(matching_trees(T, n, 1)) / len(T)
+                                              for n in cand_node_samples])
+
+            # the closer to 0.5, the better
+            val1 = node_sample_inf_proba * 2
+            val2 = (1 - node_sample_inf_proba) * 2
+            sampling_weight = np.where(val1 < val2, val1, val2)  # take the pairwise minimum
+            assert (sampling_weight <= 1).all()
+                                 
+            sampling_weight /= sampling_weight.sum()
+
+            node_samples = np.random.choice(cand_node_samples, self.n_node_samples,
+                                            p=sampling_weight)
+
         def score(q):
             s = query_score(q, T,
-                            set(self._pool) - {q})
+                            set(node_samples) - {q})
             return s
         from tqdm import tqdm
         q2score = {q: score(q) for q in tqdm(self._pool)}
