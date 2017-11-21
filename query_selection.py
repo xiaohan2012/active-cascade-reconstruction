@@ -106,7 +106,8 @@ class PredictionErrorQueryGenerator(BaseQueryGenerator):
             s = query_score(q, T,
                             set(self._pool) - {q})
             return s
-        q2score = {q: score(q) for q in self._pool}
+        from tqdm import tqdm
+        q2score = {q: score(q) for q in tqdm(self._pool)}
         # top = 10
         # top_qs = list(sorted(q2score, key=q2score.__getitem__))[:top]
 

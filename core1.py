@@ -1,6 +1,7 @@
+import numpy as np
 from scipy.stats import entropy
 
-
+# @profile
 def matching_trees(T, node, value):
     """
     T: list of set of ints, list of trees represented by nodes
@@ -12,7 +13,7 @@ def matching_trees(T, node, value):
     else:  # uninfected
         return [t for t in T if node not in t]
         
-
+# @profile
 def prediction_error(q, y_hat, T, hidden_nodes):
     # filter T by (q, y_hat)
     sub_T = matching_trees(T, q, y_hat)
@@ -21,7 +22,9 @@ def prediction_error(q, y_hat, T, hidden_nodes):
     for u in hidden_nodes:
         try:
             p = len(matching_trees(sub_T, u, 0)) / len(sub_T)
-            error += entropy([p, 1-p])
+            if p == 0 or p == 1:
+                raise ZeroDivisionError
+            error -= (p * np.log(p) + (1-p) * np.log(1-p))
         except ZeroDivisionError:
             # entropy is zero
             pass
@@ -37,7 +40,7 @@ def query_score(q, T, hidden_nodes):
             p = len(matching_trees(T, q, y_hat)) / len(T)
             score += p * prediction_error(q, y_hat, T, hidden_nodes)
             # if q in {0, 89, 99, 9}:  # debug
-                # print('p(q={}, y={})={}'.format(q, y_hat, p))
+            # print('p(q={}, y={})={}'.format(q, y_hat, p))
     else:
         score += prediction_error(q, 1, T, hidden_nodes)
     return score

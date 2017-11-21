@@ -24,6 +24,7 @@ parser.add_argument('-s', '--n_samples', default=100, type=int,
                     help='number of samples')
 
 parser.add_argument('-d', '--output_dir', default='outputs/queries', help='output directory')
+parser.add_argument('-b', '--debug', action='store_true', help='if debug, use non-parallel')
 
 args = parser.parse_args()
 
@@ -38,9 +39,9 @@ g = load_graph_by_name(graph_name)
 
 
 strategies = [
-    (RandomQueryGenerator, {}, 'random'),
-    (PRQueryGenerator, {}, 'pagerank'),
-    (EntropyQueryGenerator, {'num_stt': n_samples, 'method': 'entropy', 'use_resample': False}, 'entropy'),
+    # (RandomQueryGenerator, {}, 'random'),
+    # (PRQueryGenerator, {}, 'pagerank'),
+    # (EntropyQueryGenerator, {'num_stt': n_samples, 'method': 'entropy', 'use_resample': False}, 'entropy'),
     (PredictionErrorQueryGenerator, {'num_stt': n_samples}, 'prediction_error'),
 ]
 
@@ -64,8 +65,16 @@ cascade_generator = load_cascades(args.cascade_dir)
 
 
 # run!
-Parallel(n_jobs=-1)(delayed(one_round)(g, obs, c, path, cls, param, name, output_dir)
-                    for path, (obs, c) in tqdm(cascade_generator)
-                    for cls, param, name in strategies)
+if args.debug:
+    print('====================')
+    print('DEBUG MODE')
+    print('====================')
+    for path, (obs, c) in tqdm(cascade_generator):
+        for cls, param, name in strategies:
+            one_round(g, obs, c, path, cls, param, name, output_dir)
+else:
+    Parallel(n_jobs=-1)(delayed(one_round)(g, obs, c, path, cls, param, name, output_dir)
+                        for path, (obs, c) in tqdm(cascade_generator)
+                        for cls, param, name in strategies)
         
 
