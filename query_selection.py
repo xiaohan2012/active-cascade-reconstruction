@@ -91,9 +91,16 @@ class PRQueryGenerator(BaseQueryGenerator):
 
 class PredictionErrorQueryGenerator(BaseQueryGenerator):
     """OUR CONTRIBUTION"""
-    def __init__(self, *args, num_stt=25, n_node_samples=None):
+    def __init__(self, *args, num_stt=25,
+                 prune_nodes=False,
+                 n_node_samples=None):
+        """
+        n_node_samples: number of nodes used to estimate probabilities
+        pass None if using all of them.
+        """
         self.num_stt = num_stt
         self.n_node_samples = n_node_samples
+        self.prune_nodes = prune_nodes
         super(PredictionErrorQueryGenerator, self).__init__(*args)
 
     def _select_query(self, g, inf_nodes):
@@ -104,12 +111,14 @@ class PredictionErrorQueryGenerator(BaseQueryGenerator):
         T = [set(extract_nodes(t)) for t in steiner_tree_samples]  # node set
 
         # pruning nods that are sure to be infected/uninfected
-        self._pool = {i for i in self._pool
-                      if len(matching_trees(T, i, 0)) / len(T) not in {0, 1}}
+        if self.prune_nodes:
+            self._pool = {i for i in self._pool
+                          if len(matching_trees(T, i, 0)) / len(T) not in {0, 1}}
         
         if ((self.n_node_samples is None) or self.n_node_samples >= len(self._pool)):
             node_samples = self._pool
         else:
+            # use node samples to estimate prediction error
             cand_node_samples = list(self._pool)
             node_sample_inf_proba = np.array([len(matching_trees(T, n, 1)) / len(T)
                                               for n in cand_node_samples])
@@ -129,8 +138,11 @@ class PredictionErrorQueryGenerator(BaseQueryGenerator):
             s = query_score(q, T,
                             set(node_samples) - {q})
             return s
-        from tqdm import tqdm
-        q2score = {q: score(q) for q in tqdm(self._pool)}
+        if False:
+            from tqdm import tqdm
+            e = {q: score(q) for q in tqdm(self._pool)}
+        else:
+            q2score = {q: score(q) for q in self._pool}
         # top = 10
         # top_qs = list(sorted(q2score, key=q2score.__getitem__))[:top]
 

@@ -39,10 +39,11 @@ g = load_graph_by_name(graph_name)
 
 
 strategies = [
-    # (RandomQueryGenerator, {}, 'random'),
-    # (PRQueryGenerator, {}, 'pagerank'),
-    # (EntropyQueryGenerator, {'num_stt': n_samples, 'method': 'entropy', 'use_resample': False}, 'entropy'),
-    (PredictionErrorQueryGenerator, {'num_stt': n_samples, 'n_node_samples': 100}, 'prediction_error'),
+    (RandomQueryGenerator, {}, 'random'),
+    (PRQueryGenerator, {}, 'pagerank'),
+    (EntropyQueryGenerator, {'num_stt': n_samples, 'method': 'entropy', 'use_resample': False}, 'entropy'),
+    (PredictionErrorQueryGenerator, {'num_stt': n_samples, 'n_node_samples': 500, 'prune_nodes': True},
+     'prediction_error'),
 ]
 
 
