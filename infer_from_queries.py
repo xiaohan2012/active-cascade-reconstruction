@@ -13,21 +13,31 @@ from joblib import Parallel, delayed
 
 
 parser = argparse.ArgumentParser(description='')
-parser.add_argument('-g', '--graph', help='graph name')
-parser.add_argument('-s', '--n_samples', default=100, help='number of samples')
+parser.add_argument('-g', '--graph',
+                    help='graph name')
+parser.add_argument('-s', '--n_samples', type=int,
+                    default=100,
+                    help='number of samples')
+
+parser.add_argument('-c', '--cascade_dir',
+                    help='directory to read cascades')
+parser.add_argument('-q', '--query_dirname',
+                    help='directory of queries')
+parser.add_argument('-p', '--inf_proba_dirname',
+                    help='directory to store the inferred probabilities')
 
 args = parser.parse_args()
 
 graph_name = args.graph
 n_samples = args.n_samples
 
-query_dirname = 'outputs/queries/'
-inf_proba_dirname = 'outputs/inf_probas'
+query_dirname = args.query_dirname
+inf_proba_dirname = args.inf_proba_dirname
 
 
 g = load_graph_by_name(graph_name)
 
-cascades = load_cascades('cascade/' + graph_name)
+cascades = load_cascades(args.cascade_dir)
 
 
 methods = ['pagerank', 'random', 'entropy', 'prediction_error']
@@ -38,7 +48,7 @@ def one_round(g, obs, c, c_path, method, query_dirname, inf_proba_dirname):
     obs_inf = set(obs)
     # loop
     cid = os.path.basename(c_path).split('.')[0]
-    query_log_path = os.path.join(query_dirname, graph_name, method, '{}.pkl'.format(cid))
+    query_log_path = os.path.join(query_dirname, method, '{}.pkl'.format(cid))
     queries, _ = pkl.load(open(query_log_path, 'rb'))
 
     probas_list = []
@@ -53,7 +63,7 @@ def one_round(g, obs, c, c_path, method, query_dirname, inf_proba_dirname):
         probas = infection_probability(g, obs_inf, n_samples=n_samples)
         probas_list.append(probas)
 
-    probas_dir = os.path.join(inf_proba_dirname, graph_name, method)
+    probas_dir = os.path.join(inf_proba_dirname, method)
     if not os.path.exists(probas_dir):
         os.makedirs(probas_dir)
     path = os.path.join(probas_dir, '{}.pkl'.format(cid))
