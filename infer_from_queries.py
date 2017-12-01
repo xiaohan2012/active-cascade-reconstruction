@@ -44,10 +44,19 @@ methods = ['pagerank', 'random', 'entropy', 'prediction_error']
 
 
 def one_round(g, obs, c, c_path, method, query_dirname, inf_proba_dirname):
+    cid = os.path.basename(c_path).split('.')[0]
+    probas_dir = os.path.join(inf_proba_dirname, method)
+    if not os.path.exists(probas_dir):
+        os.makedirs(probas_dir)
+    path = os.path.join(probas_dir, '{}.pkl'.format(cid))
+
+    if os.path.exists(path):
+        # if computed, ignore
+        return
+    
     g = remove_filters(g)
     obs_inf = set(obs)
     # loop
-    cid = os.path.basename(c_path).split('.')[0]
     query_log_path = os.path.join(query_dirname, method, '{}.pkl'.format(cid))
     queries, _ = pkl.load(open(query_log_path, 'rb'))
 
@@ -63,10 +72,6 @@ def one_round(g, obs, c, c_path, method, query_dirname, inf_proba_dirname):
         probas = infection_probability(g, obs_inf, n_samples=n_samples)
         probas_list.append(probas)
 
-    probas_dir = os.path.join(inf_proba_dirname, method)
-    if not os.path.exists(probas_dir):
-        os.makedirs(probas_dir)
-    path = os.path.join(probas_dir, '{}.pkl'.format(cid))
     pkl.dump(probas_list, open(path, 'wb'))
 
 
