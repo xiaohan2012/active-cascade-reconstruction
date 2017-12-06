@@ -3,7 +3,7 @@ import numpy as np
 from core import uncertainty_scores, sample_steiner_trees
 from core1 import query_score, matching_trees
 from graph_tool.centrality import pagerank
-from graph_helpers import extract_nodes
+from graph_helpers import extract_nodes, has_vertex
 
 
 class BaseQueryGenerator():
@@ -50,14 +50,36 @@ class EntropyQueryGenerator(BaseQueryGenerator):
         self.method = method
         self.use_resample = use_resample
 
+        self.steiner_tree_samples = []
+
         super(EntropyQueryGenerator, self).__init__(*args)
 
+    def update_samples(self, g, inf_nodes, node, label):
+        """update the tree samples"""
+        assert label in {0, 1}
+        if label == 1:
+            def feasible(t):
+                return has_vertex(t, node)
+        else:
+            def feasible(t):
+                return not has_vertex(t, node)
+            
+        valid_trees = [t for t in self.steiner_tree_samples
+                       if feasible(t)]
+
+        new_samples = sample_steiner_trees(
+            g, inf_nodes,
+            n_samples=self.num_stt - len(valid_trees))
+        
+        self.steiner_tree_samples = valid_trees + new_samples
+        
     def _select_query(self, g, inf_nodes):
         # need to resample the spanning trees
         # because in theory, uninfected nodes can be removed from the graph
-        self.steiner_tree_samples = sample_steiner_trees(
-            self.g, inf_nodes,
-            n_samples=self.num_stt)
+        if len(self.steiner_tree_samples) == 0:
+            self.steiner_tree_samples = sample_steiner_trees(
+                self.g, inf_nodes,
+                n_samples=self.num_stt)
         
         scores = uncertainty_scores(
             g, inf_nodes,
@@ -101,27 +123,46 @@ class PredictionErrorQueryGenerator(BaseQueryGenerator):
         self.num_stt = num_stt
         self.n_node_samples = n_node_samples
         self.prune_nodes = prune_nodes
+        self.tree_nodes = []
+        
         super(PredictionErrorQueryGenerator, self).__init__(*args)
 
-    def _select_query(self, g, inf_nodes):
-        steiner_tree_samples = sample_steiner_trees(
-            self.g, inf_nodes,
-            n_samples=self.num_stt)
+    def update_samples(self, g, inf_nodes, node, label):
+        """update the tree samples"""
+        assert label in {0, 1}
+        valid_tree_nodes = matching_trees(self.tree_nodes, node, label)
 
-        T = [set(extract_nodes(t)) for t in steiner_tree_samples]  # node set
+        new_samples = sample_steiner_trees(
+            g, inf_nodes,
+            n_samples=self.num_stt - len(valid_tree_nodes))
+        
+        self.tree_nodes = valid_tree_nodes + [set(extract_nodes(t))
+                                              for t in new_samples]
+        
+    def _select_query(self, g, inf_nodes):
+        if len(self.tree_nodes) == 0:
+            print('generate samples')
+            # lazy generation of samples
+            steiner_tree_samples = sample_steiner_trees(
+                g, inf_nodes,
+                n_samples=self.num_stt)
+
+            self.tree_nodes = [set(extract_nodes(t)) for t in steiner_tree_samples]  # node set
 
         # pruning nods that are sure to be infected/uninfected
         if self.prune_nodes:
             self._pool = {i for i in self._pool
-                          if len(matching_trees(T, i, 0)) / len(T) not in {0, 1}}
+                          if len(matching_trees(self.tree_nodes, i, 0)) / len(self.tree_nodes)
+                          not in {0, 1}}
         
         if ((self.n_node_samples is None) or self.n_node_samples >= len(self._pool)):
             node_samples = self._pool
         else:
             # use node samples to estimate prediction error
             cand_node_samples = list(self._pool)
-            node_sample_inf_proba = np.array([len(matching_trees(T, n, 1)) / len(T)
-                                              for n in cand_node_samples])
+            node_sample_inf_proba = np.array(
+                [len(matching_trees(self.tree_nodes, n, 1)) / len(self.tree_nodes)
+                 for n in cand_node_samples])
 
             # the closer to 0.5, the better
             val1 = node_sample_inf_proba * 2
@@ -135,7 +176,7 @@ class PredictionErrorQueryGenerator(BaseQueryGenerator):
                                             p=sampling_weight)
 
         def score(q):
-            s = query_score(q, T,
+            s = query_score(q, self.tree_nodes,
                             set(node_samples) - {q})
             return s
         if False:

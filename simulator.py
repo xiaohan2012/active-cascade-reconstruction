@@ -32,6 +32,7 @@ class Simulator():
             q = self.q_gen.select_query(self.g, inf_nodes)
             # print('query:', q)
             qs.append(q)
+            
             if c[q] == -1:  # not infected
                 isolate_node(self.g, q)
                 hide_disconnected_components(self.g, inf_nodes)
@@ -40,4 +41,11 @@ class Simulator():
             else:
                 inf_nodes.append(q)
 
+            # update tree samples if necessary
+            if hasattr(self.q_gen, 'update_samples'):
+                # print('update samples')
+                label = int(c[q] >= 0)
+                assert label in {0, 1}
+                self.q_gen.update_samples(self.g, inf_nodes, q, label)
+                
         return qs, aux
