@@ -3,6 +3,8 @@ from query_selection import (RandomQueryGenerator, EntropyQueryGenerator,
 from simulator import Simulator
 from graph_helpers import remove_filters, has_vertex
 from fixture import g
+from sample_pool import TreeSamplePool
+
 
 
 def check_tree_samples(qs, c, trees):
@@ -20,9 +22,11 @@ def check_tree_samples(qs, c, trees):
                 else:
                     assert not has_vertex(t, q)
 
+
 def test_error_based_method(g):
     gv = remove_filters(g)
-    q_gen = PredictionErrorQueryGenerator(gv, num_stt=20)
+    pool = TreeSamplePool(gv, n_samples=20)
+    q_gen = PredictionErrorQueryGenerator(gv, pool)
     sim = Simulator(gv, q_gen)
     n_queries = 10
     qs, aux = sim.run(n_queries)
@@ -30,19 +34,20 @@ def test_error_based_method(g):
     assert len(qs) == n_queries
     assert set(qs).intersection(set(aux['obs'])) == set()
 
-    check_tree_samples(qs, aux['c'], q_gen.tree_nodes)
+    check_tree_samples(qs, aux['c'], q_gen.tree_pool.nodes_samples)
 
 
 def test_entropy_method(g):
     gv = remove_filters(g)
-    q_gen = EntropyQueryGenerator(gv, num_stt=20)
+    pool = TreeSamplePool(gv, n_samples=20)
+    q_gen = EntropyQueryGenerator(gv, pool)
     sim = Simulator(gv, q_gen)
     n_queries = 10
     qs, aux = sim.run(n_queries)
     
     assert len(qs) == n_queries
     assert set(qs).intersection(set(aux['obs'])) == set()
-    check_tree_samples(qs, aux['c'], q_gen.steiner_tree_samples)
+    check_tree_samples(qs, aux['c'], q_gen.tree_pool.tree_samples)
 
 
 def test_random(g):
