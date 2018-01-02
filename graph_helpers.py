@@ -26,7 +26,14 @@ def filter_graph_by_edges(g, edges):
     efilt.set_value(False)
     for i, j in edges:
         efilt[g.edge(i, j)] = True
-    return GraphView(g, efilt=efilt)
+
+    vfilt = g.new_vertex_property('bool')
+    vfilt.set_value(False)
+    for e in edges:
+        for u in e:
+            vfilt[u] = True
+
+    return GraphView(g, efilt=efilt, vfilt=vfilt)
 
 
 def get_leaves(t):
@@ -131,7 +138,7 @@ def extract_steiner_tree(sp_tree, terminals):
 
     efilt = sp_tree.new_edge_property('bool')
     # efilt.set_value(False)
-    efilt.a = 0
+    efilt.a = False
 
     # for i, j in st_edges:
     #     e = sp_tree.edge(i, j, all_edges=False)
@@ -142,8 +149,8 @@ def extract_steiner_tree(sp_tree, terminals):
     return GraphView(sp_tree, vfilt=vfilt, efilt=efilt)
 
 
-def gen_random_spanning_tree(g):
-    efilt = random_spanning_tree(g)
+def gen_random_spanning_tree(g, root=None):
+    efilt = random_spanning_tree(g, root=root)
     return GraphView(g, efilt=efilt)
 
 # @profile
@@ -257,6 +264,15 @@ def is_tree(t):
     if np.all(degs > 0) == 0:
         return False
 
+    return True
+
+
+def is_steiner_tree(t, X):
+    if not is_tree(t):
+        return False
+    for x in X:
+        if not has_vertex(t, x):
+            return False
     return True
 
 

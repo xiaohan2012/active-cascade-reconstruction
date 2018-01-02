@@ -4,7 +4,10 @@ from scipy.stats import entropy
 from linalg_helpers import num_spanning_trees_dense
 from graph_helpers import (contract_graph_by_nodes,
                            extract_nodes, extract_steiner_tree,
-                           has_vertex, gen_random_spanning_tree)
+                           has_vertex, gen_random_spanning_tree,
+                           filter_graph_by_edges)
+
+from random_steiner_tree import random_steiner_tree
 
 # @profile
 def det_score_of_steiner_tree(st, g):
@@ -63,34 +66,46 @@ def uncertainty_count(n, trees):
 
 # @profile
 def sample_steiner_trees(g, obs,
-                         n_samples=None,
-                         subset_size=None,
-                         tree_cost_func=lambda t: t.num_edges(),
-                         sp_trees=None):
+                         method,
+                         n_samples,
+                         gi=None,
+                         root_sampler=None,
+                         return_tree_nodes=False):
     """sample `n_samples` steiner trees that span `obs` in `g`
 
-    `sp_trees`: list of gt.GraphView, the spanning trees sampled in prior.
-    `subset_size`: None or int, if given,
-        top-`n_subset` trees from `n_samples` steiner trees will be taken (from small to )
-        the sorting order is determined by `tree_cost_func`, the larger the cost, the latter
+    `method`: the method for sampling steiner tree
+    `n_samples`: sample size
+    `gi`: the Graph object that is used if `method` in {'cut', 'loop_erased'}
+    `root_sampler`: function that samples a root
+    `return_tree_nodes`: if True, return the set of nodes that are in the sampled steiner tree
     """
+    assert method in {'cut', 'cut_naive', 'loop_erased'}
+
     steiner_tree_samples = []
-    if n_samples is None:
-        assert sp_trees
-        n_samples = len(sp_trees)
-        
     for i in range(n_samples):
-        if sp_trees is not None:
-            rand_t = sp_trees[i]
+        if root_sampler is None:
+            root = np.random.randint(0, g.num_vertices())
         else:
-            rand_t = gen_random_spanning_tree(g)
-        st = extract_steiner_tree(rand_t, obs)
+            assert callable(root_sampler), 'root_sampler should be callable'
+            root = root_sampler(g, obs)
+
+        if method == 'cut_naive':
+            rand_t = gen_random_spanning_tree(g, root=root)
+            st = extract_steiner_tree(rand_t, obs)
+            if return_tree_nodes:
+                st = set(map(int, st.vertices()))
+        elif method in {'cut', 'loop_erased'}:
+            assert gi is not None
+            edges = random_steiner_tree(gi, obs, root, method)
+            if return_tree_nodes:
+                st = set(u for e in edges for u in e)
+            else:
+                st = filter_graph_by_edges(g, edges)
+
         steiner_tree_samples.append(st)
-    if subset_size is None:
-        return steiner_tree_samples
-    else:
-        assert subset_size > 0
-        return list(sorted(steiner_tree_samples, key=tree_cost_func))[:subset_size]
+
+    return steiner_tree_samples
+
 
 # @profile
 def uncertainty_scores(g, obs,
