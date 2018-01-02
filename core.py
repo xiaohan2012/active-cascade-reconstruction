@@ -64,7 +64,7 @@ def uncertainty_count(n, trees):
     yes, no = node_occurrence_freq(n, trees)
     return min(yes, no)
 
-# @profile
+
 def sample_steiner_trees(g, obs,
                          method,
                          n_samples,
