@@ -34,7 +34,7 @@ def run(g, N, method, return_tree_nodes):
 # construting the GraphView is very time consuming
 
 g_dim = 100
-return_tree_nodes = False
+return_tree_nodes = True
 g = lattice((g_dim, g_dim))
 
 run(g, N, 'cut_naive', return_tree_nodes)

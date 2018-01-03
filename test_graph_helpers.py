@@ -1,3 +1,4 @@
+import pytest
 from numpy.testing import assert_almost_equal
 from graph_tool import Graph
 from graph_tool.generation import complete_graph, lattice
@@ -9,25 +10,35 @@ from graph_helpers import (extract_steiner_tree, filter_graph_by_edges,
                            hide_disconnected_components)
 
 
-def test_extract_steiner_tree():
+@pytest.mark.parametrize("X,edges", [([1, 3], {(1, 3)}),
+                                     ([0, 2], {(0, 1), (1, 2)}),
+                                     ([0], set()),
+                                     ([0, 1, 2, 3], {(0, 1), (1, 2), (1, 3)})])
+def test_extract_steiner_tree(X, edges):
     g = complete_graph(4)
     tree = filter_graph_by_edges(g, [(0, 1), (1, 2), (1, 3)])
 
-    stt = extract_steiner_tree(tree, [1, 3])
-    assert extract_edges(stt) == [(1, 3)]
-    assert set(extract_nodes(stt)) == {1, 3}
+    # CASE 1
+    # extract **tree**
+    stt = extract_steiner_tree(tree, X, return_nodes=False)
+    assert set(extract_edges(stt)) == edges
 
-    stt = extract_steiner_tree(tree, [0, 2])
-    assert set(extract_edges(stt)) == {(0, 1), (1, 2)}
-    assert set(extract_nodes(stt)) == {0, 1, 2}
+    if len(X) > 1:
+        nodes = {u for e in edges for u in e}
+        assert set(extract_nodes(stt)) == nodes
+    else:
+        # single terminal case
+        assert set(extract_nodes(stt)) == set(X)
 
-    stt = extract_steiner_tree(tree, [0])
-    assert extract_edges(stt) == []
-    assert extract_nodes(stt) == [0]
-
-    stt = extract_steiner_tree(tree, [0, 1, 2, 3])
-    assert set(extract_edges(stt)) == {(0, 1), (1, 2), (1, 3)}
-    assert set(extract_nodes(stt)) == {0, 1, 2, 3}
+    # CASE 2
+    # extract **nodes**
+    stt = extract_steiner_tree(tree, X, return_nodes=True)
+    if len(X) > 1:
+        nodes = {u for e in edges for u in e}
+        assert stt == nodes
+    else:
+        # single terminal case
+        assert stt == set(X)
 
 
 def test_contract_graph_by_nodes():

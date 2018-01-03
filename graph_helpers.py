@@ -49,7 +49,7 @@ def extract_edges(g):
     return [(int(u), int(v)) for u, v in g.edges()]
 
 # @profile
-def extract_steiner_tree(sp_tree, terminals):
+def extract_steiner_tree(sp_tree, terminals, return_nodes=True):
     """given spanning tree and terminal nodes, extract the minimum steiner tree that spans terminals
     
     Args:
@@ -57,10 +57,11 @@ def extract_steiner_tree(sp_tree, terminals):
 
     sp_tree: spanning tree
     terminals: list of integers
+    return_nodes: bool, return set<int> if True, GraphView otherwise
 
     Return:
     -----------
-    GraphView: the steiner tree
+    GraphView | sec<int>: the steiner tree or the set of nodes
     
     algorithm idea:
 
@@ -89,6 +90,7 @@ def extract_steiner_tree(sp_tree, terminals):
             self.pred = pred
         
         def tree_edge(self, e):
+            # optimization here
             # stores (source, edge)
             # because getting edge is expensive in graph_tool
             self.pred[int(e.target())] = (int(e.source()), e)
@@ -96,57 +98,52 @@ def extract_steiner_tree(sp_tree, terminals):
     vis = Visitor(pred)
 
     st_edges = set()
-    vdict = dict(zip(extract_nodes(sp_tree),
-                     repeat(False)))
     
+    visited = dict(zip(extract_nodes(sp_tree),
+                       repeat(False)))
+
+    nodes_visited = set()
     s = terminals[0]
     bfs_search(sp_tree, source=s, visitor=vis)
 
     while len(terminals) > 0:
         x = terminals.pop()
-
-        if vdict[x]:
+        nodes_visited.add(x)
+        if visited[x]:
             continue
         
-        vdict[x] = True
+        visited[x] = True
         
         # get edges from x to s
         y, e = vis.pred[x]
         while y >= 0:
+            nodes_visited.add(y)
             # 0 can be node, `while y` is wrong
-
             st_edges.add(e)
 
-            if vdict[y]:
+            if visited[y]:
                 break
             
-            vdict[y] = True
+            visited[y] = True
             x = y
             y, e = vis.pred[x]
 
-    # get the filters
-    # vfilt = sp_tree.new_vertex_property('bool')
-    # vfilt.set_value(False)
-    # for v, flag in vdict.items():
-    #     if flag:
-    #         vfilt[v] = True
-    vfilt = sp_tree.new_vertex_property('bool')
-    vfilt.a = False
-    for v, flag in vdict.items():
-        if flag:
-            vfilt.a[v] = True
+    if return_nodes:
+        return nodes_visited
+    else:
+        vfilt = sp_tree.new_vertex_property('bool')
+        vfilt.a = False
+        for v, flag in visited.items():
+            if flag:
+                vfilt.a[v] = True
 
-    efilt = sp_tree.new_edge_property('bool')
-    # efilt.set_value(False)
-    efilt.a = False
+        efilt = sp_tree.new_edge_property('bool')
+        efilt.a = False
 
-    # for i, j in st_edges:
-    #     e = sp_tree.edge(i, j, all_edges=False)
-    #     efilt[e] = True
-    for e in st_edges:
-        efilt[e] = True
+        for e in st_edges:
+            efilt[e] = True
 
-    return GraphView(sp_tree, vfilt=vfilt, efilt=efilt)
+        return GraphView(sp_tree, vfilt=vfilt, efilt=efilt)
 
 
 def gen_random_spanning_tree(g, root=None):

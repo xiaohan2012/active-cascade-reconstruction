@@ -91,9 +91,9 @@ def sample_steiner_trees(g, obs,
 
         if method == 'cut_naive':
             rand_t = gen_random_spanning_tree(g, root=root)
-            st = extract_steiner_tree(rand_t, obs)
-            if return_tree_nodes:
-                st = set(map(int, st.vertices()))
+            st = extract_steiner_tree(rand_t, obs, return_nodes=return_tree_nodes)
+            # if return_tree_nodes:
+            #     st = set(map(int, st.vertices()))
         elif method in {'cut', 'loop_erased'}:
             assert gi is not None
             edges = random_steiner_tree(gi, obs, root, method)
