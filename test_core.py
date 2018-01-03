@@ -1,33 +1,16 @@
 import pytest
 import numpy as np
-from random_steiner_tree import util
 
 from core import uncertainty_scores, sample_steiner_trees
+from sample_pool import TreeSamplePool
 from graph_helpers import is_steiner_tree
-from fixture import g, obs
+from fixture import g, gi, obs
 
 
-@pytest.fixture
-def gi(g):
-    return util.from_gt(g, None)
-
-
-def test_uncertainty_scores(g, obs):
-    ######## use SIR ############
-    scores = uncertainty_scores(g, obs, num_spt=10, num_stt=5, method='count',
-                                use_resample=True)
-    
-    with pytest.raises(KeyError):
-        for o in obs:
-            scores[o]
-    remain_nodes = set(np.arange(g.num_vertices())) - set(obs)
-    for u in remain_nodes:
-        assert scores[u] >= 0
-
-
-    ######## not use SIR ############
-    scores = uncertainty_scores(g, obs, num_spt=10, num_stt=5,
-                                method='count', use_resample=False)
+def test_uncertainty_scores(g, gi, obs):
+    sampler = TreeSamplePool(g, 25, 'cut', gi=gi,
+                             return_tree_nodes=True)
+    scores = uncertainty_scores(g, obs, sampler, method='count')
     
     with pytest.raises(KeyError):
         for o in obs:

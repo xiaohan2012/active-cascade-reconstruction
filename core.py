@@ -1,4 +1,5 @@
 import numpy as np
+import random
 from scipy.stats import entropy
 
 from linalg_helpers import num_spanning_trees_dense
@@ -46,10 +47,16 @@ def node_occurrence_freq(n, trees):
     """
     yes, no = 0, 0
     for t in trees:
-        if has_vertex(t, n):
-            yes += 1
+        if isinstance(t, set):
+            if n in t:
+                yes += 1
+            else:
+                no += 1
         else:
-            no += 1
+            if has_vertex(t, n):
+                yes += 1
+            else:
+                no += 1
     return yes, no
 
 
@@ -84,7 +91,9 @@ def sample_steiner_trees(g, obs,
     steiner_tree_samples = []
     for i in range(n_samples):
         if root_sampler is None:
-            root = np.random.randint(0, g.num_vertices())
+            # note: isolated nodes *should* be masked
+            # root = np.random.randint(0, g.num_vertices())
+            root = int(random.choice(list(g.vertices())))
         else:
             assert callable(root_sampler), 'root_sampler should be callable'
             root = root_sampler(g, obs)
@@ -109,11 +118,8 @@ def sample_steiner_trees(g, obs,
 
 # @profile
 def uncertainty_scores(g, obs,
-                       num_spt=100, num_stt=25,
-                       method='count',
-                       use_resample=True,
-                       steiner_tree_samples=None,
-                       spanning_tree_samples=None):
+                       sampler,
+                       method='count'):
     """
     calculate uncertainty scores based on sampled steiner trees
 
@@ -121,41 +127,36 @@ def uncertainty_scores(g, obs,
 
     Graph `g`
     list of int `obs`: list of observed nodes
-    int `num_spt`: number of spanning trees
-    int `num_stt`: number of steiner trees
+    sampler: the tree sampler
     str `method`: {'count', 'entropy'}
-    bool `use_resample`: wheter use SIR or not
-    steiner_tree_samples: list of steiner trees (*before* resampling)
-    spanning_tree_samples: list of spanning trees already sampled (for sample reuse)
 
     Returns:
 
     dict of (int, float): node to uncertainty score
     """
-    if steiner_tree_samples is None:
-        steiner_tree_samples = sample_steiner_trees(g, obs, num_spt, sp_trees=spanning_tree_samples)
+    if sampler.is_empty:
+        sampler.fill(obs)
 
-    if use_resample:
-        # two sets of scores
-        det_scores = [det_score_of_steiner_tree(st, g)
-                      for st in steiner_tree_samples]
-        real_scores = np.exp([-st.num_edges()
-                              for st in steiner_tree_samples])
+    # if use_resample:
+    #     # two sets of scores
+    #     det_scores = [det_score_of_steiner_tree(st, g)
+    #                   for st in sampler.samples]
+    #     real_scores = np.exp([-st.num_edges()
+    #                           for st in sampler.samples])
 
-        # normalize into proba
-        sampling_importance = real_scores / np.array(det_scores)
-        sampling_importance /= sampling_importance.sum()
+    #     # normalize into proba
+    #     sampling_importance = real_scores / np.array(det_scores)
+    #     sampling_importance /= sampling_importance.sum()
 
-        # st trees to choose
-        resampled_ids = np.random.choice(
-            np.arange(len(steiner_tree_samples)), num_stt, replace=False,
-            p=sampling_importance)
+    #     # st trees to choose
+    #     resampled_ids = np.random.choice(
+    #         np.arange(len(sampler.samples)), num_stt, replace=False,
+    #         p=sampling_importance)
 
-        tree_samples_resampled = [steiner_tree_samples[i]
-                                  for i in resampled_ids]
-    else:
-        tree_samples_resampled = steiner_tree_samples
-
+    #     tree_samples_resampled = [sampler.samples[i]
+    #                               for i in resampled_ids]
+    # else:
+    
     if method == 'count':
         uncert = uncertainty_count
     elif method == 'entropy':
@@ -164,6 +165,6 @@ def uncertainty_scores(g, obs,
         raise ValueError('unknown method')
     
     non_obs_nodes = set(extract_nodes(g)) - set(obs)
-    r = {n: uncert(n, tree_samples_resampled)
+    r = {n: uncert(n, sampler.samples)
          for n in non_obs_nodes}
     return r

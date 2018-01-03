@@ -64,23 +64,22 @@ class PRQueryGenerator(BaseQueryGenerator):
 
 
 class SamplingBasedGenerator(BaseQueryGenerator):
-    def __init__(self, g, tree_pool, *args, **kwargs):
-        self.tree_pool = tree_pool
+    def __init__(self, g, sampler, *args, **kwargs):
+        self.sampler = sampler
         super(SamplingBasedGenerator, self).__init__(g, *args, **kwargs)
 
     def receive_observation(self, obs):
-        self.tree_pool.fill(obs)
+        self.sampler.fill(obs)
         super(SamplingBasedGenerator, self).receive_observation(obs)
 
     def update_samples(self, g, inf_nodes, node, label):
         """update the tree samples"""
-        self.tree_pool.update_samples(inf_nodes, node, label)
+        self.sampler.update_samples(inf_nodes, node, label)
 
     
 class EntropyQueryGenerator(SamplingBasedGenerator):
-    def __init__(self, g, *args, method='entropy', use_resample=False, **kwargs):
+    def __init__(self, g, *args, method='entropy', **kwargs):
         self.method = method
-        self.use_resample = use_resample
 
         super(EntropyQueryGenerator, self).__init__(g, *args, **kwargs)
         
@@ -89,9 +88,8 @@ class EntropyQueryGenerator(SamplingBasedGenerator):
         # because in theory, uninfected nodes can be removed from the graph
         scores = uncertainty_scores(
             g, inf_nodes,
-            method=self.method,
-            use_resample=self.use_resample,
-            steiner_tree_samples=self.tree_pool.tree_samples)
+            self.sampler,
+            method=self.method)
         q = max(self._cand_pool, key=scores.__getitem__)
         return q
 
@@ -116,7 +114,7 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
             # also, we can set a real-valued threshold
             self._cand_pool = {
                 i for i in self._cand_pool
-                if len(matching_trees(self.tree_pool.nodes_samples, i, 0)) / self.tree_pool.n_samples
+                if len(matching_trees(self.sampler.samples, i, 0)) / self.sampler.n_samples
                 not in {0, 1}}
         
         if ((self.n_node_samples is None) or self.n_node_samples >= len(self._cand_pool)):
@@ -125,7 +123,7 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
             # use node samples to estimate prediction error
             cand_node_samples = list(self._cand_pool)
             node_sample_inf_proba = np.array(
-                [len(matching_trees(self.tree_pool.nodes_samples, n, 1)) / len(self.tree_pool.nodes_samples)
+                [len(matching_trees(self.sampler.samples, n, 1)) / len(self.sampler.samples)
                  for n in cand_node_samples])
 
             # the closer to 0.5, the better
@@ -140,7 +138,7 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
                                             p=sampling_weight)
 
         def score(q):
-            s = query_score(q, self.tree_pool.nodes_samples,
+            s = query_score(q, self.sampler.samples,
                             set(node_samples) - {q})
             return s
         if False:
