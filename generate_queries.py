@@ -7,19 +7,27 @@ import argparse
 from tqdm import tqdm
 
 from query_selection import (RandomQueryGenerator, EntropyQueryGenerator,
-                             PRQueryGenerator, PredictionErrorQueryGenerator)
+                             PRQueryGenerator, PredictionErrorQueryGenerator,
+                             SamplingBasedGenerator)
 from simulator import Simulator
 from joblib import Parallel, delayed
 from graph_helpers import remove_filters, load_graph_by_name
 from helpers import load_cascades
+from sample_pool import TreeSamplePool
+from random_steiner_tree.util import from_gt
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('-g', '--graph', help='graph name')
-
+parser.add_argument('-q', '--query_strategy',
+                    choices={'ranodm', 'pagerank', 'entropy', 'prediction_error'},
+                    help='query strategy')
 parser.add_argument('-c', '--cascade_dir',
                     help='directory of generated cascades')
 parser.add_argument('-n', '--n_queries', default=10, type=int,
                     help='number of queries')
+parser.add_argument('-m', '--sampling_method', default='loop_erased', type=str,
+                    choices={'loop_erased', 'cut', 'cut_naive'},
+                    help='the steiner tree sampling method')
 parser.add_argument('-s', '--n_samples', default=100, type=int,
                     help='number of samples')
 
@@ -33,25 +41,38 @@ n_queries = args.n_queries
 n_samples = args.n_samples
 # output_dir = '{}/{}'.format(args.output_dir, graph_name)
 output_dir = args.output_dir
-
+sampling_method = args.sampling_method
+query_strategy = args.query_strategy
 
 g = load_graph_by_name(graph_name)
 
+if query_strategy == 'random':
+    strategy = (RandomQueryGenerator, {})
+elif query_strategy == 'pagerank':
+    strategy = (PRQueryGenerator, {})
+elif query_strategy == 'entropy':
+    strategy = (EntropyQueryGenerator, {'method': 'entropy'})
+elif query_strategy == 'prediction_error':
+    strategy = (PredictionErrorQueryGenerator, {'n_node_samples': 500, 'prune_nodes': True})
 
-strategies = [
-    (RandomQueryGenerator, {}, 'random'),
-    (PRQueryGenerator, {}, 'pagerank'),
-    (EntropyQueryGenerator, {'num_stt': n_samples, 'method': 'entropy', 'use_resample': False}, 'entropy'),
-    (PredictionErrorQueryGenerator, {'num_stt': n_samples, 'n_node_samples': 500, 'prune_nodes': True},
-     'prediction_error'),
-]
 
-
-def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir):
-
+def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir, sampling_method):
     gv = remove_filters(g)
-    q_gen = q_gen_cls(gv, **param)
-    sim = Simulator(gv, q_gen)
+    args = []
+    # sampling based method need a sampler to initialize
+    gi = from_gt(g)
+    if issubclass(q_gen_cls, SamplingBasedGenerator):
+        print('using sampler')
+        sampler = TreeSamplePool(
+            gv,
+            n_samples=20,
+            method=sampling_method,
+            gi=gi,
+            return_tree_nodes=True)
+        args.append(sampler)
+    
+    q_gen = q_gen_cls(gv, *args, **param)
+    sim = Simulator(gv, q_gen, gi=gi, print_log=False)
 
     qs = sim.run(n_queries, obs, c)
     
@@ -70,12 +91,12 @@ if args.debug:
     print('====================')
     print('DEBUG MODE')
     print('====================')
+    cls, param = strategy
     for path, (obs, c) in tqdm(cascade_generator):
-        for cls, param, name in strategies:
-            one_round(g, obs, c, path, cls, param, name, output_dir)
+        one_round(g, obs, c, path, cls, param, query_strategy, output_dir, sampling_method)
 else:
-    Parallel(n_jobs=-1)(delayed(one_round)(g, obs, c, path, cls, param, name, output_dir)
-                        for path, (obs, c) in tqdm(cascade_generator)
-                        for cls, param, name in strategies)
+    Parallel(n_jobs=-1)(delayed(one_round)(g, obs, c, path, strategy[0], strategy[1],
+                                           query_strategy, output_dir, sampling_method)
+                        for path, (obs, c) in tqdm(cascade_generator))
         
 

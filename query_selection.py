@@ -107,7 +107,7 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
         self.prune_nodes = prune_nodes
         
         super(PredictionErrorQueryGenerator, self).__init__(*args, **kwargs)
-        
+
     def _select_query(self, g, inf_nodes):
         if self.prune_nodes:
             # pruning nods that are sure to be infected/uninfected
