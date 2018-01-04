@@ -1,7 +1,7 @@
 import numpy as np
 
 
-@profile
+# @profile
 def num_matching_trees(T, node, value):
     """
     Args:
@@ -30,13 +30,14 @@ def matching_trees(T, node, value):
         return [t for t in T if node in t]
     else:  # uninfected
         return [t for t in T if node not in t]
-        
+
 # @profile
 def prediction_error(q, y_hat, T, hidden_nodes):
     # filter T by (q, y_hat)
     sub_T = matching_trees(T, q, y_hat)
     N = len(sub_T)
-    error = 0
+    cdef float p, error = 0.0
+
     for u in hidden_nodes:
         try:
             p = len(matching_trees(sub_T, u, 0)) / N
