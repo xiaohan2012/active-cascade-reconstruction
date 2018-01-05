@@ -13,7 +13,7 @@ class BaseQueryGenerator():
             self.receive_observation(obs)
         else:
             self._cand_pool = None
-        
+
     def receive_observation(self, obs):
         self._cand_pool = set(extract_nodes(self.g)) - set(obs)
 
@@ -31,7 +31,7 @@ class BaseQueryGenerator():
         """
         visible_nodes = set(extract_nodes(g))
         self._cand_pool = list(set(self._cand_pool).intersection(visible_nodes))
-        
+
     def empty(self):
         return len(self._cand_pool) == 0
 
@@ -58,7 +58,7 @@ class PRQueryGenerator(BaseQueryGenerator):
             self.pr[int(v)] = rank[v]
 
         super(PRQueryGenerator, self).receive_observation(obs)
-        
+
     def _select_query(self, *args, **kwargs):
         return max(self._cand_pool, key=self.pr.__getitem__)
 
@@ -76,13 +76,13 @@ class SamplingBasedGenerator(BaseQueryGenerator):
         """update the tree samples"""
         self.sampler.update_samples(inf_nodes, node, label)
 
-    
+
 class EntropyQueryGenerator(SamplingBasedGenerator):
     def __init__(self, g, *args, method='entropy', **kwargs):
         self.method = method
 
         super(EntropyQueryGenerator, self).__init__(g, *args, **kwargs)
-        
+
     def _select_query(self, g, inf_nodes):
         # need to resample the spanning trees
         # because in theory, uninfected nodes can be removed from the graph
@@ -105,7 +105,7 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
         """
         self.n_node_samples = n_node_samples
         self.prune_nodes = prune_nodes
-        
+
         super(PredictionErrorQueryGenerator, self).__init__(*args, **kwargs)
 
     def _select_query(self, g, inf_nodes):
@@ -116,7 +116,7 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
                 i for i in self._cand_pool
                 if len(matching_trees(self.sampler.samples, i, 0)) / self.sampler.n_samples
                 not in {0, 1}}
-        
+
         if ((self.n_node_samples is None) or self.n_node_samples >= len(self._cand_pool)):
             node_samples = self._cand_pool
         else:
@@ -131,12 +131,13 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
             val2 = (1 - node_sample_inf_proba) * 2
             sampling_weight = np.where(val1 < val2, val1, val2)  # take the pairwise minimum
             assert (sampling_weight <= 1).all()
-                                 
+
             sampling_weight /= sampling_weight.sum()
 
             node_samples = np.random.choice(cand_node_samples, self.n_node_samples,
                                             p=sampling_weight)
 
+        @profile
         def score(q):
             s = query_score(q, self.sampler.samples,
                             set(node_samples) - {q})
@@ -152,7 +153,7 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
         # print('top score queries:')
         # for q in top_qs:
         #     print('{}({:.2f})'.format(q, q2score[q]))
-            
+
         best_q = min(self._cand_pool, key=q2score.__getitem__)
         # print('best_q', best_q)
         return best_q

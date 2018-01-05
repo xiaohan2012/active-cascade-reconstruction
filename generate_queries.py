@@ -70,19 +70,19 @@ def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir, sampl
             gi=gi,
             return_tree_nodes=True)
         args.append(sampler)
-    
+
     q_gen = q_gen_cls(gv, *args, **param)
     sim = Simulator(gv, q_gen, gi=gi, print_log=False)
 
     qs = sim.run(n_queries, obs, c)
-    
+
     d = os.path.join(output_dir, q_gen_name)
     if not os.path.exists(d):
         os.makedirs(d)
     c_id = os.path.basename(c_path).split('.')[0]
     outpath = os.path.join(d, c_id + '.pkl')
     pkl.dump(qs, open(outpath, 'wb'))
-    
+
 cascade_generator = load_cascades(args.cascade_dir)
 
 
@@ -98,5 +98,3 @@ else:
     Parallel(n_jobs=-1)(delayed(one_round)(g, obs, c, path, strategy[0], strategy[1],
                                            query_strategy, output_dir, sampling_method)
                         for path, (obs, c) in tqdm(cascade_generator))
-        
-
