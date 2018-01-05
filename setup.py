@@ -14,7 +14,9 @@ directive_defaults['linetrace'] = True
 directive_defaults['binding'] = True
 
 extensions = [
-    Extension('core1', ['core1.pyx'], language='c++',
+    Extension('core1', ['core1.pyx'],
+              language='c++',
+              libraries=["m"],
               define_macros=[('CYTHON_TRACE', '1')])  # for line profiling
 ]
 

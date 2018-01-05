@@ -1,12 +1,11 @@
 # cython: linetrace=True
 
 import numpy as np
-from libcpp.vector cimport vector
-from libcpp.set cimport set
+from libc.math cimport log
 
 
 # @profile
-cdef num_matching_trees(vector[set[int]]& T, int node, int value):
+cdef num_matching_trees(T, int node, int value):
     """
     Args:
     ---------
@@ -33,16 +32,18 @@ cdef num_matching_trees(vector[set[int]]& T, int node, int value):
     #     return len([t for t in T if node not in t])
 
 
-cdef matching_trees_cython(vector[set[int]]& T, int node, int value):
+cpdef matching_trees_cython(T, int node, int value):
     """
     T: list of set of ints, list of trees represented by nodes
     node: node to filter
     value: value to filter
     """
     if value == 1:  # infected
-        return [t for t in T if t.count(node)]
+        # return [t for t in T if t.count(node)]
+        return [t for t in T if node in t]
     else:  # uninfected
-        return [t for t in T if t.count(node) == 0]
+        # return [t for t in T if t.count(node) == 0]
+        return [t for t in T if (node not in t)]
 
 def matching_trees(T, node, value):
     """
@@ -56,17 +57,17 @@ def matching_trees(T, node, value):
         return [t for t in T if node not in t]
 
 # @profile
-cpdef prediction_error(int q, int y_hat, vector[set[int]]& T, set[int]& hidden_nodes):
+cpdef prediction_error(int q, int y_hat, T, hidden_nodes):
     # filter T by (q, y_hat)
-    cdef vector[set[int]] sub_T = matching_trees_cython(T, q, y_hat)
-    cdef float p, error = 0.0, N = len(sub_T)
+    sub_T = matching_trees_cython(T, q, y_hat)
+    cdef double p, error = 0.0, N = len(sub_T)
 
     for u in hidden_nodes:
         try:
             p = len(matching_trees_cython(sub_T, u, 0)) / N
             if p == 0 or p == 1:
                 raise ZeroDivisionError
-            error -= (p * np.log(p) + (1-p) * np.log(1-p))
+            error -= (p * log(p) + (1-p) * log(1-p))
         except ZeroDivisionError:
             # entropy is zero
             pass
@@ -74,9 +75,9 @@ cpdef prediction_error(int q, int y_hat, vector[set[int]]& T, set[int]& hidden_n
     return error
 
 # @profile
-def query_score(int q, vector[set[int]] &T, set[int] &hidden_nodes):
-    assert hidden_nodes.count(q) == 0
-    score = 0
+def query_score(int q, T, hidden_nodes):
+    assert q not in hidden_nodes
+    cdef double p, score = 0
     if True:
         for y_hat in [0, 1]:
             p = len(matching_trees_cython(T, q, y_hat)) / len(T)
