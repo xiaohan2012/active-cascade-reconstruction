@@ -56,7 +56,7 @@ def matching_trees(T, node, value):
         return [t for t in T if node not in t]
 
 # @profile
-cdef prediction_error(int q, int y_hat, vector[set[int]]& T, set[int]& hidden_nodes):
+cpdef prediction_error(int q, int y_hat, vector[set[int]]& T, set[int]& hidden_nodes):
     # filter T by (q, y_hat)
     cdef vector[set[int]] sub_T = matching_trees_cython(T, q, y_hat)
     cdef float p, error = 0.0, N = len(sub_T)
@@ -74,7 +74,7 @@ cdef prediction_error(int q, int y_hat, vector[set[int]]& T, set[int]& hidden_no
     return error
 
 # @profile
-def query_score(int q, vector[set[int]] T, set[int] hidden_nodes):
+def query_score(int q, vector[set[int]] &T, set[int] &hidden_nodes):
     assert hidden_nodes.count(q) == 0
     score = 0
     if True:
