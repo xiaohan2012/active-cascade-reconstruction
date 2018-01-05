@@ -1,5 +1,5 @@
 import pytest
-from core1 import matching_trees, prediction_error, query_score
+from core1 import matching_trees_cython, matching_trees, prediction_error, query_score
 from scipy.stats import entropy
 
 @pytest.fixture
@@ -12,10 +12,11 @@ def T():
     ]
 
 
-def test_matching_trees(T):
-    assert matching_trees(T, 0, 1) == [{0, 1, 2}]
-    assert matching_trees(T, 1, 0) == []
-    assert matching_trees(T, 4, 0) == T[:3]
+@pytest.mark.parametrize("func", [matching_trees_cython, matching_trees])
+def test_matching_trees(T, func):
+    assert func(T, 0, 1) == [{0, 1, 2}]
+    assert func(T, 1, 0) == []
+    assert func(T, 4, 0) == T[:3]
 
 
 def test_prediction_error(T):
@@ -30,4 +31,4 @@ def test_prediction_error(T):
 def test_query_score(T):
     score = query_score(0, T, [3, 4])
     expected = entropy([1/3, 2/3]) * 2 * 3/4
-    assert expected == score
+    assert score == expected

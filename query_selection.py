@@ -137,7 +137,6 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
             node_samples = np.random.choice(cand_node_samples, self.n_node_samples,
                                             p=sampling_weight)
 
-        @profile
         def score(q):
             s = query_score(q, self.sampler.samples,
                             set(node_samples) - {q})
