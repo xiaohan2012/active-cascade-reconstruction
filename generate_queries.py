@@ -56,16 +56,15 @@ elif query_strategy == 'prediction_error':
     strategy = (PredictionErrorQueryGenerator, {'n_node_samples': 500, 'prune_nodes': True})
 
 
-def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir, sampling_method):
+def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir, sampling_method, n_samples):
     gv = remove_filters(g)
     args = []
     # sampling based method need a sampler to initialize
     gi = from_gt(g)
     if issubclass(q_gen_cls, SamplingBasedGenerator):
-        print('using sampler')
         sampler = TreeSamplePool(
             gv,
-            n_samples=20,
+            n_samples=n_samples,
             method=sampling_method,
             gi=gi,
             return_tree_nodes=True)
@@ -93,8 +92,8 @@ if args.debug:
     print('====================')
     cls, param = strategy
     for path, (obs, c) in tqdm(cascade_generator):
-        one_round(g, obs, c, path, cls, param, query_strategy, output_dir, sampling_method)
+        one_round(g, obs, c, path, cls, param, query_strategy, output_dir, sampling_method, n_samples)
 else:
     Parallel(n_jobs=-1)(delayed(one_round)(g, obs, c, path, strategy[0], strategy[1],
-                                           query_strategy, output_dir, sampling_method)
+                                           query_strategy, output_dir, sampling_method, n_samples)
                         for path, (obs, c) in tqdm(cascade_generator))
