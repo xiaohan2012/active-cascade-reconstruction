@@ -1,5 +1,6 @@
 # coding: utf-8
 
+import time
 import pickle as pkl
 import os
 import argparse
@@ -57,6 +58,8 @@ elif query_strategy == 'prediction_error':
 
 
 def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir, sampling_method, n_samples):
+    stime = time.time()
+    print('\nprocessing {} started\n'.format(c_path))
     gv = remove_filters(g)
     args = []
     # sampling based method need a sampler to initialize
@@ -81,6 +84,7 @@ def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir, sampl
     c_id = os.path.basename(c_path).split('.')[0]
     outpath = os.path.join(d, c_id + '.pkl')
     pkl.dump(qs, open(outpath, 'wb'))
+    print('\nprocessing {} done: taking {:.4f} secs\n'.format(c_path, time.time() - stime))
 
 cascade_generator = load_cascades(args.cascade_dir)
 
