@@ -7,4 +7,5 @@ python3 generate_queries.py \
 	 -s 10 \
 	 -m cut \
 	 -c cascade/grqc-s0.2-o0.1/ \
-	 -d outputs/queries/grqc-s0.2-o0.1/test/
+	 -d outputs/queries/grqc-s0.2-o0.1/test/ \
+	 --debug
