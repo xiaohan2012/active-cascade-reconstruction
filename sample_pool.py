@@ -27,6 +27,9 @@ class TreeSamplePool():
     def update_samples(self, inf_nodes, node, label):
         """if label=1, assuming `inf_nodes` includes `node` already
         if label=0, assuming `self.g` removes `node` already
+        
+        Return:
+        new_samples
         """
         assert label in {0, 1}  # 0: uninfected, 1: infected
         if not self.return_tree_nodes:
@@ -56,6 +59,7 @@ class TreeSamplePool():
         self._samples = valid_samples + new_samples
         # self._tree_nodes_samples = valid_tree_nodes + [set(extract_nodes(t))
         #                                                for t in new_samples]
+        return new_samples
 
     @property
     def samples(self):

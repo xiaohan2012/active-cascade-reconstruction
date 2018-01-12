@@ -74,7 +74,8 @@ class SamplingBasedGenerator(BaseQueryGenerator):
 
     def update_samples(self, g, inf_nodes, node, label):
         """update the tree samples"""
-        self.sampler.update_samples(inf_nodes, node, label)
+        new_samples = self.sampler.update_samples(inf_nodes, node, label)
+        return new_samples
 
 
 class EntropyQueryGenerator(SamplingBasedGenerator):
@@ -97,17 +98,30 @@ class EntropyQueryGenerator(SamplingBasedGenerator):
 class PredictionErrorQueryGenerator(SamplingBasedGenerator):
     """OUR CONTRIBUTION"""
     def __init__(self, *args,
+                 error_estimator,
                  prune_nodes=False,
                  n_node_samples=None, **kwargs):
         """
         n_node_samples: number of nodes used to estimate probabilities
         pass None if using all of them.
         """
+        self.error_estimator = error_estimator
         self.n_node_samples = n_node_samples
         self.prune_nodes = prune_nodes
 
         super(PredictionErrorQueryGenerator, self).__init__(*args, **kwargs)
 
+    def receive_observation(self, obs):
+        super(PredictionErrorQueryGenerator, self).receive_observation(obs)
+        # add samples to error estimator
+        self.error_estimator.build_matrix(self.sampler.samples)
+
+    def update_samples(self, g, inf_nodes, node, label):
+        new_samples = super(PredictionErrorQueryGenerator, self).update_samples(g, inf_nodes, node, label)
+
+        # remember this
+        self.error_estimator.update_trees(new_samples, node, label)
+        
     def _select_query(self, g, inf_nodes):
         if self.prune_nodes:
             # pruning nods that are sure to be infected/uninfected
@@ -138,9 +152,8 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
                                             p=sampling_weight)
 
         def score(q):
-            s = query_score(q, self.sampler.samples,
-                            set(node_samples) - {q})
-            return s
+            return self.error_estimator.query_score(q, set(node_samples) - {q})
+
         if False:
             from tqdm import tqdm
             e = {q: score(q) for q in tqdm(self._cand_pool)}
