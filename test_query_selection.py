@@ -6,6 +6,7 @@ from graph_helpers import remove_filters, has_vertex
 from fixture import g
 from sample_pool import TreeSamplePool
 from random_steiner_tree.util import from_gt
+from tree_stat import TreeBasedStatistics
 
 
 def check_tree_samples(qs, c, trees):
@@ -22,6 +23,17 @@ def check_tree_samples(qs, c, trees):
                     assert q not in t
                 else:
                     assert not has_vertex(t, q)
+
+
+def check_error_esitmator(qs, c, est):
+    # make sure the tree sampels are updated
+    for q in qs:
+        if c[q] >= 0:
+            # infected
+            assert est._m[q, :].sum() == est.n_col
+        else:
+            # uninfected
+            assert est._m[q, :].sum() == 0
 
 
 @pytest.mark.parametrize("query_method", ['random', 'pagerank', 'entropy', 'error'])
@@ -42,7 +54,8 @@ def test_query_method(g, query_method, sampling_method):
                           method=sampling_method,
                           gi=gi,
                           return_tree_nodes=True  # using tree nodes
-    )  
+    )
+
     if query_method == 'random':
         q_gen = RandomQueryGenerator(gv)
     elif query_method == 'pagerank':
@@ -50,7 +63,9 @@ def test_query_method(g, query_method, sampling_method):
     elif query_method == 'entropy':
         q_gen = EntropyQueryGenerator(gv, pool)
     elif query_method == 'error':
-        q_gen = PredictionErrorQueryGenerator(gv, pool)
+        error_estimator = TreeBasedStatistics(gv)
+        q_gen = PredictionErrorQueryGenerator(gv, pool,
+                                              error_estimator=error_estimator)
 
     sim = Simulator(gv, q_gen, gi=gi, print_log=True)
     print('simulator created')
@@ -63,37 +78,6 @@ def test_query_method(g, query_method, sampling_method):
 
     if query_method in {'entropy', 'error'}:
         check_tree_samples(qs, aux['c'], q_gen.sampler.samples)
-
-
-# def est_entropy_method(g):
-#     gv = remove_filters(g)
-#     pool = TreeSamplePool(gv, n_samples=20)
-#     q_gen = EntropyQueryGenerator(gv, pool)
-#     sim = Simulator(gv, q_gen)
-#     n_queries = 10
-#     qs, aux = sim.run(n_queries)
-    
-#     assert len(qs) == n_queries
-#     assert set(qs).intersection(set(aux['obs'])) == set()
-#     check_tree_samples(qs, aux['c'], q_gen.sampler.tree_samples)
-
-
-# def est_random(g):
-#     gv = remove_filters(g)
-#     q_gen = RandomQueryGenerator(gv)
-#     sim = Simulator(gv, q_gen)
-#     n_queries = 10
-#     qs, aux = sim.run(n_queries)
-
-#     assert len(qs) == n_queries
-#     assert set(qs).intersection(set(aux['obs'])) == set()
-
-# def est_pagerank(g):
-#     gv = remove_filters(g)
-#     q_gen = PRQueryGenerator(gv)
-#     sim = Simulator(gv, q_gen)
-#     n_queries = 10
-#     qs, aux = sim.run(n_queries)
-
-#     assert len(qs) == n_queries
-#     assert set(qs).intersection(set(aux['obs'])) == set()
+    if query_method == 'error':
+        # ensure that error estimator updates its tree samples
+        check_error_esitmator(qs, aux['c'], error_estimator)

@@ -32,7 +32,9 @@ class TreeBasedStatistics:
 
     def count(self, query, condition, targets, return_denum=False):
         mask = (self._m[query, :] == condition).nonzero()[0]
-        sub_m = self._m[np.asarray(targets)[:, None], mask]
+        # print('mask', mask)
+        # print('np.asarray(targets)[:, None]', np.array(list(targets))[:, None])
+        sub_m = self._m[np.asarray(list(targets))[:, None], mask]
         if not return_denum:
             return sub_m.sum(axis=1)
         else:
