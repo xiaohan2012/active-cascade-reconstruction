@@ -16,6 +16,7 @@ from graph_helpers import remove_filters, load_graph_by_name
 from helpers import load_cascades
 from sample_pool import TreeSamplePool
 from random_steiner_tree.util import from_gt
+from tree_stat import TreeBasedStatistics
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('-g', '--graph', help='graph name')
@@ -72,6 +73,9 @@ def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir, sampl
             gi=gi,
             return_tree_nodes=True)
         args.append(sampler)
+
+    if issubclass(q_gen_cls, PredictionErrorQueryGenerator):
+        param['error_estimator'] = TreeBasedStatistics(gv)
 
     q_gen = q_gen_cls(gv, *args, **param)
     sim = Simulator(gv, q_gen, gi=gi, print_log=False)
