@@ -21,7 +21,7 @@ from tree_stat import TreeBasedStatistics
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('-g', '--graph', help='graph name')
 parser.add_argument('-q', '--query_strategy',
-                    choices={'ranodm', 'pagerank', 'entropy', 'prediction_error'},
+                    choices={'random', 'pagerank', 'entropy', 'prediction_error'},
                     help='query strategy')
 parser.add_argument('-c', '--cascade_dir',
                     help='directory of generated cascades')
@@ -56,6 +56,8 @@ elif query_strategy == 'entropy':
     strategy = (EntropyQueryGenerator, {'method': 'entropy'})
 elif query_strategy == 'prediction_error':
     strategy = (PredictionErrorQueryGenerator, {'n_node_samples': 500, 'prune_nodes': True})
+else:
+    raise ValueError('invalid strategy name')
 
 
 def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir, sampling_method, n_samples):
@@ -82,7 +84,7 @@ def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir, sampl
 
     qs = sim.run(n_queries, obs, c)
 
-    d = os.path.join(output_dir, q_gen_name)
+    d = output_dir
     if not os.path.exists(d):
         os.makedirs(d)
     c_id = os.path.basename(c_path).split('.')[0]
