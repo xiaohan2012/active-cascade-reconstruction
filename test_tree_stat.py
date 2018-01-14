@@ -38,8 +38,34 @@ def stat(g, trees):
     return TreeBasedStatistics(g, trees)
 
 
+@pytest.mark.parametrize("targets", [None, set(range(6)), list(range(6))])
+def test_unconditional_count_and_proba(stat, trees, targets):
+    arr_c = np.array([3, 0, 2, 4, 2, 2])
+    arr_p = arr_c / len(trees)
+    assert_eq_np(stat.unconditional_count(targets),
+                 arr_c)
+
+    assert_eq_np(stat.unconditional_proba(targets),
+                 arr_p)
+
+
+@pytest.mark.parametrize("targets", [None, set(range(6)), list(range(6))])
+def test_filter_out_extreme_targets(stat, trees, targets):
+    # [3, 0, 2, 4, 2, 2] --> [2, 0, 2, 1, 2, 2]
+    filtered_targets = stat.filter_out_extreme_targets(targets,
+                                                       min_value=2/len(trees))
+    assert set(filtered_targets) == set()
+
+    filtered_targets = stat.filter_out_extreme_targets(targets,
+                                                       min_value=1/len(trees))
+    assert set(filtered_targets) == {0, 2, 4, 5}
+
+    filtered_targets = stat.filter_out_extreme_targets(targets,
+                                                       min_value=0/len(trees))
+    assert set(filtered_targets) == {0, 2, 3, 4, 5}
+
+
 def test_count_and_proba(stat, trees):
-    n_trees = len(trees)
     targets = list(range(1, 6))
     query = 0
 
@@ -55,7 +81,7 @@ def test_count_and_proba(stat, trees):
                  arr_c0 / 2)
     assert_eq_np(stat.proba(query, condition=1, targets=targets),
                  arr_c1 / 3)
-
+    
 
 def test_update_trees(stat, new_trees):
     stat.update_trees(new_trees, query=0, state=1)

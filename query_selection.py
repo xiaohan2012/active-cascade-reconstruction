@@ -1,7 +1,6 @@
 import random
 import numpy as np
 from core import uncertainty_scores
-from core1 import query_score, matching_trees
 from graph_tool.centrality import pagerank
 from graph_helpers import extract_nodes
 
@@ -106,6 +105,7 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
         pass None if using all of them.
         """
         self.error_estimator = error_estimator
+        self.min_proba = 1e-3
         self.n_node_samples = n_node_samples
         self.prune_nodes = prune_nodes
 
@@ -126,19 +126,20 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
         if self.prune_nodes:
             # pruning nods that are sure to be infected/uninfected
             # also, we can set a real-valued threshold
-            self._cand_pool = {
-                i for i in self._cand_pool
-                if len(matching_trees(self.sampler.samples, i, 0)) / self.sampler.n_samples
-                not in {0, 1}}
+            self._cand_pool = set(
+                self.error_estimator.filter_out_extreme_targets(
+                    self._cand_pool,
+                    min_value=self.min_proba))
 
         if ((self.n_node_samples is None) or self.n_node_samples >= len(self._cand_pool)):
             node_samples = self._cand_pool
         else:
             # use node samples to estimate prediction error
             cand_node_samples = list(self._cand_pool)
-            node_sample_inf_proba = np.array(
-                [len(matching_trees(self.sampler.samples, n, 1)) / len(self.sampler.samples)
-                 for n in cand_node_samples])
+            node_sample_inf_proba = self.error_estimator.unconditional_proba(cand_node_samples)
+            # node_sample_inf_proba = np.array(
+            #     [len(matching_trees(self.sampler.samples, n, 1)) / len(self.sampler.samples)
+            #      for n in cand_node_samples])
 
             # the closer to 0.5, the better
             val1 = node_sample_inf_proba * 2

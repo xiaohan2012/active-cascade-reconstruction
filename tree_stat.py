@@ -31,6 +31,14 @@ class TreeBasedStatistics:
                 self._m[v, i] = True
 
     def count(self, query, condition, targets, return_denum=False):
+        """
+        count node occurrence frequency in trees that satisfy condition on `query` and `condition`
+
+        return:
+        1. an array |targets|
+        2. optionally, |{tree that satisfy tree[query]==condition}| is returned if `return_denum` is True
+
+        """
         mask = (self._m[query, :] == condition).nonzero()[0]
         # print('mask', mask)
         # print('np.asarray(targets)[:, None]', np.array(list(targets))[:, None])
@@ -39,6 +47,25 @@ class TreeBasedStatistics:
             return sub_m.sum(axis=1)
         else:
             return sub_m.sum(axis=1), len(mask)
+
+    def unconditional_count(self, targets=None):
+        if targets is None:
+            sub_m = self._m
+        else:
+            sub_m = self._m[np.asarray(list(targets)), :]
+        return sub_m.sum(axis=1)
+
+    def unconditional_proba(self, targets=None):
+        return self.unconditional_count(targets) / self.n_col
+
+    def filter_out_extreme_targets(self, targets=None, min_value=0):
+        if targets is None:
+            targets = np.arange(self.n_row)
+        proba1 = self.unconditional_proba(targets)
+        proba0 = 1 - proba1
+        min_proba = np.minimum(proba0, proba1)
+        indices = np.nonzero(min_proba > min_value)[0]
+        return np.array(list(targets))[indices]
 
     def proba(self, *args, **kwargs):
         num, denum = self.count(*args, **kwargs, return_denum=True)

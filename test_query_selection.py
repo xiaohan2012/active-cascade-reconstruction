@@ -65,7 +65,9 @@ def test_query_method(g, query_method, sampling_method):
     elif query_method == 'error':
         error_estimator = TreeBasedStatistics(gv)
         q_gen = PredictionErrorQueryGenerator(gv, pool,
-                                              error_estimator=error_estimator)
+                                              error_estimator=error_estimator,
+                                              prune_nodes=True,
+                                              n_node_samples=10)
 
     sim = Simulator(gv, q_gen, gi=gi, print_log=True)
     print('simulator created')
