@@ -35,6 +35,8 @@ parser.add_argument('-s', '--n_samples', default=100, type=int,
 
 parser.add_argument('-d', '--output_dir', default='outputs/queries', help='output directory')
 parser.add_argument('-b', '--debug', action='store_true', help='if debug, use non-parallel')
+parser.add_argument('-v', '--verbose', action='store_true',
+                    help='if verbose, verbose information is printed')
 
 args = parser.parse_args()
 
@@ -60,7 +62,8 @@ else:
     raise ValueError('invalid strategy name')
 
 
-def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir, sampling_method, n_samples):
+def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir, sampling_method, n_samples,
+              verbose):
     stime = time.time()
     print('\nprocessing {} started\n'.format(c_path))
     gv = remove_filters(g)
@@ -80,7 +83,7 @@ def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir, sampl
         param['error_estimator'] = TreeBasedStatistics(gv)
 
     q_gen = q_gen_cls(gv, *args, **param)
-    sim = Simulator(gv, q_gen, gi=gi, print_log=False)
+    sim = Simulator(gv, q_gen, gi=gi, print_log=verbose)
 
     qs = sim.run(n_queries, obs, c)
 
@@ -102,8 +105,10 @@ if args.debug:
     print('====================')
     cls, param = strategy
     for path, (obs, c) in tqdm(cascade_generator):
-        one_round(g, obs, c, path, cls, param, query_strategy, output_dir, sampling_method, n_samples)
+        one_round(g, obs, c, path, cls, param, query_strategy, output_dir, sampling_method, n_samples,
+                  args.verbose)
 else:
     Parallel(n_jobs=-1)(delayed(one_round)(g, obs, c, path, strategy[0], strategy[1],
-                                           query_strategy, output_dir, sampling_method, n_samples)
+                                           query_strategy, output_dir, sampling_method, n_samples,
+                                           args.verbose)
                         for path, (obs, c) in tqdm(cascade_generator))
