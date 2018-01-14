@@ -6,14 +6,14 @@ from graph_helpers import extract_nodes
 
 
 class BaseQueryGenerator():
-    def __init__(self, g, obs=None):
+    def __init__(self, g, obs=None, c=None):
         self.g = g
         if obs is not None:
-            self.receive_observation(obs)
+            self.receive_observation(obs, c)
         else:
             self._cand_pool = None
 
-    def receive_observation(self, obs):
+    def receive_observation(self, obs, c):
         self._cand_pool = set(extract_nodes(self.g)) - set(obs)
 
     def select_query(self, *args, **kwargs):
@@ -45,8 +45,9 @@ class RandomQueryGenerator(BaseQueryGenerator):
 class PRQueryGenerator(BaseQueryGenerator):
     """rank node by pagerank score
     """
-    def receive_observation(self, obs):
+    def receive_observation(self, obs, c):
         # personalized vector for pagerank
+        print('START: pagerank')
         pers = self.g.new_vertex_property('float')
         for o in obs:
             pers[o] = 1 / len(obs)
@@ -55,21 +56,36 @@ class PRQueryGenerator(BaseQueryGenerator):
         self.pr = {}
         for v in self.g.vertices():
             self.pr[int(v)] = rank[v]
-
-        super(PRQueryGenerator, self).receive_observation(obs)
+        print('DONE: pagerank')
+        super(PRQueryGenerator, self).receive_observation(obs, c)
 
     def _select_query(self, *args, **kwargs):
         return max(self._cand_pool, key=self.pr.__getitem__)
 
 
 class SamplingBasedGenerator(BaseQueryGenerator):
-    def __init__(self, g, sampler, *args, **kwargs):
+    def __init__(self, g, sampler, root_sampler=None, *args, **kwargs):
         self.sampler = sampler
+        assert root_sampler in {None, 'earliest_obs'}
+        self.root_sampler = root_sampler
         super(SamplingBasedGenerator, self).__init__(g, *args, **kwargs)
 
-    def receive_observation(self, obs):
-        self.sampler.fill(obs)
-        super(SamplingBasedGenerator, self).receive_observation(obs)
+    def _earlier_root_sampler(self, obs, c):
+        def f():
+            return min(obs, key=lambda o: c[o])
+        return f
+
+    def receive_observation(self, obs, c):
+        print('START: sampler.fill')
+        if self.root_sampler == 'earliest_obs':
+            root_sampler = self._earlier_root_sampler(obs, c)
+        else:
+            root_sampler = self.root_sampler
+            
+        self.sampler.fill(obs,
+                          root_sampler=root_sampler)
+        print('DONE: sampler.fill')
+        super(SamplingBasedGenerator, self).receive_observation(obs, c)
 
     def update_samples(self, g, inf_nodes, node, label):
         """update the tree samples"""
@@ -111,8 +127,8 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
 
         super(PredictionErrorQueryGenerator, self).__init__(*args, **kwargs)
 
-    def receive_observation(self, obs):
-        super(PredictionErrorQueryGenerator, self).receive_observation(obs)
+    def receive_observation(self, obs, c):
+        super(PredictionErrorQueryGenerator, self).receive_observation(obs, c)
         # add samples to error estimator
         self.error_estimator.build_matrix(self.sampler.samples)
 

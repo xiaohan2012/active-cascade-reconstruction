@@ -7,7 +7,7 @@ from graph_helpers import (contract_graph_by_nodes,
                            extract_nodes, extract_steiner_tree,
                            has_vertex, gen_random_spanning_tree,
                            filter_graph_by_edges)
-
+from tqdm import tqdm
 from random_steiner_tree import random_steiner_tree
 
 # @profile
@@ -89,14 +89,14 @@ def sample_steiner_trees(g, obs,
     assert method in {'cut', 'cut_naive', 'loop_erased'}
 
     steiner_tree_samples = []
-    for i in range(n_samples):
+    for i in tqdm(range(n_samples), total=n_samples):
         if root_sampler is None:
             # note: isolated nodes *should* be masked
             # root = np.random.randint(0, g.num_vertices())
             root = int(random.choice(list(g.vertices())))
         else:
             assert callable(root_sampler), 'root_sampler should be callable'
-            root = root_sampler(g, obs)
+            root = root_sampler()
 
         if method == 'cut_naive':
             rand_t = gen_random_spanning_tree(g, root=root)

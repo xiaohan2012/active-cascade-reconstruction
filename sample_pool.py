@@ -13,13 +13,14 @@ class TreeSamplePool():
         self.return_tree_nodes = return_tree_nodes
         self._samples = []
 
-    def fill(self, obs):
+    def fill(self, obs, **kwargs):
         self._samples = sample_steiner_trees(
             self.g, obs,
             method=self.method,
             n_samples=self.n_samples,
             return_tree_nodes=self.return_tree_nodes,
-            gi=self.gi)
+            gi=self.gi,
+            **kwargs)
 
         # self._tree_nodes_samples = [set(extract_nodes(t))
         #                             for t in self._samples]

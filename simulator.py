@@ -21,7 +21,7 @@ class Simulator():
         if obs is None or c is None:
             obs, c = gen_input(self.g)
 
-        self.q_gen.receive_observation(obs)
+        self.q_gen.receive_observation(obs, c)
 
         aux = {'graph_changed': False,
                'obs': obs,

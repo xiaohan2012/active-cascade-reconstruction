@@ -67,7 +67,8 @@ def test_query_method(g, query_method, sampling_method):
         q_gen = PredictionErrorQueryGenerator(gv, pool,
                                               error_estimator=error_estimator,
                                               prune_nodes=True,
-                                              n_node_samples=10)
+                                              n_node_samples=10,
+                                              root_sampler='earliest_obs')
 
     sim = Simulator(gv, q_gen, gi=gi, print_log=True)
     print('simulator created')
