@@ -131,7 +131,7 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
         pass None if using all of them.
         """
         self.error_estimator = error_estimator
-        self.min_proba = 1e-3
+        self.min_proba = kwargs.get('min_proba', 0.0)
         self.n_node_samples = n_node_samples
         self.prune_nodes = prune_nodes
 
