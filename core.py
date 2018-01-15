@@ -89,7 +89,8 @@ def sample_steiner_trees(g, obs,
     assert method in {'cut', 'cut_naive', 'loop_erased'}
 
     steiner_tree_samples = []
-    for i in tqdm(range(n_samples), total=n_samples):
+    # for i in tqdm(range(n_samples), total=n_samples):
+    for i in range(n_samples):
         if root_sampler is None:
             # note: isolated nodes *should* be masked
             # root = np.random.randint(0, g.num_vertices())

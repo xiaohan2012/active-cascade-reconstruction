@@ -3,7 +3,7 @@ from tqdm import tqdm
 
 # for dataset in tqdm(('p2p-gnutella08', 'arxiv-hep-th',
 #                      'enron-email', 'dblp-collab')):
-for dataset in tqdm(('dblp', 'enron', 'grqc', 'livejournal')):
+for dataset in tqdm(('hepth', 'astro')):
     with open('data/{}/graph.txt'.format(dataset)) as f:
         g = nx.Graph()
         for l in f:

@@ -64,8 +64,9 @@ elif query_strategy == 'pagerank':
 elif query_strategy == 'entropy':
     strategy = (EntropyQueryGenerator, {'method': 'entropy', 'root_sampler': root_sampler})
 elif query_strategy == 'prediction_error':
-    strategy = (PredictionErrorQueryGenerator, {'n_node_samples': 500, 'prune_nodes': True,
-                                                'root_sampler': root_sampler})
+    strategy = (PredictionErrorQueryGenerator, {'n_node_samples': None,
+                                                'prune_nodes': False,
+                                                'root_sampler': None})
 else:
     raise ValueError('invalid strategy name')
 
