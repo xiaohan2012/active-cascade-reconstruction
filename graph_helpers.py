@@ -372,3 +372,21 @@ class GraphWrapper():
 def has_vertex(g, i):
     # to avoid calling g.vertex
     return g._Graph__filter_state['vertex_filter'][0].a[i] > 0
+
+
+def k_hop_neighbors(v, g, k):
+    def aux(v, k, visited):
+        assert k >= 0
+        if k == 0:
+            return set()
+        else:
+            nbrs = set()
+            for u in g.get_out_neighbours(v):
+                if u not in visited:
+                    nbrs.add(u)
+                    visited.add(u)
+                    nbrs |= aux(u, k-1, visited)
+            return nbrs
+
+    visited = {v}
+    return aux(v, k, visited)

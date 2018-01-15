@@ -7,7 +7,8 @@ from graph_helpers import (extract_steiner_tree, filter_graph_by_edges,
                            extract_edges, extract_nodes,
                            remove_filters,
                            contract_graph_by_nodes,
-                           hide_disconnected_components)
+                           hide_disconnected_components,
+                           k_hop_neighbors)
 
 
 @pytest.mark.parametrize("X,edges", [([1, 3], {(1, 3)}),
@@ -98,4 +99,27 @@ def test_isolate_disconnected_components():
     assert set(extract_nodes(g)) == {0, 1, 2}
     
 
+@pytest.fixture
+def g():
+    """
+    0 -- 1
+    |    |
+    2 -- 3 -- 4  -- 5
+    """
+    g = Graph(directed=False)
+    g.add_vertex(6)
+    edges = [(0, 1), (0, 2), (1, 3), (2, 3), (3, 4), (4, 5)]
+    for u, v in edges:
+        g.add_edge(u, v)
+    return g
 
+
+def test_k_hop_neighbors(g):
+    assert k_hop_neighbors(0, g, k=1) == {1, 2}
+    assert k_hop_neighbors(0, g, k=2) == {1, 2, 3}
+    assert k_hop_neighbors(0, g, k=3) == {1, 2, 3, 4}
+    for k in (4, 5, 6, 7, 8, 9, 10):
+        assert k_hop_neighbors(0, g, k=k) == {1, 2, 3, 4, 5}
+    
+    assert k_hop_neighbors(3, g, k=1) == {1, 2, 4}
+    assert k_hop_neighbors(3, g, k=2) == {0, 1, 2, 4, 5}

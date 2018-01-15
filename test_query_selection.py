@@ -38,7 +38,8 @@ def check_error_esitmator(qs, c, est):
 
 @pytest.mark.parametrize("query_method", ['random', 'pagerank', 'entropy', 'error'])
 @pytest.mark.parametrize("sampling_method", ['cut_naive', 'cut', 'loop_erased'])
-def test_query_method(g, query_method, sampling_method):
+@pytest.mark.parametrize("root_sampler", [None, 'earliest_nbrs', 'earliest_obs'])
+def test_query_method(g, query_method, sampling_method, root_sampler):
     print('query_method: ', query_method)
     print('sampling_method: ', sampling_method)
 
@@ -68,7 +69,7 @@ def test_query_method(g, query_method, sampling_method):
                                               error_estimator=error_estimator,
                                               prune_nodes=True,
                                               n_node_samples=10,
-                                              root_sampler='earliest_obs')
+                                              root_sampler=root_sampler)
 
     sim = Simulator(gv, q_gen, gi=gi, print_log=True)
     print('simulator created')

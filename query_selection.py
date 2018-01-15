@@ -2,7 +2,7 @@ import random
 import numpy as np
 from core import uncertainty_scores
 from graph_tool.centrality import pagerank
-from graph_helpers import extract_nodes
+from graph_helpers import extract_nodes, k_hop_neighbors
 
 
 class BaseQueryGenerator():
@@ -66,7 +66,7 @@ class PRQueryGenerator(BaseQueryGenerator):
 class SamplingBasedGenerator(BaseQueryGenerator):
     def __init__(self, g, sampler, root_sampler=None, *args, **kwargs):
         self.sampler = sampler
-        assert root_sampler in {None, 'earliest_obs'}
+        assert root_sampler in {None, 'earliest_obs', 'earliest_nbrs'}
         self.root_sampler = root_sampler
         super(SamplingBasedGenerator, self).__init__(g, *args, **kwargs)
 
@@ -75,10 +75,20 @@ class SamplingBasedGenerator(BaseQueryGenerator):
             return min(obs, key=lambda o: c[o])
         return f
 
+    def _early_nbrs_sampler(self, obs, c, k=1):
+        earliest_node = min(obs, key=lambda o: c[o])
+        nbrs = list(k_hop_neighbors(earliest_node, self.g, k=k)) + [earliest_node]
+
+        def f():
+            return random.choice(nbrs)
+        return f
+    
     def receive_observation(self, obs, c):
         print('START: sampler.fill')
         if self.root_sampler == 'earliest_obs':
             root_sampler = self._earlier_root_sampler(obs, c)
+        elif self.root_sampler == 'earliest_nbrs':
+            root_sampler = self._early_nbrs_sampler(obs, c)
         else:
             root_sampler = self.root_sampler
             

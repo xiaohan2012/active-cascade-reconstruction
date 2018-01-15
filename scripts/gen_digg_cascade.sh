@@ -2,7 +2,7 @@
 
 ids=({0..9})
 graph="digg"
-n_cascades=10
+n_cascades=16
 obs_fraction=0.1
 ourput_dir="cascade/${graph}"
 cascasde_path_prefix="data/digg/cascade_"
