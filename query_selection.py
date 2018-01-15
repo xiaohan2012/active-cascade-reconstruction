@@ -47,7 +47,7 @@ class PRQueryGenerator(BaseQueryGenerator):
     """
     def receive_observation(self, obs, c):
         # personalized vector for pagerank
-        print('START: pagerank')
+        # print('START: pagerank')
         pers = self.g.new_vertex_property('float')
         for o in obs:
             pers[o] = 1 / len(obs)
@@ -56,7 +56,7 @@ class PRQueryGenerator(BaseQueryGenerator):
         self.pr = {}
         for v in self.g.vertices():
             self.pr[int(v)] = rank[v]
-        print('DONE: pagerank')
+        # print('DONE: pagerank')
         super(PRQueryGenerator, self).receive_observation(obs, c)
 
     def _select_query(self, *args, **kwargs):
@@ -84,7 +84,7 @@ class SamplingBasedGenerator(BaseQueryGenerator):
         return f
     
     def receive_observation(self, obs, c):
-        print('START: sampler.fill')
+        # print('START: sampler.fill')
         if self.root_sampler == 'earliest_obs':
             root_sampler = self._earlier_root_sampler(obs, c)
         elif self.root_sampler == 'earliest_nbrs':
@@ -94,7 +94,7 @@ class SamplingBasedGenerator(BaseQueryGenerator):
             
         self.sampler.fill(obs,
                           root_sampler=root_sampler)
-        print('DONE: sampler.fill')
+        # print('DONE: sampler.fill')
         super(SamplingBasedGenerator, self).receive_observation(obs, c)
 
     def update_samples(self, g, inf_nodes, node, label):

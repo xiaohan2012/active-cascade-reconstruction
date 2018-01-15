@@ -25,10 +25,15 @@ parser.add_argument('-q', '--query_strategy',
                     help='query strategy')
 parser.add_argument('-c', '--cascade_dir',
                     help='directory of generated cascades')
+
+# following applies to sampler approach
 parser.add_argument('-n', '--n_queries', default=10, type=int,
                     help='number of queries')
 parser.add_argument('-m', '--sampling_method', default='loop_erased', type=str,
                     choices={'loop_erased', 'cut', 'cut_naive'},
+                    help='the steiner tree sampling method')
+parser.add_argument('-r', '--root_sampler', default=None, type=str,
+                    choices={'earliest_obs', 'earliest_nbrs', None},
                     help='the steiner tree sampling method')
 parser.add_argument('-s', '--n_samples', default=100, type=int,
                     help='number of samples')
@@ -43,6 +48,8 @@ args = parser.parse_args()
 graph_name = args.graph
 n_queries = args.n_queries
 n_samples = args.n_samples
+root_sampler = args.root_sampler
+
 # output_dir = '{}/{}'.format(args.output_dir, graph_name)
 output_dir = args.output_dir
 sampling_method = args.sampling_method
@@ -55,10 +62,10 @@ if query_strategy == 'random':
 elif query_strategy == 'pagerank':
     strategy = (PRQueryGenerator, {})
 elif query_strategy == 'entropy':
-    strategy = (EntropyQueryGenerator, {'method': 'entropy', 'root_sampler': 'earliest_nbrs'})
+    strategy = (EntropyQueryGenerator, {'method': 'entropy', 'root_sampler': root_sampler})
 elif query_strategy == 'prediction_error':
     strategy = (PredictionErrorQueryGenerator, {'n_node_samples': 500, 'prune_nodes': True,
-                                                'root_sampler': 'earliest_nbrs'})
+                                                'root_sampler': root_sampler})
 else:
     raise ValueError('invalid strategy name')
 
