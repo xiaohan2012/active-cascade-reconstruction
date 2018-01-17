@@ -1,5 +1,6 @@
 import random
 import numpy as np
+from tqdm import tqdm
 from core import uncertainty_scores
 from graph_tool.centrality import pagerank
 from graph_helpers import extract_nodes, k_hop_neighbors
@@ -147,7 +148,8 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
 
         # remember this
         self.error_estimator.update_trees(new_samples, node, label)
-        
+
+    # @profile
     def _select_query(self, g, inf_nodes):
         if self.prune_nodes:
             # pruning nods that are sure to be infected/uninfected
@@ -182,10 +184,18 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
             return self.error_estimator.query_score(q, set(node_samples) - {q})
 
         if False:
-            from tqdm import tqdm
             e = {q: score(q) for q in tqdm(self._cand_pool)}
         else:
-            q2score = {q: score(q) for q in self._cand_pool}
+            q2score = {}
+            for q in tqdm(self._cand_pool):
+                q2score[q] = score(q)
+
+            import pickle as pkl
+            import tempfile
+            with tempfile.NamedTemporaryFile(dir='./tmp', delete=False) as f:
+                pkl.dump(q2score, f)
+                f.flush()
+            
         # top = 10
         # top_qs = list(sorted(q2score, key=q2score.__getitem__))[:top]
 

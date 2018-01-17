@@ -15,6 +15,7 @@ class Simulator():
         self.q_gen = query_generator
         self.print_log = print_log
 
+    # @profile
     def run(self, n_queries, obs=None, c=None):
         """return the list of query nodes
         """
