@@ -187,7 +187,8 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
             e = {q: score(q) for q in tqdm(self._cand_pool)}
         else:
             q2score = {}
-            for q in tqdm(self._cand_pool):
+            # for q in tqdm(self._cand_pool)
+            for q in self._cand_pool:
                 q2score[q] = score(q)
 
             # import pickle as pkl
