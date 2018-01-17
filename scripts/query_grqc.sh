@@ -1,14 +1,16 @@
 #! /bin/zsh
-methods=(cut loop_erased)
+sample_methods=(loop_erased)
+query_methods=(entropy prediction_error)
 
-
-for method in ${methods}; do
-    python3 generate_queries.py \
-	    -g grqc \
-	    -q prediction_error \
-	    -n 100 \
-	    -s 100 \
-	    -m ${method} \
-	    -c cascade/grqc-s0.2-o0.1/ \
-	    -d outputs/queries/grqc-s0.2-o0.1/${method}/
+for query_method in ${query_methods}; do
+    for sample_method in ${sample_methods}; do
+	python3 generate_queries.py \
+		-g grqc \
+		-q prediction_error \
+		-n 100 \
+		-s 250 \
+		-m ${sample_method} \
+		-c cascade/grqc/ \
+		-d outputs/queries/grqc/${sample_method}/${query_method}
+    done
 done

@@ -1,6 +1,6 @@
 #! /bin/zsh
 
-graph="astro"
+graph="grqc"
 n_cascades=96
 obs_fraction=0.1
 ourput_dir="cascade/${graph}"
