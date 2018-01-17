@@ -190,11 +190,11 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
             for q in tqdm(self._cand_pool):
                 q2score[q] = score(q)
 
-            import pickle as pkl
-            import tempfile
-            with tempfile.NamedTemporaryFile(dir='./tmp', delete=False) as f:
-                pkl.dump(q2score, f)
-                f.flush()
+            # import pickle as pkl
+            # import tempfile
+            # with tempfile.NamedTemporaryFile(dir='./tmp', delete=False) as f:
+            #     pkl.dump(q2score, f)
+            #     f.flush()
             
         # top = 10
         # top_qs = list(sorted(q2score, key=q2score.__getitem__))[:top]
@@ -203,6 +203,8 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
         # for q in top_qs:
         #     print('{}({:.2f})'.format(q, q2score[q]))
 
-        best_q = min(self._cand_pool, key=q2score.__getitem__)
+        # changed to max
+        best_q = max(self._cand_pool, key=q2score.__getitem__)
+        # best_q = min(self._cand_pool, key=q2score.__getitem__)
         # print('best_q', best_q)
         return best_q
