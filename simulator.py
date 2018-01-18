@@ -1,6 +1,6 @@
 from tqdm import tqdm
-from graph_helpers import isolate_node, hide_disconnected_components
-from random_steiner_tree.util import isolate_vertex, reachable_vertices
+from graph_helpers import observe_uninfected_node
+from random_steiner_tree.util import isolate_vertex
 from experiment import gen_input
 
 
@@ -45,13 +45,7 @@ class Simulator():
                     # print('isolating node {} started'.format(q))
                     pass
 
-                isolate_node(self.g, q)
-
-                # this is done because cut_naive relies on sampling a *spanning* tree
-                # if there is disconnected component, such spanning tree does not exist.
-                # therefore, we need to hide the disconnected parts
-                hide_disconnected_components(self.g, inf_nodes)
-
+                observe_uninfected_node(self.g, q, inf_nodes)
                 if self.gi is not None:
                     isolate_vertex(self.gi, q)
 
