@@ -6,7 +6,7 @@ for query_method in ${query_methods}; do
     for sample_method in ${sample_methods}; do
 	python3 generate_queries.py \
 		-g grqc \
-		-q prediction_error \
+		-q ${query_method} \
 		-n 100 \
 		-s 250 \
 		-m ${sample_method} \

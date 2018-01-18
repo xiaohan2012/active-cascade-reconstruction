@@ -1,7 +1,7 @@
 # coding: utf-8
 
-
 import os
+import time
 import pickle as pkl
 import argparse
 from tqdm import tqdm
@@ -31,7 +31,9 @@ def infer_probas_for_multiple_queries(g, obs, c, queries,
     sampler.fill(obs,
                  root_sampler=root_sampler)
     estimator.build_matrix(sampler.samples)
-    for q in queries:
+
+    # for q in tqdm(queries):
+    for q in queries:      
         if c[q] >= 0:  # infected
             obs_inf |= {q}
         else:
@@ -53,8 +55,13 @@ def infer_probas_for_multiple_queries(g, obs, c, queries,
 def one_round(g, obs, c, c_path, method,
               query_dirname, inf_proba_dirname,
               n_samples=250,
+              root_sampler=None,
               sampling_method='loop_erased',
               debug=False):
+
+    print('\nprocessing {} started\n'.format(c_path))
+    stime = time.time()
+    
     cid = os.path.basename(c_path).split('.')[0]
     probas_dir = os.path.join(inf_proba_dirname, method)
     if not os.path.exists(probas_dir):
@@ -70,9 +77,12 @@ def one_round(g, obs, c, c_path, method,
 
     # the real part
     probas_list, _, _ = infer_probas_for_multiple_queries(g, obs, c, queries,
-                                                          sampling_method, n_samples)
+                                                          sampling_method,
+                                                          root_sampler,
+                                                          n_samples)
 
     pkl.dump(probas_list, open(path, 'wb'))
+    print('\nprocessing {} done: taking {:.4f} secs\n'.format(c_path, time.time() - stime))
 
 
 if __name__ == '__main__':
@@ -89,7 +99,7 @@ if __name__ == '__main__':
                         help='directory of queries')
     parser.add_argument('-p', '--inf_proba_dirname',
                         help='directory to store the inferred probabilities')
-
+    
     args = parser.parse_args()
 
     graph_name = args.graph
@@ -102,9 +112,10 @@ if __name__ == '__main__':
 
     cascades = load_cascades(args.cascade_dir)
 
-    methods = ['pagerank', 'random', 'entropy', 'prediction_error']
-
-    Parallel(n_jobs=1)(delayed(one_round)(g, obs, c, path, method, query_dirname, inf_proba_dirname)
-                       for path, (obs, c) in tqdm(cascades)
-                       for method in methods)
+    methods = ['prediction_error-min', 'prediction_error-max', 'random', 'pagerank', 'entropy']
+    
+    Parallel(n_jobs=-1)(delayed(one_round)(g, obs, c, path, method, query_dirname,
+                                           inf_proba_dirname, n_samples=n_samples)
+                        for path, (obs, c) in tqdm(cascades)
+                        for method in methods)
 
