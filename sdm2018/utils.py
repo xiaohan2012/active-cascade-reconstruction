@@ -35,10 +35,10 @@ def init_visitor(g, root):
     # dist = np.ones(g.num_vertices()) * -1
     # pred = np.ones(g.num_vertices(), dtype=int) * -1
     
-    dist = {i: -1.0 for i in range(g.num_vertices())}
+    dist = {int(v): -1.0 for v in g.vertices()}
     dist[root] = 0.0
 
-    pred = {i: -1 for i in range(g.num_vertices())}
+    pred = {int(v): -1 for v in g.vertices()}
     return MyVisitor(pred, dist)
 
 

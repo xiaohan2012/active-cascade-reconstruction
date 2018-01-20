@@ -1,17 +1,24 @@
 from graph_tool import Graph
 from graph_tool.search import cpbfs_search
 from .utils import extract_edges_from_pred, init_visitor
+from tqdm import tqdm
 
 
 # @profile
 def find_tree_greedy(
         g, root, infection_times, source, obs_nodes,
+        return_nodes=True,
         debug=False,
-        verbose=True):
+        verbose=False):
     # root = min(obs_nodes, key=infection_times.__getitem__)
     sorted_obs = list(sorted(obs_nodes, key=infection_times.__getitem__))[1:]
     tree_nodes = {root}
     tree_edges = set()
+
+    if verbose:
+        print('attaching nodes in observations')
+        sorted_obs = tqdm(sorted_obs)
+        
     for u in sorted_obs:
         # connect u to the tree
         vis = init_visitor(g, u)
@@ -47,17 +54,20 @@ def find_tree_greedy(
         tree_edges |= set(new_edges)
         tree_nodes |= {v for e in new_edges for v in e}
 
-    t = Graph(directed=True)
-    t.add_vertex(g.num_vertices())
+    if return_nodes:
+        return tree_nodes
+    else:
+        t = Graph(directed=True)
+        t.add_vertex(g.num_vertices())
 
-    vfilt = t.new_vertex_property('bool')
-    vfilt.a = False
-    for v in tree_nodes:
-        vfilt[t.vertex(v)] = True
+        vfilt = t.new_vertex_property('bool')
+        vfilt.a = False
+        for v in tree_nodes:
+            vfilt[t.vertex(v)] = True
 
-    for u, v in tree_edges:
-        t.add_edge(t.vertex(u), t.vertex(v))
+        for u, v in tree_edges:
+            t.add_edge(t.vertex(u), t.vertex(v))
 
-    t.set_vertex_filter(vfilt)
+        t.set_vertex_filter(vfilt)
 
-    return t
+        return t

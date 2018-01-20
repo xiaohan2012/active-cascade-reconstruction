@@ -40,4 +40,4 @@ def test_greedy(cascades_on_grid):
             debug=False,
             verbose=True
         )
-assert is_feasible(tree, root, obs_nodes, infection_times)
+    assert is_feasible(tree, root, obs_nodes, infection_times)

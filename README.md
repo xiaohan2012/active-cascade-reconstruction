@@ -11,8 +11,3 @@
 
 - `scripts/query_{dataset}.sh`: generate queries for `${dataset}`
 - `scripts/infer_{dataset}.sh`: make inference on infections for `${dataset}`
-
-# time
-
-- `extract_steiner_tree`: `48.3%`
-- `det_score_of_steiner_tree: `44.2%`

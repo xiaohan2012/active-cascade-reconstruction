@@ -29,12 +29,13 @@ def infer_infections_by_order_steiner_tree(g, obs, c, queries):
             observe_uninfected_node(g, q, obs_inf)
 
         root = earliest_obs_node(obs, c)
-        tree = find_tree_greedy(
+        tree_nodes = find_tree_greedy(
             g, root, c, source=None, obs_nodes=obs_inf,
+            return_nodes=True,
             debug=False,
-            verbose=True
+            verbose=False
         )
-        list_of_infections.append(set(map(int, tree.vertices())) - set(obs))
+        list_of_infections.append(tree_nodes - set(obs))
     return list_of_infections
     
 
@@ -46,7 +47,7 @@ def infer_probas_from_queries(g, obs, c, queries,
     probas_list = []
 
     sampler = TreeSamplePool(g, n_samples=n_samples,
-                             query_method=sampling_method,
+                             method=sampling_method,
                              gi=gi,
                              return_tree_nodes=True)
     estimator = TreeBasedStatistics(g)
@@ -83,7 +84,8 @@ def one_round(g, obs, c, c_path,
               sampling_method='loop_erased',
               debug=False):
 
-    print('\nprocessing {} started\n'.format(c_path))
+    print('\nprocessing {} started, query_method={}, inference_method={}\n'.format(
+        c_path, query_method, inference_method))
     stime = time.time()
     
     cid = os.path.basename(c_path).split('.')[0]
@@ -99,7 +101,7 @@ def one_round(g, obs, c, c_path,
     query_log_path = os.path.join(query_dirname, query_method, '{}.pkl'.format(cid))
     queries, _ = pkl.load(open(query_log_path, 'rb'))
 
-    if inference_method == 'sampling':
+    if inference_method == 'inf_probas':
         # the real part
         probas_list, _, _ = infer_probas_from_queries(g, obs, c, queries,
                                                       sampling_method,
@@ -107,13 +109,16 @@ def one_round(g, obs, c, c_path,
                                                       n_samples)
         
         pkl.dump(probas_list, open(path, 'wb'))
-    elif inference_method == 'order-steiner-tree':
+    elif inference_method == 'order_steiner_tree':
         hidden_infections = infer_infections_by_order_steiner_tree(g, obs, c, queries)
         pkl.dump(hidden_infections, open(path, 'wb'))
     else:
         raise ValueError('unknown inference method "{}"'.format(inference_method))
-    
-    print('\nprocessing {} done: taking {:.4f} secs\n'.format(c_path, time.time() - stime))
+
+    print('\nprocessing {} done (query_method={}, inference_method={}): taking {:.4f} secs\n'.format(
+        c_path,
+        query_method, inference_method,
+        time.time() - stime))
 
 
 if __name__ == '__main__':
@@ -124,9 +129,9 @@ if __name__ == '__main__':
                         default=100,
                         help='number of samples')
     parser.add_argument('-m', '--inference_method',
-                        default='sampling',
-                        choices=('sampling', 'order-steiner-tree'),
-                        help='query_method used for infer hidden infections')
+                        default='inf_probas',
+                        choices=('inf_probas', 'order_steiner_tree'),
+                        help='method used for infer hidden infections')
 
     parser.add_argument('-c', '--cascade_dir',
                         help='directory to read cascades')
@@ -134,6 +139,9 @@ if __name__ == '__main__':
                         help='directory of queries')
     parser.add_argument('-p', '--inf_proba_dirname',
                         help='directory to store the inferred probabilities')
+    parser.add_argument('--debug',
+                        action='store_true',
+                        help='')
     
     args = parser.parse_args()
 
@@ -148,9 +156,18 @@ if __name__ == '__main__':
     cascades = load_cascades(args.cascade_dir)
 
     methods = ['prediction_error-min', 'prediction_error-max', 'random', 'pagerank', 'entropy']
-    
-    Parallel(n_jobs=-1)(delayed(one_round)(g, obs, c, path, query_method, query_dirname,
-                                           inf_proba_dirname, n_samples=n_samples)
-                        for path, (obs, c) in tqdm(cascades)
-                        for query_method in methods)
 
+    if not args.debug:
+        Parallel(n_jobs=-1)(delayed(one_round)(g, obs, c, path, query_method,
+                                               args.inference_method,
+                                               query_dirname,
+                                               inf_proba_dirname, n_samples=n_samples)
+                            for path, (obs, c) in tqdm(cascades)
+                            for query_method in methods)
+    else:        
+        for path, (obs, c) in tqdm(cascades):
+            for query_method in methods:
+                one_round(g, obs, c, path, query_method,
+                          args.inference_method,
+                          query_dirname,
+                          inf_proba_dirname, n_samples=n_samples)
