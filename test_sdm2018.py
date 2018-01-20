@@ -38,6 +38,7 @@ def test_greedy(cascades_on_grid):
         tree = find_tree_greedy(
             g, root, infection_times, source, obs_nodes,
             debug=False,
-            verbose=True
+            verbose=True,
+            return_nodes=False
         )
         assert is_feasible(tree, root, obs_nodes, infection_times)

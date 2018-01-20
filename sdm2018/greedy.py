@@ -20,6 +20,8 @@ def find_tree_greedy(
         sorted_obs = tqdm(sorted_obs)
         
     for u in sorted_obs:
+        if u in tree_nodes:
+            continue
         # connect u to the tree
         vis = init_visitor(g, u)
         if debug:
