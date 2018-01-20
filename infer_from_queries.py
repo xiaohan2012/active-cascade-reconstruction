@@ -22,19 +22,23 @@ def infer_infections_by_order_steiner_tree(g, obs, c, queries):
     g = remove_filters(g)
     obs_inf = set(obs)
     list_of_infections = []
-    for q in queries:
+    for i, q in enumerate(queries):
         if c[q] >= 0:  # infected
             obs_inf |= {q}
         else:
             observe_uninfected_node(g, q, obs_inf)
 
         root = earliest_obs_node(obs, c)
-        tree_nodes = find_tree_greedy(
-            g, root, c, source=None, obs_nodes=obs_inf,
-            return_nodes=True,
-            debug=False,
-            verbose=False
-        )
+        try:
+            tree_nodes = find_tree_greedy(
+                g, root, c, source=None, obs_nodes=obs_inf,
+                return_nodes=True,
+                debug=False,
+                verbose=False
+            )
+        except AssertionError:
+            print("{}th query raises AssertionError".format(i))
+            break
         list_of_infections.append(tree_nodes - set(obs))
     return list_of_infections
     
@@ -155,7 +159,7 @@ if __name__ == '__main__':
 
     cascades = load_cascades(args.cascade_dir)
 
-    methods = ['prediction_error-min', 'prediction_error-max', 'random', 'pagerank', 'entropy']
+    methods = ['prediction_error', 'prediction_error-max', 'random', 'pagerank', 'entropy']
 
     if not args.debug:
         Parallel(n_jobs=-1)(delayed(one_round)(g, obs, c, path, query_method,
