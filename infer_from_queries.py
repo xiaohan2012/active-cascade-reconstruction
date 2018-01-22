@@ -159,7 +159,8 @@ if __name__ == '__main__':
 
     cascades = load_cascades(args.cascade_dir)
 
-    methods = ['prediction_error', 'prediction_error-max', 'random', 'pagerank', 'entropy']
+    methods = ['prediction_error', 'random', 'pagerank', 'entropy']
+    # 'prediction_error-max', 
 
     if not args.debug:
         Parallel(n_jobs=-1)(delayed(one_round)(g, obs, c, path, query_method,
