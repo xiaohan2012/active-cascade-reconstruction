@@ -19,6 +19,9 @@ parser.add_argument('-c', '--cascade_path',
                     help='cascade path (applicable if the cascade is given)')
 
 # the following applicable to simulated cascades
+parser.add_argument('-m', '--cascade_model', type=str, default='si',
+                    choices=('si', 'ic'),
+                    help='cascade model')
 parser.add_argument('-s', '--stop_fraction', type=float, default=0.5,
                     help='fraction of infected nodes to stop')
 parser.add_argument('-p', '--infection_proba', type=float, default=0.5,
@@ -34,7 +37,8 @@ for i in tqdm(range(args.n_cascades)):
                        cascade_path=args.cascade_path,
                        stop_fraction=args.stop_fraction,
                        q=args.obs_fraction,
-                       p=args.infection_proba)
+                       p=args.infection_proba,
+                       model=args.cascade_model)
 
     # d = os.path.join(args.output_dir, graph_name)
     d = args.output_dir

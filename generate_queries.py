@@ -74,6 +74,14 @@ else:
 def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir, sampling_method, n_samples,
               verbose):
     stime = time.time()
+    c_id = os.path.basename(c_path).split('.')[0]
+    d = output_dir
+    outpath = os.path.join(d, c_id + '.pkl')
+
+    if os.path.exists(outpath):
+        print("{} processed already, skip".format(c_path))
+        return
+
     print('\nprocessing {} started\n'.format(c_path))
     gv = remove_filters(g)
     args = []
@@ -96,11 +104,8 @@ def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir, sampl
 
     qs = sim.run(n_queries, obs, c)
 
-    d = output_dir
     if not os.path.exists(d):
         os.makedirs(d)
-    c_id = os.path.basename(c_path).split('.')[0]
-    outpath = os.path.join(d, c_id + '.pkl')
     pkl.dump(qs, open(outpath, 'wb'))
     print('\nprocessing {} done: taking {:.4f} secs\n'.format(c_path, time.time() - stime))
 

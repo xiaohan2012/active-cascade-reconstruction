@@ -6,6 +6,10 @@ from graph_tool.centrality import pagerank
 from graph_helpers import extract_nodes, k_hop_neighbors
 
 
+class NoMoreQuery(Exception):
+    pass
+
+
 class BaseQueryGenerator():
     def __init__(self, g, obs=None, c=None):
         self.g = g
@@ -18,7 +22,9 @@ class BaseQueryGenerator():
         self._cand_pool = set(extract_nodes(self.g)) - set(obs)
 
     def select_query(self, *args, **kwargs):
-        assert self._cand_pool, 'no more node to query'
+        if len(self._cand_pool) == 0:
+            raise NoMoreQuery()
+        
         q = self._select_query(*args, **kwargs)
         self._cand_pool.remove(q)
         return q

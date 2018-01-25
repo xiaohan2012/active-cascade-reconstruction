@@ -2,6 +2,7 @@ from tqdm import tqdm
 from graph_helpers import observe_uninfected_node
 from random_steiner_tree.util import isolate_vertex
 from experiment import gen_input
+from query_selection import NoMoreQuery
 
 
 class Simulator():
@@ -36,7 +37,13 @@ class Simulator():
             iters = range(n_queries)
 
         for i in iters:
-            q = self.q_gen.select_query(self.g, inf_nodes)
+            try:
+                q = self.q_gen.select_query(self.g, inf_nodes)
+            except NoMoreQuery:
+                if self.print_log:
+                    print('no more nodes to query. queried {} nodes'.format(len(qs)))
+                break
+
             # print('query:', q)
             qs.append(q)
             

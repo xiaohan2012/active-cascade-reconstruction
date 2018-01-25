@@ -1,6 +1,7 @@
 import pytest
 from query_selection import (RandomQueryGenerator, EntropyQueryGenerator,
-                             PRQueryGenerator, PredictionErrorQueryGenerator)
+                             PRQueryGenerator, PredictionErrorQueryGenerator,
+                             NoMoreQuery)
 from simulator import Simulator
 from graph_helpers import remove_filters
 from fixture import g
@@ -60,3 +61,13 @@ def test_query_method(g, query_method, sampling_method, root_sampler):
     if query_method == 'error':
         # ensure that error estimator updates its tree samples
         check_error_esitmator(qs, aux['c'], error_estimator)
+
+
+def test_no_more_query(g):    
+    gv = remove_filters(g)
+
+    q_gen = RandomQueryGenerator(gv)
+    sim = Simulator(gv, q_gen, print_log=True)
+
+    qs, aux = sim.run(g.num_vertices()+100)
+    assert len(qs) < g.num_vertices()
