@@ -11,7 +11,7 @@ class NoMoreQuery(Exception):
 
 
 class BaseQueryGenerator():
-    def __init__(self, g, obs=None, c=None):
+    def __init__(self, g, obs=None, c=None, **kwargs):
         self.g = g
         if obs is not None:
             self.receive_observation(obs, c)
@@ -71,7 +71,7 @@ class PRQueryGenerator(BaseQueryGenerator):
 
 
 class SamplingBasedGenerator(BaseQueryGenerator):
-    def __init__(self, g, sampler, root_sampler=None, *args, **kwargs):
+    def __init__(self, g, sampler, *args, root_sampler=None, **kwargs):
         self.sampler = sampler
         assert root_sampler in {None, 'earliest_obs', 'earliest_nbrs'}
         self.root_sampler = root_sampler
@@ -132,7 +132,8 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
     def __init__(self, *args,
                  error_estimator,
                  prune_nodes=False,
-                 n_node_samples=None, **kwargs):
+                 n_node_samples=None,
+                 **kwargs):
         """
         n_node_samples: number of nodes used to estimate probabilities
         pass None if using all of them.
@@ -155,47 +156,50 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
         # remember this
         self.error_estimator.update_trees(new_samples, node, label)
 
+    def prune_candidates(self):
+        self._cand_pool = set(
+            self.error_estimator.filter_out_extreme_targets(
+                self._cand_pool,
+                min_value=self.min_proba))
+
+    def _sample_nodes_for_estimation(self):
+        # use node samples to estimate prediction error
+        cand_node_samples = list(self._cand_pool)
+        node_sample_inf_proba = self.error_estimator.unconditional_proba(cand_node_samples)
+        # node_sample_inf_proba = np.array(
+        #     [len(matching_trees(self.sampler.samples, n, 1)) / len(self.sampler.samples)
+        #      for n in cand_node_samples])
+
+        # the closer to 0.5, the better
+        val1 = node_sample_inf_proba * 2
+        val2 = (1 - node_sample_inf_proba) * 2
+        sampling_weight = np.where(val1 < val2, val1, val2)  # take the pairwise minimum
+        assert (sampling_weight <= 1).all()
+
+        sampling_weight /= sampling_weight.sum()
+
+        return np.random.choice(cand_node_samples, self.n_node_samples,
+                                p=sampling_weight)
+        
     # @profile
     def _select_query(self, g, inf_nodes):
         if self.prune_nodes:
             # pruning nods that are sure to be infected/uninfected
             # also, we can set a real-valued threshold
-            self._cand_pool = set(
-                self.error_estimator.filter_out_extreme_targets(
-                    self._cand_pool,
-                    min_value=self.min_proba))
-
+            self.prune_candidates()
+            
         if ((self.n_node_samples is None) or self.n_node_samples >= len(self._cand_pool)):
             node_samples = self._cand_pool
         else:
-            # use node samples to estimate prediction error
-            cand_node_samples = list(self._cand_pool)
-            node_sample_inf_proba = self.error_estimator.unconditional_proba(cand_node_samples)
-            # node_sample_inf_proba = np.array(
-            #     [len(matching_trees(self.sampler.samples, n, 1)) / len(self.sampler.samples)
-            #      for n in cand_node_samples])
-
-            # the closer to 0.5, the better
-            val1 = node_sample_inf_proba * 2
-            val2 = (1 - node_sample_inf_proba) * 2
-            sampling_weight = np.where(val1 < val2, val1, val2)  # take the pairwise minimum
-            assert (sampling_weight <= 1).all()
-
-            sampling_weight /= sampling_weight.sum()
-
-            node_samples = np.random.choice(cand_node_samples, self.n_node_samples,
-                                            p=sampling_weight)
+            node_samples = self._sample_nodes_for_estimation()
 
         def score(q):
             return self.error_estimator.query_score(q, set(node_samples) - {q})
 
-        if False:
-            e = {q: score(q) for q in tqdm(self._cand_pool)}
-        else:
-            q2score = {}
-            # for q in tqdm(self._cand_pool)
-            for q in self._cand_pool:
-                q2score[q] = score(q)
+        q2score = {}
+        # for q in tqdm(self._cand_pool)
+        for q in self._cand_pool:
+            q2score[q] = score(q)
 
             # import pickle as pkl
             # import tempfile
@@ -211,7 +215,7 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
         #     print('{}({:.2f})'.format(q, q2score[q]))
 
         # changed to max
-        best_q = max(self._cand_pool, key=q2score.__getitem__)
-        # best_q = min(self._cand_pool, key=q2score.__getitem__)
+        # best_q = max(self._cand_pool, key=q2score.__getitem__)
+        best_q = min(self._cand_pool, key=q2score.__getitem__)
         # print('best_q', best_q)
         return best_q
