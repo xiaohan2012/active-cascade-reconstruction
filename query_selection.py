@@ -11,12 +11,14 @@ class NoMoreQuery(Exception):
 
 
 class BaseQueryGenerator():
-    def __init__(self, g, obs=None, c=None, **kwargs):
+    def __init__(self, g, obs=None, c=None, verbose=False, **kwargs):
         self.g = g
         if obs is not None:
             self.receive_observation(obs, c)
         else:
             self._cand_pool = None
+
+        self.verbose = verbose
 
     def receive_observation(self, obs, c):
         self._cand_pool = set(extract_nodes(self.g)) - set(obs)
@@ -186,26 +188,50 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
         if self.prune_nodes:
             # pruning nods that are sure to be infected/uninfected
             # also, we can set a real-valued threshold
+            if self.verbose:
+                prev_n = len(self._cand_pool)
+                
             self.prune_candidates()
-            
+
+            if self.verbose:
+                print('pruning candidates from {} to {}'.format(
+                    prev_n, len(self._cand_pool)))
+        elif self.verbose:
+            print('there is no candidate pruning: #candidates={}'.format(len(self._cand_pool)))
+                            
         if ((self.n_node_samples is None) or self.n_node_samples >= len(self._cand_pool)):
+
+            if self.verbose:
+                print('no estimation node sampling')
+
             node_samples = self._cand_pool
         else:
             node_samples = self._sample_nodes_for_estimation()
 
+            if self.verbose:
+                print('number of estimation nodes'.format(len(node_samples)))
+
         def score(q):
-            return self.error_estimator.query_score(q, set(node_samples) - {q})
+            nodes = set(node_samples) - {q}
+            if len(nodes) == 0:
+                return float('inf')  # throw this node away
+            else:
+                return self.error_estimator.query_score(q, nodes)
 
         q2score = {}
         # for q in tqdm(self._cand_pool)
         for q in self._cand_pool:
             q2score[q] = score(q)
-
-            # import pickle as pkl
-            # import tempfile
-            # with tempfile.NamedTemporaryFile(dir='./tmp', delete=False) as f:
-            #     pkl.dump(q2score, f)
-            #     f.flush()
+        
+        # import pickle as pkl
+        # import tempfile
+        # with tempfile.NamedTemporaryFile(dir='./tmp', delete=False) as f:
+        #     probas = {n: p for n, p in zip(
+        #         list(self._cand_pool),
+        #         self.error_estimator.unconditional_proba(list(self._cand_pool)))}
+        #     pkl.dump((q2score, probas), f)
+        #     f.flush()
+        #     print('flushed')
             
         # top = 10
         # top_qs = list(sorted(q2score, key=q2score.__getitem__))[:top]

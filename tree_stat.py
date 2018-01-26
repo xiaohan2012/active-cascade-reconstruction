@@ -1,5 +1,6 @@
 import numpy as np
 
+EPS = 1e-10
 
 class TreeBasedStatistics:
     def __init__(self, g, trees=None):
@@ -91,6 +92,9 @@ class TreeBasedStatistics:
     def query_score(self, query, targets):
         num0, denum0 = self.count(query, 0, targets, return_denum=True)
         num1, denum1 = self.count(query, 1, targets, return_denum=True)
+
+        denum0 += EPS
+        denum1 += EPS
 
         p0, p1 = (self._remove_extreme_vals(num0 / denum0),
                   self._remove_extreme_vals(num1 / denum1))
