@@ -99,7 +99,7 @@ def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir, sampl
     if issubclass(q_gen_cls, PredictionErrorQueryGenerator):
         param['error_estimator'] = TreeBasedStatistics(gv)
 
-    q_gen = q_gen_cls(gv, *args, **param)
+    q_gen = q_gen_cls(gv, *args, verbose=verbose, **param)
     sim = Simulator(gv, q_gen, gi=gi, print_log=verbose)
 
     qs = sim.run(n_queries, obs, c)

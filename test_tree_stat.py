@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from numpy.testing import assert_array_equal as assert_eq_np
+from numpy.testing import assert_array_equal as assert_eq_np, assert_almost_equal
 from graph_tool import Graph
 from scipy.stats import entropy
 
@@ -121,10 +121,10 @@ def stat1(g, trees1):
 def test_prediction_error(stat1):
     actual = stat1.prediction_error(0, 0, [3, 4])
     expected = entropy([1/3, 2/3]) * 2
-    assert actual == expected
+    assert_almost_equal(actual, expected)
 
 
 def test_query_score(stat1):
     actual = stat1.query_score(0, [3, 4])
     expected = entropy([1/3, 2/3]) * 2 * 3/4  # + error = 0 for state=1
-    assert actual == expected
+    assert_almost_equal(actual, expected)
