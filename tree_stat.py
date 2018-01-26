@@ -42,7 +42,12 @@ class TreeBasedStatistics:
         mask = (self._m[query, :] == condition).nonzero()[0]
         # print('mask', mask)
         # print('np.asarray(targets)[:, None]', np.array(list(targets))[:, None])
-        sub_m = self._m[np.asarray(list(targets))[:, None], mask]
+        assert len(targets) > 0, 'there must be at least one target'
+        try:
+            sub_m = self._m[np.asarray(list(targets))[:, None], mask]
+        except IndexError:
+            print('IndexError occurred')
+            print(targets)
         if not return_denum:
             return sub_m.sum(axis=1)
         else:
