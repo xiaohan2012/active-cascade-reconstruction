@@ -44,7 +44,8 @@ def infer_infections_by_order_steiner_tree(g, obs, c, queries):
     
 
 def infer_probas_from_queries(g, obs, c, queries,
-                              sampling_method, root_sampler, n_samples):
+                              sampling_method, root_sampler, n_samples,
+                              verbose=False):
     g = remove_filters(g)
     gi = from_gt(g)
     obs_inf = set(obs)
@@ -59,8 +60,11 @@ def infer_probas_from_queries(g, obs, c, queries,
                  root_sampler=root_sampler)
     estimator.build_matrix(sampler.samples)
 
-    # for q in tqdm(queries):
-    for q in queries:
+    if verbose:
+        qs_iter =  tqdm(queries)
+    else:
+        qs_iter = queries
+    for q in qs_iter:
         if c[q] >= 0:  # infected
             obs_inf |= {q}
         else:
@@ -86,7 +90,8 @@ def one_round(g, obs, c, c_path,
               n_samples=250,
               root_sampler=None,
               sampling_method='loop_erased',
-              debug=False):
+              debug=False,
+              verbose=False):
 
     print('\nprocessing {} started, query_method={}, inference_method={}\n'.format(
         c_path, query_method, inference_method))
@@ -97,11 +102,11 @@ def one_round(g, obs, c, c_path,
     if not os.path.exists(probas_dir):
         os.makedirs(probas_dir)
     path = os.path.join(probas_dir, '{}.pkl'.format(cid))
-    
-    if os.path.exists(path):
-        # if computed, ignore
-        return
 
+    if os.path.exists(path):
+        print('{} computed'.format(path))
+        return
+    
     query_log_path = os.path.join(query_dirname, query_method, '{}.pkl'.format(cid))
     queries, _ = pkl.load(open(query_log_path, 'rb'))
 
@@ -110,8 +115,8 @@ def one_round(g, obs, c, c_path,
         probas_list, _, _ = infer_probas_from_queries(g, obs, c, queries,
                                                       sampling_method,
                                                       root_sampler,
-                                                      n_samples)
-        
+                                                      n_samples,
+                                                      verbose=verbose)
         pkl.dump(probas_list, open(path, 'wb'))
     elif inference_method == 'order_steiner_tree':
         hidden_infections = infer_infections_by_order_steiner_tree(g, obs, c, queries)
@@ -136,14 +141,21 @@ if __name__ == '__main__':
                         default='inf_probas',
                         choices=('inf_probas', 'order_steiner_tree'),
                         help='method used for infer hidden infections')
+    parser.add_argument('--query_method',
+                        help='query method used for infer hidden infections')
 
     parser.add_argument('-c', '--cascade_dir',
                         help='directory to read cascades')
     parser.add_argument('-q', '--query_dirname',
+                        required=True,
                         help='directory of queries')
     parser.add_argument('-p', '--inf_proba_dirname',
+                        required=True,
                         help='directory to store the inferred probabilities')
     parser.add_argument('--debug',
+                        action='store_true',
+                        help='')
+    parser.add_argument('--verbose',
                         action='store_true',
                         help='')
     
@@ -159,20 +171,17 @@ if __name__ == '__main__':
 
     cascades = load_cascades(args.cascade_dir)
 
-    methods = ['prediction_error', 'random', 'pagerank', 'entropy']
-    # 'prediction_error-max', 
-
     if not args.debug:
-        Parallel(n_jobs=-1)(delayed(one_round)(g, obs, c, path, query_method,
+        Parallel(n_jobs=-1)(delayed(one_round)(g, obs, c, path, args.query_method,
                                                args.inference_method,
                                                query_dirname,
-                                               inf_proba_dirname, n_samples=n_samples)
-                            for path, (obs, c) in tqdm(cascades)
-                            for query_method in methods)
-    else:        
+                                               inf_proba_dirname, n_samples=n_samples,
+                                               verbose=args.verbose)
+                            for path, (obs, c) in tqdm(cascades))
+    else:
         for path, (obs, c) in tqdm(cascades):
-            for query_method in methods:
-                one_round(g, obs, c, path, query_method,
-                          args.inference_method,
-                          query_dirname,
-                          inf_proba_dirname, n_samples=n_samples)
+            one_round(g, obs, c, path, args.query_method,
+                      args.inference_method,
+                      query_dirname,
+                      inf_proba_dirname, n_samples=n_samples,
+                      verbose=args.verbose)
