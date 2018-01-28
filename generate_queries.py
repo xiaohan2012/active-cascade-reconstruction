@@ -38,6 +38,12 @@ parser.add_argument('-r', '--root_sampler', default=None, type=str,
 parser.add_argument('-s', '--n_samples', default=100, type=int,
                     help='number of samples')
 
+# specific to prediction error-based sampler
+parser.add_argument('-p', '--min_proba', default=0.0, type=float,
+                    help='(minimum) threshold used for pruning candidate nodes')
+parser.add_argument('-e', '--num_estimation_nodes', default=None, type=int,
+                    help='number of nodes used for error estimation')
+
 parser.add_argument('-d', '--output_dir', default='outputs/queries', help='output directory')
 parser.add_argument('-b', '--debug', action='store_true', help='if debug, use non-parallel')
 parser.add_argument('-v', '--verbose', action='store_true',
@@ -55,6 +61,10 @@ output_dir = args.output_dir
 sampling_method = args.sampling_method
 query_strategy = args.query_strategy
 
+# for prediction error-based query selector
+min_proba = args.min_proba
+num_estimation_nodes = args.num_estimation_nodes
+
 g = load_graph_by_name(graph_name)
 
 if query_strategy == 'random':
@@ -64,9 +74,13 @@ elif query_strategy == 'pagerank':
 elif query_strategy == 'entropy':
     strategy = (EntropyQueryGenerator, {'method': 'entropy', 'root_sampler': root_sampler})
 elif query_strategy == 'prediction_error':
+    print("min_proba={}".format(min_proba))
+    print("num_estimation_nodes={}".format(num_estimation_nodes))
     strategy = (PredictionErrorQueryGenerator, {'n_node_samples': None,
                                                 'prune_nodes': True,
-                                                'root_sampler': None})
+                                                'root_sampler': None,
+                                                'min_proba': min_proba,
+                                                'n_node_samples': num_estimation_nodes})
 else:
     raise ValueError('invalid strategy name')
 
@@ -77,6 +91,9 @@ def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir, sampl
     c_id = os.path.basename(c_path).split('.')[0]
     d = output_dir
     outpath = os.path.join(d, c_id + '.pkl')
+
+    # meta data such as running time, etc
+    meta_outpath = os.path.join(d, c_id + '.meta.pkl')
 
     if os.path.exists(outpath):
         print("{} processed already, skip".format(c_path))
@@ -104,10 +121,15 @@ def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir, sampl
 
     qs = sim.run(n_queries, obs, c)
 
+    time_cost = time.time() - stime
+
     if not os.path.exists(d):
         os.makedirs(d)
+    print('\nprocessing {} done: taking {:.4f} secs\n'.format(c_path, time_cost))
     pkl.dump(qs, open(outpath, 'wb'))
-    print('\nprocessing {} done: taking {:.4f} secs\n'.format(c_path, time.time() - stime))
+
+    meta_data = {'time_elapsed': time_cost}
+    pkl.dump(meta_data, open(meta_outpath, 'wb'))
 
 cascade_generator = load_cascades(args.cascade_dir)
 
