@@ -32,8 +32,8 @@ parser.add_argument('-n', '--n_queries', default=10, type=int,
 parser.add_argument('-m', '--sampling_method', default='loop_erased', type=str,
                     choices={'loop_erased', 'cut', 'cut_naive'},
                     help='the steiner tree sampling method')
-parser.add_argument('-r', '--root_sampler', default=None, type=str,
-                    choices={'earliest_obs', 'earliest_nbrs', None},
+parser.add_argument('-r', '--root_sampler', default='earliest_nbrs', type=str,
+                    choices={'earliest_obs', 'earliest_nbrs', 'pagerank', None},
                     help='the steiner tree sampling method')
 parser.add_argument('-s', '--n_samples', default=100, type=int,
                     help='number of samples')
@@ -78,7 +78,7 @@ elif query_strategy == 'prediction_error':
     print("num_estimation_nodes={}".format(num_estimation_nodes))
     strategy = (PredictionErrorQueryGenerator, {'n_node_samples': None,
                                                 'prune_nodes': True,
-                                                'root_sampler': None,
+                                                'root_sampler': root_sampler,
                                                 'min_proba': min_proba,
                                                 'n_node_samples': num_estimation_nodes})
 else:

@@ -73,7 +73,7 @@ class Simulator():
 
                 label = int(c[q] >= 0)
                 assert label in {0, 1}
-                self.q_gen.update_samples(self.g, inf_nodes, q, label)
+                self.q_gen.update_samples(self.g, inf_nodes, q, label, c)
 
                 if self.print_log:
                     print('update samples done')

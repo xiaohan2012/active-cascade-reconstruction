@@ -94,7 +94,6 @@ def sample_steiner_trees(g, obs,
         if root_sampler is None:
             # print('random root')
             # note: isolated nodes *should* be masked
-            # root = np.random.randint(0, g.num_vertices())
             root = int(random.choice(list(g.vertices())))
         else:
             # print('custom root sampler')

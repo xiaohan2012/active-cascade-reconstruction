@@ -76,7 +76,8 @@ class SamplingBasedGenerator(BaseQueryGenerator):
     def __init__(self, g, sampler, *args, root_sampler=None, **kwargs):
         self.sampler = sampler
         assert root_sampler in {None, 'earliest_obs', 'earliest_nbrs'}
-        self.root_sampler = root_sampler
+        self.root_sampler_name = root_sampler
+        print('self.root_sampler_name', self.root_sampler_name)
         super(SamplingBasedGenerator, self).__init__(g, *args, **kwargs)
 
     def _earlier_root_sampler(self, obs, c):
@@ -91,24 +92,32 @@ class SamplingBasedGenerator(BaseQueryGenerator):
         def f():
             return random.choice(nbrs)
         return f
-    
-    def receive_observation(self, obs, c):
+
+    def _decide_root_sampler(self, obs, c):
         # print('START: sampler.fill')
-        if self.root_sampler == 'earliest_obs':
-            root_sampler = self._earlier_root_sampler(obs, c)
-        elif self.root_sampler == 'earliest_nbrs':
-            root_sampler = self._early_nbrs_sampler(obs, c)
+        if self.root_sampler_name == 'earliest_obs':
+            self.root_sampler = self._earlier_root_sampler(obs, c)
+        elif self.root_sampler_name == 'earliest_nbrs':
+            self.root_sampler = self._early_nbrs_sampler(obs, c)
         else:
-            root_sampler = self.root_sampler
-            
+            self.root_sampler = self.root_sampler_name
+
+    def receive_observation(self, obs, c):
+        self._decide_root_sampler(obs, c)
+
         self.sampler.fill(obs,
-                          root_sampler=root_sampler)
+                          root_sampler=self.root_sampler)
         # print('DONE: sampler.fill')
         super(SamplingBasedGenerator, self).receive_observation(obs, c)
 
-    def update_samples(self, g, inf_nodes, node, label):
+    def update_samples(self, g, inf_nodes, node, label, c):
         """update the tree samples"""
-        new_samples = self.sampler.update_samples(inf_nodes, node, label)
+        # rigorously speaking,
+        # root sampler should be updated, for example
+        # earliet node might be updated, or uninfected nodes get removed
+        self._decide_root_sampler(inf_nodes, c)
+        new_samples = self.sampler.update_samples(inf_nodes, node, label,
+                                                  root_sampler=self.root_sampler)
         return new_samples
 
 
@@ -152,8 +161,9 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
         # add samples to error estimator
         self.error_estimator.build_matrix(self.sampler.samples)
 
-    def update_samples(self, g, inf_nodes, node, label):
-        new_samples = super(PredictionErrorQueryGenerator, self).update_samples(g, inf_nodes, node, label)
+    def update_samples(self, g, inf_nodes, node, label, c):
+        new_samples = super(PredictionErrorQueryGenerator, self).update_samples(
+            g, inf_nodes, node, label, c)
 
         # remember this
         self.error_estimator.update_trees(new_samples, node, label)

@@ -1,12 +1,12 @@
 #! /bin/zsh
 
-graph="grqc"
+graph="lattice-1024"
 sample_method=loop_erased
 
 inf_method="inf_probas"
 
 cascade_model="si"
-stop_fractions=(0.01 0.02 0.04 0.08 0.16 0.32)
+stop_fractions=(0.04 0.08 0.16 0.32 0.64)
 obs_fraction=0.1
 
 for stop_fraction in ${stop_fractions}; do

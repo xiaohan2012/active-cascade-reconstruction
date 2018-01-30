@@ -26,7 +26,7 @@ class TreeSamplePool():
         #                             for t in self._samples]
 
     # @profile
-    def update_samples(self, inf_nodes, node, label):
+    def update_samples(self, inf_nodes, node, label, **kwargs):
         """if label=1, assuming `inf_nodes` includes `node` already
         if label=0, assuming `self.g` removes `node` already
         
@@ -56,7 +56,8 @@ class TreeSamplePool():
             method=self.method,
             n_samples=self.n_samples - len(valid_samples),
             return_tree_nodes=self.return_tree_nodes,
-            gi=self.gi)
+            gi=self.gi,
+            **kwargs)
         
         self._samples = valid_samples + new_samples
         # self._tree_nodes_samples = valid_tree_nodes + [set(extract_nodes(t))
