@@ -61,7 +61,7 @@ def infer_probas_from_queries(g, obs, c, queries,
     estimator.build_matrix(sampler.samples)
 
     if verbose:
-        qs_iter =  tqdm(queries)
+        qs_iter = tqdm(queries)
     else:
         qs_iter = queries
     for q in qs_iter:

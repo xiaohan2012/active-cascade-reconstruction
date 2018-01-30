@@ -3,7 +3,7 @@
 python3 generate_queries.py  \
 	-g grqc \
 	-q prediction_error \
-        -p 0.2 \
+        -p 0.05 \
 	-n 10 \
 	-s 250 \
 	-m loop_erased  \
