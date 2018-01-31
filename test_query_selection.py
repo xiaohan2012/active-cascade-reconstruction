@@ -14,10 +14,11 @@ from test_helpers import check_tree_samples, check_error_esitmator
 
 @pytest.mark.parametrize("query_method", ['random', 'pagerank', 'entropy', 'error'])
 @pytest.mark.parametrize("sampling_method", ['cut_naive', 'cut', 'loop_erased'])
-@pytest.mark.parametrize("root_sampler", [None, 'earliest_nbrs', 'earliest_obs'])
+@pytest.mark.parametrize("root_sampler", [None, 'pagerank'])
 def test_query_method(g, query_method, sampling_method, root_sampler):
     print('query_method: ', query_method)
     print('sampling_method: ', sampling_method)
+    print('roo_sampler: ', root_sampler)
 
     gv = remove_filters(g)
 

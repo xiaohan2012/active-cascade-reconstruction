@@ -4,7 +4,7 @@ import numpy as np
 from copy import copy
 
 from graph_tool import Graph, GraphView
-from graph_tool.all import shortest_distance
+from graph_tool.topology import shortest_distance
 
 
 MAXINT = np.iinfo(np.int32).max

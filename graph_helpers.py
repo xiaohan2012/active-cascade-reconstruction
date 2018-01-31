@@ -8,6 +8,7 @@ from graph_tool import Graph, GraphView, load_graph
 from graph_tool.search import bfs_search, BFSVisitor
 from graph_tool.generation import lattice
 from graph_tool.topology import random_spanning_tree, label_components
+from graph_tool.centrality import pagerank
 
 
 def build_graph_from_edges(edges):
@@ -390,3 +391,16 @@ def k_hop_neighbors(v, g, k):
 
     visited = {v}
     return aux(v, k, visited)
+
+
+def pagerank_scores(g, obs):
+    pers = g.new_vertex_property('float')
+    for o in obs:
+        pers[o] = 1 / len(obs)
+    rank = pagerank(g, pers=pers)
+
+    for o in obs:
+        rank[o] = 0  # cannot select obs nodes
+    assert rank.a.sum() > 0
+    p = rank.a / rank.a.sum()
+    return p

@@ -32,8 +32,9 @@ parser.add_argument('-n', '--n_queries', default=10, type=int,
 parser.add_argument('-m', '--sampling_method', default='loop_erased', type=str,
                     choices={'loop_erased', 'cut', 'cut_naive'},
                     help='the steiner tree sampling method')
-parser.add_argument('-r', '--root_sampler', default='earliest_nbrs', type=str,
-                    choices={'earliest_obs', 'earliest_nbrs', 'pagerank', None},
+parser.add_argument('-r', '--root_sampler', type=str,
+                    default='pagerank',
+                    choices={'pagerank', None},
                     help='the steiner tree sampling method')
 parser.add_argument('-s', '--n_samples', default=100, type=int,
                     help='number of samples')

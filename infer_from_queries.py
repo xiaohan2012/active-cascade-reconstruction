@@ -92,9 +92,8 @@ def one_round(g, obs, c, c_path,
               sampling_method='loop_erased',
               debug=False,
               verbose=False):
-
-    print('\nprocessing {} started, query_method={}, inference_method={}\n'.format(
-        c_path, query_method, inference_method))
+    print('\nprocessing {} started, query_method={}, root_sampler={}, \n'.format(
+        c_path, query_method, root_sampler))
     stime = time.time()
     
     cid = os.path.basename(c_path).split('.')[0]
@@ -143,6 +142,10 @@ if __name__ == '__main__':
                         help='method used for infer hidden infections')
     parser.add_argument('--query_method',
                         help='query method used for infer hidden infections')
+    parser.add_argument('-r', '--root_sampler', type=str,
+                        default='pagerank',
+                        choices={'pagerank', None},
+                        help='the steiner tree sampling method')
 
     parser.add_argument('-c', '--cascade_dir',
                         help='directory to read cascades')
@@ -176,6 +179,7 @@ if __name__ == '__main__':
                                                args.inference_method,
                                                query_dirname,
                                                inf_proba_dirname, n_samples=n_samples,
+                                               root_sampler=args.root_sampler,
                                                verbose=args.verbose)
                             for path, (obs, c) in tqdm(cascades))
     else:
@@ -184,4 +188,5 @@ if __name__ == '__main__':
                       args.inference_method,
                       query_dirname,
                       inf_proba_dirname, n_samples=n_samples,
+                      root_sampler=args.root_sampler,
                       verbose=args.verbose)

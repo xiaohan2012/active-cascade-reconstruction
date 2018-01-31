@@ -3,8 +3,8 @@ import numpy as np
 from tqdm import tqdm
 from core import uncertainty_scores
 from graph_tool.centrality import pagerank
-from graph_helpers import extract_nodes, k_hop_neighbors
-
+from graph_helpers import extract_nodes
+from root_sampler import build_root_sampler_by_pagerank_score
 
 class NoMoreQuery(Exception):
     pass
@@ -75,35 +75,21 @@ class PRQueryGenerator(BaseQueryGenerator):
 class SamplingBasedGenerator(BaseQueryGenerator):
     def __init__(self, g, sampler, *args, root_sampler=None, **kwargs):
         self.sampler = sampler
-        assert root_sampler in {None, 'earliest_obs', 'earliest_nbrs'}
+        assert root_sampler in {None, 'pagerank'}
         self.root_sampler_name = root_sampler
         print('self.root_sampler_name', self.root_sampler_name)
         super(SamplingBasedGenerator, self).__init__(g, *args, **kwargs)
 
-    def _earlier_root_sampler(self, obs, c):
-        def f():
-            return min(obs, key=lambda o: c[o])
-        return f
-
-    def _early_nbrs_sampler(self, obs, c, k=1):
-        earliest_node = min(obs, key=lambda o: c[o])
-        nbrs = list(k_hop_neighbors(earliest_node, self.g, k=k)) + [earliest_node]
-
-        def f():
-            return random.choice(nbrs)
-        return f
-
-    def _decide_root_sampler(self, obs, c):
+    def _update_root_sampler(self, obs, c, **kwargs):
         # print('START: sampler.fill')
-        if self.root_sampler_name == 'earliest_obs':
-            self.root_sampler = self._earlier_root_sampler(obs, c)
-        elif self.root_sampler_name == 'earliest_nbrs':
-            self.root_sampler = self._early_nbrs_sampler(obs, c)
+        if self.root_sampler_name == 'pagerank':
+            self.root_sampler = build_root_sampler_by_pagerank_score(
+                self.g, obs, c)
         else:
             self.root_sampler = self.root_sampler_name
 
-    def receive_observation(self, obs, c):
-        self._decide_root_sampler(obs, c)
+    def receive_observation(self, obs, c, **kwargs):
+        self._update_root_sampler(obs, c, **kwargs)
 
         self.sampler.fill(obs,
                           root_sampler=self.root_sampler)
@@ -115,7 +101,7 @@ class SamplingBasedGenerator(BaseQueryGenerator):
         # rigorously speaking,
         # root sampler should be updated, for example
         # earliet node might be updated, or uninfected nodes get removed
-        self._decide_root_sampler(inf_nodes, c)
+        self._update_root_sampler(inf_nodes, c)
         new_samples = self.sampler.update_samples(inf_nodes, node, label,
                                                   root_sampler=self.root_sampler)
         return new_samples
