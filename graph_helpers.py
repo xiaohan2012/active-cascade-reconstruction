@@ -401,6 +401,9 @@ def pagerank_scores(g, obs):
 
     for o in obs:
         rank[o] = 0  # cannot select obs nodes
-    assert rank.a.sum() > 0
+
+    if rank.a.sum() == 0:
+        raise ValueError('PageRank score all zero')
+
     p = rank.a / rank.a.sum()
     return p

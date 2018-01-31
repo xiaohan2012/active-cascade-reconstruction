@@ -83,8 +83,11 @@ class SamplingBasedGenerator(BaseQueryGenerator):
     def _update_root_sampler(self, obs, c, **kwargs):
         # print('START: sampler.fill')
         if self.root_sampler_name == 'pagerank':
-            self.root_sampler = build_root_sampler_by_pagerank_score(
-                self.g, obs, c)
+            try:
+                self.root_sampler = build_root_sampler_by_pagerank_score(
+                    self.g, obs, c)
+            except ValueError as e:
+                raise NoMoreQuery from e
         else:
             self.root_sampler = self.root_sampler_name
 

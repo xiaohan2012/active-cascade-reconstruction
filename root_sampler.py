@@ -20,6 +20,9 @@ def build_early_nbrs_sampler(g, obs, c, k=1, **kwargs):
 
 def build_root_sampler_by_pagerank_score(g, obs, c):
     pr_score = pagerank_scores(g, obs)
+    # print(g)
+    # print('len(obs): ', len(obs))
+    # print(pr_score)
     nodes = np.arange(len(pr_score))  # shapes should be consistent
 
     def aux():

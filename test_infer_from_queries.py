@@ -9,7 +9,8 @@ from test_helpers import check_tree_samples, check_error_esitmator
 
 @pytest.mark.parametrize("cid", range(10))
 @pytest.mark.parametrize("sampling_method", ['cut', 'loop_erased'])
-def test_infer_probas_for_queries_sampling_approach(g, cid, sampling_method):
+@pytest.mark.parametrize("root_sampler_name", [None, 'pagerank'])
+def test_infer_probas_for_queries_sampling_approach(g, cid, sampling_method, root_sampler_name):
     n_queries = 20
     obs, c = gen_input(g)
     remaining_nodes = list(set(np.arange(g.num_vertices())) - set(obs))
@@ -17,7 +18,7 @@ def test_infer_probas_for_queries_sampling_approach(g, cid, sampling_method):
 
     inf_proba_list, sampler, estimator = infer_probas_from_queries(
         g, obs, c, queries,
-        sampling_method, root_sampler=None, n_samples=100)
+        sampling_method, root_sampler_name=root_sampler_name, n_samples=100)
 
     assert len(inf_proba_list) == n_queries
     for probas in inf_proba_list:

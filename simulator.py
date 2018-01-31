@@ -74,7 +74,11 @@ class Simulator():
                 label = int(c[q] >= 0)
                 assert label in {0, 1}
                 # print('update samples, node {} label {}'.format(q, label))
-                self.q_gen.update_samples(self.g, inf_nodes, q, label, c)
+                try:
+                    self.q_gen.update_samples(self.g, inf_nodes, q, label, c)
+                except NoMoreQuery:
+                    print('no more queries')
+                    break
 
                 if self.print_log:
                     print('update samples done')

@@ -14,6 +14,7 @@ from graph_helpers import (load_graph_by_name, remove_filters,
 from sample_pool import TreeSamplePool
 from random_steiner_tree.util import from_gt, isolate_vertex
 from tree_stat import TreeBasedStatistics
+from root_sampler import build_root_sampler_by_pagerank_score
 from sdm2018 import find_tree_greedy
 from sdm2018.utils import earliest_obs_node
 
@@ -44,8 +45,15 @@ def infer_infections_by_order_steiner_tree(g, obs, c, queries):
     
 
 def infer_probas_from_queries(g, obs, c, queries,
-                              sampling_method, root_sampler, n_samples,
+                              sampling_method, root_sampler_name, n_samples,
                               verbose=False):
+    assert root_sampler_name in {None, 'pagerank'}
+
+    if root_sampler_name == 'pagerank':
+        root_sampler = build_root_sampler_by_pagerank_score(g, obs, c)
+    else:
+        root_sampler = None
+        
     g = remove_filters(g)
     gi = from_gt(g)
     obs_inf = set(obs)
@@ -73,7 +81,10 @@ def infer_probas_from_queries(g, obs, c, queries,
 
         # update samples
         label = int(c[q] >= 0)
-        new_samples = sampler.update_samples(obs_inf, q, label)
+        if root_sampler_name == 'pagerank':
+            root_sampler = build_root_sampler_by_pagerank_score(g, obs_inf, c)
+            
+        new_samples = sampler.update_samples(obs_inf, q, label, root_sampler=root_sampler)
         estimator.update_trees(new_samples, q, label)
 
         # new probas
