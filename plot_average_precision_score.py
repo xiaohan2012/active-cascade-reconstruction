@@ -32,6 +32,7 @@ if __name__ == '__main__':
                                                    args.cascade_pattern, args.sampling_method)
     query_dirname = 'outputs/queries/{}/{}'.format(args.cascade_pattern, args.sampling_method)
 
+    print('summarizing ', inf_result_dirname)
     # if n_queries is too large, e.g, 100,
     # we might have no hidden infected nodes left and average precision score is undefined
     n_queries = args.n_queries

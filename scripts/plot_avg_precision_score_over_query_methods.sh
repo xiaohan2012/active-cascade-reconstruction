@@ -18,9 +18,11 @@ for stop_fraction in ${stop_fractions}; do
     if (( ${stop_fraction} == 0.01 )); then
 	n_queries=20
     elif (( ${stop_fraction} == 0.02 )); then
-	n_queries=40
+	n_queries=30
     elif (( ${stop_fraction} == 0.04 )); then
-	n_queries=40
+	n_queries=30
+    elif (( ${stop_fraction} == 0.08 )); then
+	n_queries=60
     else
 	n_queries=100
     fi
