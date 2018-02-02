@@ -25,8 +25,9 @@ for stop_fraction in ${stop_fractions}; do
 		-c ${cascade_dir} \
 		--query_method ${query_method} \
 		-q outputs/queries/${dataset_id}/${sample_method} \
-		-p outputs/${inf_method}/${dataset_id}/${sample_method}
-		# --debug --verbose
+		-p outputs/${inf_method}/${dataset_id}/${sample_method} \
+		--verbose
+	# --debug 
 	
     done
 done

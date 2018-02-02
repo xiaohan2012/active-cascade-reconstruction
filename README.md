@@ -28,3 +28,4 @@
 
 - `scripts/query_{dataset}.sh`: generate queries for `${dataset}`
 - `scripts/infer_{dataset}.sh`: make inference on infections for `${dataset}`
+- `compare_running_time.py`: script to compare running time for different query methods
