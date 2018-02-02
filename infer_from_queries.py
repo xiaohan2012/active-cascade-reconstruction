@@ -18,30 +18,6 @@ from root_sampler import build_root_sampler_by_pagerank_score
 from sdm2018 import find_tree_greedy
 from sdm2018.utils import earliest_obs_node
 
-
-def infer_infections_by_order_steiner_tree(g, obs, c, queries):
-    g = remove_filters(g)
-    obs_inf = set(obs)
-    list_of_infections = []
-    for i, q in enumerate(queries):
-        if c[q] >= 0:  # infected
-            obs_inf |= {q}
-        else:
-            observe_uninfected_node(g, q, obs_inf)
-
-        root = earliest_obs_node(obs, c)
-        try:
-            tree_nodes = find_tree_greedy(
-                g, root, c, source=None, obs_nodes=obs_inf,
-                return_nodes=True,
-                debug=False,
-                verbose=False
-            )
-        except AssertionError:
-            print("{}th query raises AssertionError".format(i))
-            break
-        list_of_infections.append(tree_nodes - set(obs))
-    return list_of_infections
     
 
 def infer_probas_from_queries(g, obs, c, queries,
@@ -132,9 +108,6 @@ def one_round(g, obs, c, c_path,
                                                       n_samples,
                                                       verbose=verbose)
         pkl.dump(probas_list, open(path, 'wb'))
-    elif inference_method == 'order_steiner_tree':
-        hidden_infections = infer_infections_by_order_steiner_tree(g, obs, c, queries)
-        pkl.dump(hidden_infections, open(path, 'wb'))
     else:
         raise ValueError('unknown inference method "{}"'.format(inference_method))
 
@@ -153,7 +126,7 @@ if __name__ == '__main__':
                         help='number of samples')
     parser.add_argument('-m', '--inference_method',
                         default='inf_probas',
-                        choices=('inf_probas', 'order_steiner_tree'),
+                        choices=('inf_probas'),
                         help='method used for infer hidden infections')
     parser.add_argument('--query_method',
                         help='query method used for infer hidden infections')

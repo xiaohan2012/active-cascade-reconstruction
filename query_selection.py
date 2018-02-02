@@ -23,6 +23,9 @@ class BaseQueryGenerator():
     def receive_observation(self, obs, c):
         self._cand_pool = set(extract_nodes(self.g)) - set(obs)
 
+    def update_observation(self, g, inf_nodes, q, label, c):
+        pass
+
     def select_query(self, *args, **kwargs):
         if len(self._cand_pool) == 0:
             raise NoMoreQuery()
@@ -54,9 +57,7 @@ class RandomQueryGenerator(BaseQueryGenerator):
 class PRQueryGenerator(BaseQueryGenerator):
     """rank node by pagerank score
     """
-    def receive_observation(self, obs, c):
-        # personalized vector for pagerank
-        # print('START: pagerank')
+    def _update_pagerank_score(self, g, obs):
         pers = self.g.new_vertex_property('float')
         for o in obs:
             pers[o] = 1 / len(obs)
@@ -65,8 +66,20 @@ class PRQueryGenerator(BaseQueryGenerator):
         self.pr = {}
         for v in self.g.vertices():
             self.pr[int(v)] = rank[v]
+
+        for o in obs:
+            self.pr[int(o)] = 0
+            
+    def receive_observation(self, obs, c):
+        # personalized vector for pagerank
+        # print('START: pagerank')
+        self._update_pagerank_score(self.g, obs)
+
         # print('DONE: pagerank')
         super(PRQueryGenerator, self).receive_observation(obs, c)
+
+    def update_observation(self, g, inf_nodes, node, label, c):
+        self._update_pagerank_score(g, inf_nodes)
 
     def _select_query(self, *args, **kwargs):
         return max(self._cand_pool, key=self.pr.__getitem__)
@@ -99,7 +112,7 @@ class SamplingBasedGenerator(BaseQueryGenerator):
         # print('DONE: sampler.fill')
         super(SamplingBasedGenerator, self).receive_observation(obs, c)
 
-    def update_samples(self, g, inf_nodes, node, label, c):
+    def update_observation(self, g, inf_nodes, node, label, c):
         """update the tree samples"""
         # rigorously speaking,
         # root sampler should be updated, for example
@@ -150,8 +163,8 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
         # add samples to error estimator
         self.error_estimator.build_matrix(self.sampler.samples)
 
-    def update_samples(self, g, inf_nodes, node, label, c):
-        new_samples = super(PredictionErrorQueryGenerator, self).update_samples(
+    def update_observation(self, g, inf_nodes, node, label, c):
+        new_samples = super(PredictionErrorQueryGenerator, self).update_observation(
             g, inf_nodes, node, label, c)
 
         # remember this

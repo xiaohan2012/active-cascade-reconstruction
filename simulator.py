@@ -66,21 +66,20 @@ class Simulator():
                 inf_nodes.append(q)
 
             # update tree samples if necessary
-            if hasattr(self.q_gen, 'update_samples'):
-                if self.print_log:
-                    print('update samples started')
-                    pass
+            if self.print_log:
+                print('update samples started')
+                pass
 
-                label = int(c[q] >= 0)
-                assert label in {0, 1}
-                # print('update samples, node {} label {}'.format(q, label))
-                try:
-                    self.q_gen.update_samples(self.g, inf_nodes, q, label, c)
-                except NoMoreQuery:
-                    print('no more queries')
-                    break
+            label = int(c[q] >= 0)
+            assert label in {0, 1}
+            # print('update samples, node {} label {}'.format(q, label))
+            try:
+                self.q_gen.update_observation(self.g, inf_nodes, q, label, c)
+            except NoMoreQuery:
+                print('no more queries')
+                break
 
-                if self.print_log:
-                    print('update samples done')
+            if self.print_log:
+                print('update samples done')
                 
         return qs, aux
