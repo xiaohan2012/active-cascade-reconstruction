@@ -82,7 +82,10 @@ def infer_probas_from_queries(g, obs, c, queries,
         # update samples
         label = int(c[q] >= 0)
         if root_sampler_name == 'pagerank':
-            root_sampler = build_root_sampler_by_pagerank_score(g, obs_inf, c)
+            try:
+                root_sampler = build_root_sampler_by_pagerank_score(g, obs_inf, c)
+            except ValueError:
+                print('pagerank score for root_sampler all zero, break')
             
         new_samples = sampler.update_samples(obs_inf, q, label, root_sampler=root_sampler)
         estimator.update_trees(new_samples, q, label)

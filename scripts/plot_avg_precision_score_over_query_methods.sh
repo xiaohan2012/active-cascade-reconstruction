@@ -1,12 +1,13 @@
 #! /bin/zsh
 
-graph="grqc"
+graph="lattice-1024"
 sample_method=loop_erased
 
 inf_method="inf_probas"
 
 cascade_model="si"
-stop_fractions=(0.01 0.02 0.04 0.08 0.16 0.32)
+# stop_fractions=(0.01 0.02 0.04 0.08 0.16 0.32)
+stop_fractions=(0.04 0.08 0.16 0.32 0.64)
 obs_fraction=0.1
 query_methods="random, pagerank, entropy, prediction_error"
 
@@ -17,6 +18,8 @@ for stop_fraction in ${stop_fractions}; do
     if (( ${stop_fraction} == 0.01 )); then
 	n_queries=20
     elif (( ${stop_fraction} == 0.02 )); then
+	n_queries=40
+    elif (( ${stop_fraction} == 0.04 )); then
 	n_queries=40
     else
 	n_queries=100

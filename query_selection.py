@@ -77,7 +77,7 @@ class SamplingBasedGenerator(BaseQueryGenerator):
         self.sampler = sampler
         assert root_sampler in {None, 'pagerank'}
         self.root_sampler_name = root_sampler
-        print('self.root_sampler_name', self.root_sampler_name)
+        # print('self.root_sampler_name', self.root_sampler_name)
         super(SamplingBasedGenerator, self).__init__(g, *args, **kwargs)
 
     def _update_root_sampler(self, obs, c, **kwargs):
