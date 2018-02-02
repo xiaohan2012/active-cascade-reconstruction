@@ -26,6 +26,7 @@ for stop_fraction in ${stop_fractions}; do
 		--query_method ${query_method} \
 		-q outputs/queries/${dataset_id}/${sample_method} \
 		-p outputs/${inf_method}/${dataset_id}/${sample_method}
+		# --debug --verbose
 	
     done
 done
