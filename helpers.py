@@ -10,3 +10,7 @@ def load_cascades(dirname):
 
 def cascade_source(c):
     return np.nonzero((c == 0))[0][0]
+
+
+def infected_nodes(c):
+    return np.nonzero((c >= 0))[0]

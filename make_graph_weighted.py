@@ -18,6 +18,11 @@ def main():
 
     g.edge_properties["weights"] = weights
 
+    g.graph_properties['p_min'] = g.new_graph_property("float", args.p_min)
+    g.graph_properties['p_max'] = g.new_graph_property("float", args.p_max)
+    print(g.graph_properties['p_min'], args.p_min)
+    print(g.graph_properties['p_max'], args.p_max)
+
     output_path = 'data/{}/graph_weighted.gt'.format(args.graph)
     g.save(output_path)
     
