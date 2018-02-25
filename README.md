@@ -2,6 +2,7 @@
 
 # main python scripts
 
+- `make_graph_weighted.py`: dump  graph with edge weights
 - `simulate_cascades.py`: simulate cascades and dump to files
 - `generate_queries.py`: produce queries and dump to files
 - `infer_from_queries.py`: infer the infection probabilities from queries
@@ -29,3 +30,4 @@
 - `scripts/query_{dataset}.sh`: generate queries for `${dataset}`
 - `scripts/infer_{dataset}.sh`: make inference on infections for `${dataset}`
 - `compare_running_time.py`: script to compare running time for different query methods
+

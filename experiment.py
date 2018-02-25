@@ -10,14 +10,14 @@ from graph_helpers import (isolate_node, remove_filters,
                            load_graph_by_name)
 
 
-def gen_input(g, cascade_path=None, stop_fraction=0.25, p=0.5, q=0.1, model='si'):
+def gen_input(g, cascade_path=None, stop_fraction=0.25, p=0.5, q=0.1, model='si', min_size=10):
     if cascade_path is None:
         if model == 'si':
             s, c, _ = si(g, p, stop_fraction=stop_fraction)
         elif model == 'ic':
             while True:
                 s, c, _ = ic(g, p)
-                if np.sum(c >= 0) >= 4:  # size is large enough
+                if np.sum(c >= 0) >= min_size:  # size is large enough
                     break
         else:
             raise ValueError('unknown cascade model')

@@ -65,7 +65,12 @@ def sample_graph_by_p(g, p):
     """
     for IC model
     graph_tool version of sampling a graph
-    mask the edge according to probability p and return the masked graph"""
+    mask the edge according to probability p and return the masked graph
+
+    g: the graph
+    p: float or np.array
+    """
+
     flags = (np.random.random(g.num_edges()) <= p)
     p = g.new_edge_property('bool')
     p.set_2d_array(flags)
