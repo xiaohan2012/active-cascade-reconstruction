@@ -6,6 +6,7 @@ import os
 import argparse
 
 from tqdm import tqdm
+from graph_tool import openmp_set_num_threads
 
 from query_selection import (RandomQueryGenerator, EntropyQueryGenerator,
                              PRQueryGenerator, PredictionErrorQueryGenerator,
@@ -20,6 +21,10 @@ from tree_stat import TreeBasedStatistics
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('-g', '--graph', help='graph name')
+parser.add_argument('-w', '--weighted',
+                    action='store_true',
+                    help='if the graph is weighted')
+
 parser.add_argument('-q', '--query_strategy',
                     choices={'random', 'pagerank', 'entropy', 'prediction_error'},
                     help='query strategy')
@@ -66,7 +71,7 @@ query_strategy = args.query_strategy
 min_proba = args.min_proba
 num_estimation_nodes = args.num_estimation_nodes
 
-g = load_graph_by_name(graph_name)
+g = load_graph_by_name(graph_name, weighted=args.weighted)
 
 if query_strategy == 'random':
     strategy = (RandomQueryGenerator, {})
@@ -101,10 +106,19 @@ def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir, sampl
         return
 
     print('\nprocessing {} started\n'.format(c_path))
+
     gv = remove_filters(g)
-    args = []
-    # sampling based method need a sampler to initialize
-    gi = from_gt(g)
+    args = []  # sampling based method need a sampler to initialize
+
+    if 'weights' not in g.edge_properties:
+        print('unweighted graph')
+        weights = None
+    else:
+        print('weighted graph')
+        weights = gv.edge_properties['weights']
+
+    gi = from_gt(gv, weights=weights)
+    
     if issubclass(q_gen_cls, SamplingBasedGenerator):
         sampler = TreeSamplePool(
             gv,
@@ -145,6 +159,9 @@ if args.debug:
         one_round(g, obs, c, path, cls, param, query_strategy, output_dir, sampling_method, n_samples,
                   args.verbose)
 else:
+    # prevent Parallel from hanging
+    openmp_set_num_threads(1)
+    
     Parallel(n_jobs=-1)(delayed(one_round)(g, obs, c, path, strategy[0], strategy[1],
                                            query_strategy, output_dir, sampling_method, n_samples,
                                            args.verbose)

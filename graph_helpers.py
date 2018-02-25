@@ -307,7 +307,10 @@ def remove_filters(g):
     vfilt = g.new_vertex_property('bool')
     vfilt.a = True
 
-    return GraphView(g, efilt=efilt, vfilt=vfilt, directed=False)
+    # print('making GraphView started')
+    gv = GraphView(g, efilt=efilt, vfilt=vfilt, directed=False)
+    # print('making GraphView done')
+    return gv
 
 
 def hide_disconnected_components(g, pivots):
