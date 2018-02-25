@@ -15,10 +15,7 @@ from sample_pool import TreeSamplePool
 from random_steiner_tree.util import from_gt, isolate_vertex
 from tree_stat import TreeBasedStatistics
 from root_sampler import build_root_sampler_by_pagerank_score
-from sdm2018 import find_tree_greedy
-from sdm2018.utils import earliest_obs_node
 
-    
 
 def infer_probas_from_queries(g, obs, c, queries,
                               sampling_method, root_sampler_name, n_samples,
