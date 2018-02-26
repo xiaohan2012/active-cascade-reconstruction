@@ -24,8 +24,10 @@
 
 ## inference
 
+- `infer_weighted_cascade.sh`: on weighted graph
 - `infer_cascades_with_varying_size.sh`: TBD
 - `infer_cascades_with_varying_obs_fraction.sh`: TBD
+
 
 # misc
 
