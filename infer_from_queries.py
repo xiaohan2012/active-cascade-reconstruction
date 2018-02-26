@@ -6,11 +6,12 @@ import pickle as pkl
 import argparse
 from tqdm import tqdm
 from joblib import Parallel, delayed
+from graph_tool import openmp_set_num_threads
 
 from helpers import load_cascades
 from inference import infection_probability
 from graph_helpers import (load_graph_by_name, remove_filters,
-                           observe_uninfected_node)
+                           observe_uninfected_node, get_edge_weights)
 from sample_pool import TreeSamplePool
 from random_steiner_tree.util import from_gt, isolate_vertex
 from tree_stat import TreeBasedStatistics
@@ -26,9 +27,10 @@ def infer_probas_from_queries(g, obs, c, queries,
         root_sampler = build_root_sampler_by_pagerank_score(g, obs, c)
     else:
         root_sampler = None
-        
+
     g = remove_filters(g)
-    gi = from_gt(g)
+    weights = get_edge_weights(g)
+    gi = from_gt(g, weights=weights)
     obs_inf = set(obs)
     probas_list = []
 
@@ -118,6 +120,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('-g', '--graph',
                         help='graph name')
+    parser.add_argument('-w', '--weighted', action='store_true',
+                        help='use weights or not')
     parser.add_argument('-s', '--n_samples', type=int,
                         default=100,
                         help='number of samples')
@@ -155,11 +159,12 @@ if __name__ == '__main__':
     query_dirname = args.query_dirname
     inf_proba_dirname = args.inf_proba_dirname
 
-    g = load_graph_by_name(graph_name)
+    g = load_graph_by_name(graph_name, weighted=args.weighted)
 
     cascades = load_cascades(args.cascade_dir)
 
     if not args.debug:
+        openmp_set_num_threads(1)  # prevent jobjib from hanging
         Parallel(n_jobs=-1)(delayed(one_round)(g, obs, c, path, args.query_method,
                                                args.inference_method,
                                                query_dirname,

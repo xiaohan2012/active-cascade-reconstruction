@@ -13,7 +13,7 @@ from query_selection import (RandomQueryGenerator, EntropyQueryGenerator,
                              SamplingBasedGenerator)
 from simulator import Simulator
 from joblib import Parallel, delayed
-from graph_helpers import remove_filters, load_graph_by_name
+from graph_helpers import remove_filters, load_graph_by_name, get_edge_weights
 from helpers import load_cascades
 from sample_pool import TreeSamplePool
 from random_steiner_tree.util import from_gt
@@ -110,12 +110,7 @@ def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir, sampl
     gv = remove_filters(g)
     args = []  # sampling based method need a sampler to initialize
 
-    if 'weights' not in g.edge_properties:
-        print('unweighted graph')
-        weights = None
-    else:
-        print('weighted graph')
-        weights = gv.edge_properties['weights']
+    weights = get_edge_weights(gv)
 
     gi = from_gt(gv, weights=weights)
     
