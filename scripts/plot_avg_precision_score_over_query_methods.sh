@@ -8,6 +8,7 @@ inf_method="inf_probas"
 cascade_model="si"
 # stop_fractions=(0.01 0.02 0.04 0.08 0.16 0.32)
 stop_fractions=(0.04 0.08 0.16 0.32 0.64)
+# stop_fractions=(0.02 0.04 0.08 0.16 0.32)
 obs_fraction=0.1
 query_methods="random, pagerank, entropy, prediction_error"
 
@@ -29,7 +30,9 @@ for stop_fraction in ${stop_fractions}; do
     print "
     python3 plot_average_precision_score.py \
 	    -g ${graph} \
-	    -c ${data_id} \
+            -d ${data_id} \
+	    -c cascade \
+            --query_dirname queries \
 	    -s ${sample_method} \
 	    -i ${inf_method} \
 	    -n ${n_queries} \

@@ -22,8 +22,8 @@ for query_method in ${query_methods}; do
 	    -m ${inf_method} \
 	    -c ${cascade_dir} \
 	    --query_method ${query_method} \
-	    -q outputs/queries-weighted/${dataset_id}/${sample_method} \
-	    -p outputs/${inf_method}-weighted/${dataset_id}/${sample_method}
+	    -q outputs/queries-weighted/${dataset_id}/${sample_method}/${query_method} \
+	    -p outputs/${inf_method}-weighted/${dataset_id}/${sample_method}/${query_method}
 
     # infer on unweighted graph using weighted queries
     # this is done to check the effects of edge weights on inference performance
@@ -33,8 +33,8 @@ for query_method in ${query_methods}; do
 	    -m ${inf_method} \
 	    -c ${cascade_dir} \
 	    --query_method ${query_method} \
-	    -q outputs/queries-weighted/${dataset_id}/${sample_method} \
-	    -p outputs/${inf_method}-unweighted/${dataset_id}/${sample_method}
+	    -q outputs/queries-weighted/${dataset_id}/${sample_method}/${query_method} \
+	    -p outputs/${inf_method}-unweighted/${dataset_id}/${sample_method}/${query_method}
 done
 
 
@@ -49,6 +49,6 @@ for query_method in ${query_methods}; do
 	    -m ${inf_method} \
 	    -c ${cascade_dir} \
 	    --query_method ${query_method} \
-	    -q outputs/queries-weighted/${dataset_id}/${sample_method}-unweighted \
-	    -p outputs/${inf_method}-weighted/${dataset_id}/${sample_method}-unweighted
+	    -q outputs/queries-weighted/${dataset_id}/${sample_method}/${query_method}-unweighted \
+	    -p outputs/${inf_method}-weighted/${dataset_id}/${sample_method}/${query_method}-unweighted
 done

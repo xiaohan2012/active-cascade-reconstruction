@@ -22,6 +22,6 @@ for min_proba in ${min_probas}; do
 	    -m ${inf_method} \
 	    -c ${cascade_dir} \
 	    --query_method ${query_method_id} \
-	    -q outputs/queries/${dataset_id}/${sample_method} \
-	    -p outputs/${inf_method}/${dataset_id}/${sample_method}  
+	    -q outputs/queries/${dataset_id}/${sample_method}/${query_method_id} \
+	    -p outputs/${inf_method}/${dataset_id}/${sample_method}/${query_method_id}
 done

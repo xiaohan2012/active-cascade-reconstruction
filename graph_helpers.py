@@ -417,9 +417,9 @@ def pagerank_scores(g, obs):
 
 def get_edge_weights(g, key='weights'):
     if key not in g.edge_properties:
-        print('unweighted graph')
+        # print('unweighted graph')
         weights = None
     else:
-        print('weighted graph')
+        # print('weighted graph')
         weights = g.edge_properties[key]
     return weights

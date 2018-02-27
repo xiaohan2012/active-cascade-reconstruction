@@ -1,14 +1,15 @@
 #! /bin/zsh
 
-graph="p2p"
+graph="fb"
 sample_method=loop_erased
 query_methods=(random pagerank entropy prediction_error)
+# query_methods=(pagerank)
 
 cascade_model="si"
 stop_fractions=(0.02 0.04 0.08 0.16 0.32)
 # stop_fractions=(0.04 0.08 0.16 0.32 0.64)
 obs_fraction=0.1
-min_proba=0.05
+min_proba=0.00
 
 for stop_fraction in ${stop_fractions}; do
     dataset_id="${graph}-m${cascade_model}-s${stop_fraction}-o${obs_fraction}"

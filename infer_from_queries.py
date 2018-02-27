@@ -87,7 +87,7 @@ def one_round(g, obs, c, c_path,
     stime = time.time()
     
     cid = os.path.basename(c_path).split('.')[0]
-    probas_dir = os.path.join(inf_proba_dirname, query_method)
+    probas_dir = inf_proba_dirname
     if not os.path.exists(probas_dir):
         os.makedirs(probas_dir)
     path = os.path.join(probas_dir, '{}.pkl'.format(cid))
@@ -96,7 +96,7 @@ def one_round(g, obs, c, c_path,
         print('{} computed'.format(path))
         return
     
-    query_log_path = os.path.join(query_dirname, query_method, '{}.pkl'.format(cid))
+    query_log_path = os.path.join(query_dirname, '{}.pkl'.format(cid))
     queries, _ = pkl.load(open(query_log_path, 'rb'))
 
     if inference_method == 'inf_probas':

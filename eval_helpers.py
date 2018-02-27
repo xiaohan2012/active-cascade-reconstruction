@@ -86,10 +86,13 @@ def aggregate_scores_over_cascades_by_methods(cascades, methods,
                 method,
                 '{}.pkl'.format(cid))
             inf_probas_list = pkl.load(open(inf_probas_path, 'rb'))
+            # print('method', method)
+            # print('inf_probas_list', inf_probas_list)
                     
             query_path = os.path.join(
                 query_dirname, method, '{}.pkl'.format(cid))
 
+            # print('query_path', query_path)
             queries = pkl.load(open(query_path, 'rb'))[0]
             scores = []
             obs_inc = copy(obs)

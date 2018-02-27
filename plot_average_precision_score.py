@@ -16,10 +16,12 @@ np.seterr(divide='raise', invalid='raise')
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('-g', '--graph_name', help='graph name')
-    parser.add_argument('-c', '--cascade_pattern', help='cascade pattern')
+    parser.add_argument('-d', '--data_id', help='data id (e.g, "grqc-mic-o0.1")')
+    parser.add_argument('-c', '--cascade_dirname', help='cascade directory name')
     parser.add_argument('-n', '--n_queries', type=int, help='number of queries to show')
     parser.add_argument('-s', '--sampling_method', help='')
-    parser.add_argument('-i', '--inf_method', help='')
+    parser.add_argument('-i', '--inf_method_dirname', help='')
+    parser.add_argument('--query_dirname', default='queries', help='default dirname for query result')
     parser.add_argument('-q', '--query_methods', required=True,
                         help='list of query methods separated by ","')
     parser.add_argument('-l', '--legend_labels',
@@ -28,9 +30,12 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    inf_result_dirname = 'outputs/{}/{}/{}'.format(args.inf_method,
-                                                   args.cascade_pattern, args.sampling_method)
-    query_dirname = 'outputs/queries/{}/{}'.format(args.cascade_pattern, args.sampling_method)
+    inf_result_dirname = 'outputs/{}/{}/{}'.format(args.inf_method_dirname,
+                                                   args.data_id,
+                                                   args.sampling_method)
+    query_dirname = 'outputs/{}/{}/{}'.format(args.query_dirname,
+                                              args.data_id,
+                                              args.sampling_method)
 
     print('summarizing ', inf_result_dirname)
     # if n_queries is too large, e.g, 100,
@@ -47,7 +52,9 @@ if __name__ == '__main__':
     print('query_methods:', methods)
     print('labels:', labels)
     
-    cascades = load_cascades('cascade/' + args.cascade_pattern)
+    cascades = load_cascades('{}/{}'.format(args.cascade_dirname, args.data_id))
+
+    assert n_queries > 0, 'non-positive num of queries'
 
     scores_by_method = aggregate_scores_over_cascades_by_methods(
         cascades, methods,
@@ -58,10 +65,14 @@ if __name__ == '__main__':
     plt.clf()
 
     fig, ax = plt.subplots(figsize=(5, 4))
-    
+
+    # print('scores_by_method:', scores_by_method)
     for method in methods:
+        assert len(scores_by_method[method]) > 0, 'no scores available'
         scores = np.array(scores_by_method[method], dtype=np.float32)
+        # print(method, scores)
         mean_scores = np.mean(scores, axis=0)
+        # mean_scores = np.median(scores, axis=0)
         # print(np.std(scores,axis=0))
         ax.plot(mean_scores)
         # ax.hold(True)
