@@ -19,7 +19,9 @@ def gen_input(g, source=None, cascade_path=None, stop_fraction=0.25, p=0.5, q=0.
             while True:
                 s, c, _ = ic(g, p, source=source)
                 if np.sum(c >= 0) >= min_size:  # size is large enough
+                    # print('big enough')
                     break
+                # print('small')
         else:
             raise ValueError('unknown cascade model')
     else:

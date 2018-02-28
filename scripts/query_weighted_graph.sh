@@ -8,7 +8,7 @@ obs_fraction=0.1
 stop_fraction=0.08
 min_proba=0.00
 
-if [ ${cascade_model} == "ic" ]; then    
+if [ ${cascade_model} = "ic" ]; then    
     dataset_id="${graph}-m${cascade_model}-o${obs_fraction}"
 else
     dataset_id="${graph}-m${cascade_model}-s${stop_fraction}-o${obs_fraction}"

@@ -3,7 +3,7 @@ import math
 import numpy as np
 from copy import copy
 
-from graph_tool import Graph, GraphView
+from graph_tool import Graph, GraphView, PropertyMap
 from graph_tool.topology import shortest_distance
 
 
@@ -35,6 +35,13 @@ def si(g, p, source=None, stop_fraction=0.5):
     p: edge-wise infection probability
     stop_fraction: stopping if more than N x stop_fraction nodes are infected
     """
+    weighted = False
+    if isinstance(p, PropertyMap):
+        weighted = True
+    else:
+        # is float and uniform
+        assert 0 < p and p <= 1
+        
     if source is None:
         source = random.choice(np.arange(g.num_vertices()))
     infected = {source}
@@ -42,16 +49,34 @@ def si(g, p, source=None, stop_fraction=0.5):
     infection_times[source] = 0
     time = 0
     edges = []
-    while np.count_nonzero(infection_times != -1) / g.num_vertices() <= stop_fraction:
+
+    stop = False
+
+    while True:
         infected_nodes_until_t = copy(infected)
         time += 1
         for i in infected_nodes_until_t:
-            for j in g.vertex(i).all_neighbours():
-                j = int(j)
-                if j not in infected and random.random() <= p:
+            vi = g.vertex(i)
+            for e in vi.all_edges():
+                if weighted:
+                    inf_proba = p[e]
+                else:
+                    inf_proba = p
+                vj = e.target()
+                j = int(vj)
+                if j not in infected and random.random() <= inf_proba:
                     infected.add(j)
                     infection_times[j] = time
                     edges.append((i, j))
+
+                    # stop when enough nodes have been infected
+                    if (len(infected) / g.num_vertices()) >= stop_fraction:
+                        stop = True
+                        break
+            if stop:
+                break
+        if stop:
+            break
 
     tree = Graph(directed=True)
     for _ in range(g.num_vertices()):
@@ -70,7 +95,8 @@ def sample_graph_by_p(g, p):
     g: the graph
     p: float or np.array
     """
-
+    if isinstance(p, PropertyMap):
+        p = p.a
     flags = (np.random.random(g.num_edges()) <= p)
     p = g.new_edge_property('bool')
     p.set_2d_array(flags)

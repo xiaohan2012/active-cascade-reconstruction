@@ -28,7 +28,7 @@ parser.add_argument('-p', '--infection_proba', type=float, default=0.5,
                     help='infection probability')
 parser.add_argument('--min_size', type=int, default=10,
                     help='minimum cascade size (applicable for IC model)')
-parser.add_argument('-r', '--use_edge_weights', action='store_true',
+parser.add_argument('-w', '--use_edge_weights', action='store_true',
                     help="""flag on using random edge probability.
 If ON, edge weight is sampled uniformly from [p_min, p_max]""")
 
@@ -43,9 +43,10 @@ if not args.use_edge_weights:
 else:
     print('non-uniform edge weight')
     g = load_graph_by_name(graph_name, weighted=True)
-    p = g.edge_properties['weights'].a
+    p = g.edge_properties['weights']
 
 print('p=', p)
+print('p.a=', p.a)
 
 for i in tqdm(range(args.n_cascades)):
     obs, c = gen_input(g,

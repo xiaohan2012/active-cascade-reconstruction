@@ -55,17 +55,22 @@ def top_k_infection_precision_recall(g, inf_probas, c, obs, k):
     return infection_precision_recall(set(inf_nodes), c, obs)
 
 
-def aggregate_scores_over_cascades_by_methods(cascades, methods,
+def aggregate_scores_over_cascades_by_methods(cascades,
+                                              method_labels,
+                                              query_dir_ids,
+                                              inf_dir_ids,
                                               n_queries,
                                               inf_result_dirname, query_dirname):
     """
+    each element in `method_labels` uniquely identifies one experiment
+
     Returns: method_name -> [n_experiments x n_queries]
     """
-
+    assert len(method_labels) == len(query_dir_ids) == len(inf_dir_ids)
     # dict of key -> [n_experiments x n_queries]
     scores_by_method = {}
-    for method in methods:
-        scores_by_method[method] = []
+    for l in method_labels:
+        scores_by_method[l] = []
     
     c_paths = []  # track the order
     for c_path, (obs, c) in tqdm(cascades):
@@ -79,18 +84,21 @@ def aggregate_scores_over_cascades_by_methods(cascades, methods,
         y_true = np.zeros((len(c), ))
         y_true[infected] = 1
         
-        for method in methods:
+        for method_label, query_dir, inf_dir in zip(method_labels, query_dir_ids, inf_dir_ids):
             cid = os.path.basename(c_path).split('.')[0]
+
+            # load infection probabilities
             inf_probas_path = os.path.join(
                 inf_result_dirname,
-                method,
+                inf_dir,
                 '{}.pkl'.format(cid))
             inf_probas_list = pkl.load(open(inf_probas_path, 'rb'))
-            # print('method', method)
+            # print('inf_probas_path', inf_probas_path)
             # print('inf_probas_list', inf_probas_list)
-                    
+
+            # load queries
             query_path = os.path.join(
-                query_dirname, method, '{}.pkl'.format(cid))
+                query_dirname, query_dir, '{}.pkl'.format(cid))
 
             # print('query_path', query_path)
             queries = pkl.load(open(query_path, 'rb'))[0]
@@ -109,7 +117,7 @@ def aggregate_scores_over_cascades_by_methods(cascades, methods,
                     # ignore this cascade because it's too small
                     raise TooSmallCascadeError from FloatingPointError
                 scores.append(score)
-
-            scores_by_method[method].append(scores)
-            
+            # print(inf_dir, scores[:15])
+            scores_by_method[method_label].append(scores)
+        # print('---'*10)
     return scores_by_method

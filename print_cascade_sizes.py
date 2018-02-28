@@ -10,3 +10,4 @@ cs = [pkl.load(open(p, 'rb'))[1] for p in glob('cascade-weighted/grqc-mic-o0.1/*
 obs_sizes = [len(o) for o in os]
 c_sizes = [len(infected_nodes(c)) for c in cs]
 print('mean cascade size:', np.mean(c_sizes))
+print('fraction', np.mean(c_sizes) / g.num_vertices())
