@@ -4,12 +4,17 @@ graph="grqc"
 sample_method=loop_erased
 inf_method="inf_probas"
 
-cascade_model="ic"
+cascade_model="si"
 obs_fraction=0.1
+stop_fraction=0.08
 
 query_methods=(random pagerank entropy prediction_error)
 
-dataset_id="${graph}-m${cascade_model}-o${obs_fraction}"
+if [ ${cascade_model} == "ic" ]; then    
+    dataset_id="${graph}-m${cascade_model}-o${obs_fraction}"
+else
+    dataset_id="${graph}-m${cascade_model}-s${stop_fraction}-o${obs_fraction}"
+fi
 
 cascade_dir="cascade-weighted/${dataset_id}"
 print "on ${dataset_id}"

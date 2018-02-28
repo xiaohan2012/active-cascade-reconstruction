@@ -6,7 +6,8 @@ import argparse
 matplotlib.use('pdf')
 
 from matplotlib import pyplot as plt
-    
+from cycler import cycler
+
 from helpers import load_cascades
 from graph_helpers import load_graph_by_name
 from eval_helpers import aggregate_scores_over_cascades_by_methods
@@ -17,20 +18,29 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('-g', '--graph_name', help='graph name')
     parser.add_argument('-d', '--data_id', help='data id (e.g, "grqc-mic-o0.1")')
+
+    # root directory names
     parser.add_argument('-c', '--cascade_dirname', help='cascade directory name')
+    parser.add_argument('--inf_dirname', help='')
+    parser.add_argument('--query_dirname', default='queries', help='default dirname for query result')
+
+    # query and inf dir ids
+    parser.add_argument('-q', '--query_dir_ids', required=True,
+                        help='list of query directory ids separated by ","')
+    parser.add_argument('-i', '--inf_dir_ids', required=True,
+                        help="""
+list of infection probas directory ids separated by ","
+why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
+    
     parser.add_argument('-n', '--n_queries', type=int, help='number of queries to show')
     parser.add_argument('-s', '--sampling_method', help='')
-    parser.add_argument('-i', '--inf_method_dirname', help='')
-    parser.add_argument('--query_dirname', default='queries', help='default dirname for query result')
-    parser.add_argument('-q', '--query_methods', required=True,
-                        help='list of query methods separated by ","')
     parser.add_argument('-l', '--legend_labels',
                         help='list of labels to show in legend separated  by ","')
     parser.add_argument('-f', '--fig_name', help='figure name')
 
     args = parser.parse_args()
 
-    inf_result_dirname = 'outputs/{}/{}/{}'.format(args.inf_method_dirname,
+    inf_result_dirname = 'outputs/{}/{}/{}'.format(args.inf_dirname,
                                                    args.data_id,
                                                    args.sampling_method)
     query_dirname = 'outputs/{}/{}/{}'.format(args.query_dirname,
@@ -44,12 +54,15 @@ if __name__ == '__main__':
 
     g = load_graph_by_name(args.graph_name)
 
-    methods = list(map(lambda s: s.strip(), args.query_methods.split(',')))
+    query_dir_ids = list(map(lambda s: s.strip(), args.query_dir_ids.split(',')))
     if args.legend_labels is not None:
         labels = list(map(lambda s: s.strip(), args.legend_labels.split(',')))
     else:
-        labels = methods
-    print('query_methods:', methods)
+        labels = query_dir_ids
+    print('query_dir_ids:', query_dir_ids)
+
+    inf_dir_ids = list(map(lambda s: s.strip(), args.inf_dir_ids.split(',')))
+    print('inf_dir_ids:', inf_dir_ids)
     print('labels:', labels)
     
     cascades = load_cascades('{}/{}'.format(args.cascade_dirname, args.data_id))
@@ -57,7 +70,10 @@ if __name__ == '__main__':
     assert n_queries > 0, 'non-positive num of queries'
 
     scores_by_method = aggregate_scores_over_cascades_by_methods(
-        cascades, methods,
+        cascades,
+        labels,
+        query_dir_ids,
+        inf_dir_ids,
         n_queries,
         inf_result_dirname,
         query_dirname)
@@ -65,9 +81,12 @@ if __name__ == '__main__':
     plt.clf()
 
     fig, ax = plt.subplots(figsize=(5, 4))
+    # ax.set_prop_cycle(cycler('color', ['r', 'g', 'b', 'y']) +
+    #                   cycler('linestyle', ['-', '--', ':', '-.']) +
+    #                   cycler('lw', [4, 4, 4, 4]))
 
     # print('scores_by_method:', scores_by_method)
-    for method in methods:
+    for method in labels:
         assert len(scores_by_method[method]) > 0, 'no scores available'
         scores = np.array(scores_by_method[method], dtype=np.float32)
         # print(method, scores)
