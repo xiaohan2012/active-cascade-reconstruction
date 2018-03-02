@@ -10,7 +10,8 @@
 3. inference algorithm consider the edge weight
    - weighted and unweighted version
 
-#
+# TODO
 
+- [X] query/infer weighted SI model on grqc
 - [X] query illustration of lattice graph
-- [ ] weighted version for lattice graph
+- [ ] weighted version for SI and IC on lattice graph 
