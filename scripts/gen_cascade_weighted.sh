@@ -1,10 +1,10 @@
 #! /bin/zsh
 
-graph="grqc"
+graph="lattice-1024"
 cascade_model="si"
 n_cascades=96
 obs_fraction=0.1
-stop_fraction=0.08
+stop_fraction=0.15
 
 
 if [ ${cascade_model} = "ic" ]; then    

@@ -1,11 +1,11 @@
 #! /bin/zsh
-graph='grqc'
+graph='lattice-1024'
 sample_method=loop_erased
 query_methods=(random pagerank entropy prediction_error)
 
-cascade_model="si"
+cascade_model="ic"
 obs_fraction=0.1
-stop_fraction=0.08
+stop_fraction=0.15
 min_proba=0.00
 
 if [ ${cascade_model} = "ic" ]; then    

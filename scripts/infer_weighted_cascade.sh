@@ -1,12 +1,12 @@
 #! /bin/zsh
 
-graph="grqc"
+graph="lattice-1024"
 sample_method=loop_erased
 inf_method="inf_probas"
 
-cascade_model="si"
+cascade_model="ic"
 obs_fraction=0.1
-stop_fraction=0.08
+stop_fraction=0.15
 
 query_methods=(random pagerank entropy prediction_error)
 

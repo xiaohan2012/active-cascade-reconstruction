@@ -14,4 +14,6 @@
 
 - [X] query/infer weighted SI model on grqc
 - [X] query illustration of lattice graph
-- [ ] weighted version for SI and IC on lattice graph 
+- weighted version on lattice graph
+  - [X] SI
+  - [X] IC 
