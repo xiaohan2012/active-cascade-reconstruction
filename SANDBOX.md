@@ -15,5 +15,8 @@
 - [X] query/infer weighted SI model on grqc
 - [X] query illustration of lattice graph
 - weighted version on lattice graph
-  - [X] SI
-  - [X] IC 
+  - [ ] SI, does not give results to all cascades
+  - [X] IC
+
+- [ ] plot effects of cascade model
+- [ ] why fb is so good
