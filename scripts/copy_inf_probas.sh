@@ -2,7 +2,7 @@
 # copy inf probas from weighted to unweighted directory
 # for the ease of plotting
 
-data_id="grqc-mic-o0.1"
+data_id="lattice-1024-mic-o0.1"
 methods=(random pagerank prediction_error entropy)
 ROOT=/home/cloud-user/code/active-network-reconstruction
 
