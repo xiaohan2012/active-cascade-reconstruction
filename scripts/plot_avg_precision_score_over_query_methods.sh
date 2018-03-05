@@ -1,19 +1,25 @@
 #! /bin/zsh
 
-graph="lattice-1024"
+graph="fb"
 sample_method=loop_erased
 
 inf_method="inf_probas"
 
+query_dirname='queries'
+cascade_dirname='cascade'
+inf_dirname='inf_probas'
+
 cascade_model="si"
 # stop_fractions=(0.01 0.02 0.04 0.08 0.16 0.32)
-stop_fractions=(0.04 0.08 0.16 0.32 0.64)
-# stop_fractions=(0.02 0.04 0.08 0.16 0.32)
+# stop_fractions=(0.04 0.08 0.16 0.32 0.64)
+stop_fractions=(0.02 0.04 0.08 0.16 0.32)
 obs_fraction=0.1
-query_methods="random, pagerank, entropy, prediction_error"
+query_dir_ids="random, pagerank, entropy, prediction_error"
+inf_dir_ids="random, pagerank, entropy, prediction_error"
+labels="random, pagerank, entropy, prederror"
 
 for stop_fraction in ${stop_fractions}; do
-    data_id="${graph}-m${cascade_model}-s${stop_fraction}-o${obs_fraction}"
+    dataset_id="${graph}-m${cascade_model}-s${stop_fraction}-o${obs_fraction}"
     # print "${data_id}"
 
     if (( ${stop_fraction} == 0.01 )); then
@@ -21,22 +27,25 @@ for stop_fraction in ${stop_fractions}; do
     elif (( ${stop_fraction} == 0.02 )); then
 	n_queries=30
     elif (( ${stop_fraction} == 0.04 )); then
-	n_queries=30
+	n_queries=45
     elif (( ${stop_fraction} == 0.08 )); then
 	n_queries=60
     else
 	n_queries=100
     fi
     print "
-    python3 plot_average_precision_score.py \
-	    -g ${graph} \
-            -d ${data_id} \
-	    -c cascade \
-            --query_dirname queries \
-	    -s ${sample_method} \
-	    -i ${inf_method} \
-	    -n ${n_queries} \
-            -q '${query_methods}' \
-            -f ${data_id}
+python3 plot_average_precision_score.py \
+	-g ${graph} \
+	-d ${dataset_id} \
+	-c ${cascade_dirname} \
+	--query_dirname ${query_dirname} \
+	--inf_dirname ${inf_dirname} \
+	-s ${sample_method} \
+	-n ${n_queries} \
+        --query_dir_ids \"${query_dir_ids}\" \
+	--inf_dir_ids \"${inf_dir_ids}\" \
+	--legend_labels \"${labels}\" \
+        -f \"${dataset_id}\"
 "
+
 done
