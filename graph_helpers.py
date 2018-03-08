@@ -352,9 +352,11 @@ def load_graph_by_name(name, weighted=False, suffix=''):
         g = lattice(shape)
     else:
         if weighted:
-            g = load_graph('data/{}/graph_weighted{}.gt'.format(name, suffix))
+            path = 'data/{}/graph_weighted{}.gt'.format(name, suffix)
         else:
-            g = load_graph('data/{}/graph{}.gt'.format(name, suffix))
+            path = 'data/{}/graph{}.gt'.format(name, suffix)
+        print('load graph from {}'.format(path))
+        g = load_graph(path)
     assert not g.is_directed()
     return remove_filters(g)  # add shell
 

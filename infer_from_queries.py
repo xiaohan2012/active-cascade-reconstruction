@@ -120,6 +120,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('-g', '--graph',
                         help='graph name')
+    parser.add_argument('-f', '--graph_suffix', required=True,
+                        help='suffix of graph name')
     parser.add_argument('-w', '--weighted', action='store_true',
                         help='use weights or not')
     parser.add_argument('-s', '--n_samples', type=int,
@@ -154,12 +156,14 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     graph_name = args.graph
+    graph_suffix = args.graph_suffix
     n_samples = args.n_samples
 
     query_dirname = args.query_dirname
     inf_proba_dirname = args.inf_proba_dirname
 
-    g = load_graph_by_name(graph_name, weighted=args.weighted)
+    g = load_graph_by_name(graph_name, weighted=args.weighted,
+                           suffix=graph_suffix)
 
     cascades = load_cascades(args.cascade_dir)
 

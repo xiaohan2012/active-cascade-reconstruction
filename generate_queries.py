@@ -21,6 +21,9 @@ from tree_stat import TreeBasedStatistics
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('-g', '--graph', help='graph name')
+parser.add_argument('-f', '--graph_suffix',
+                    required=True,
+                    help='suffix of graph name')
 parser.add_argument('-w', '--weighted',
                     action='store_true',
                     help='if the graph is weighted')
@@ -58,6 +61,8 @@ parser.add_argument('-v', '--verbose', action='store_true',
 args = parser.parse_args()
 
 graph_name = args.graph
+graph_suffix = args.graph_suffix
+
 n_queries = args.n_queries
 n_samples = args.n_samples
 root_sampler = args.root_sampler
@@ -71,7 +76,8 @@ query_strategy = args.query_strategy
 min_proba = args.min_proba
 num_estimation_nodes = args.num_estimation_nodes
 
-g = load_graph_by_name(graph_name, weighted=args.weighted)
+g = load_graph_by_name(graph_name, weighted=args.weighted,
+                       suffix=graph_suffix)
 
 if query_strategy == 'random':
     strategy = (RandomQueryGenerator, {})

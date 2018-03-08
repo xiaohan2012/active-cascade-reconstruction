@@ -1,18 +1,16 @@
 #! /bin/zsh
-graph='lattice-1024'
+
+graph='grqc'
 sample_method=loop_erased
 query_methods=(random pagerank entropy prediction_error)
 
 cascade_model="ic"
 obs_fraction=0.1
-stop_fraction=0.15
+stop_fraction=0.03
 min_proba=0.00
+graph_suffix="_s${stop_fraction}"
 
-if [ ${cascade_model} = "ic" ]; then    
-    dataset_id="${graph}-m${cascade_model}-o${obs_fraction}"
-else
-    dataset_id="${graph}-m${cascade_model}-s${stop_fraction}-o${obs_fraction}"
-fi
+dataset_id="${graph}-m${cascade_model}-s${stop_fraction}-o${obs_fraction}"
 
 cascade_dir="cascade-weighted/${dataset_id}"
 
@@ -23,6 +21,7 @@ for query_method in ${query_methods}; do
     print "${query_method} on ${cascade_dir}"
     python3 generate_queries.py \
 	    -g ${graph} \
+	    -f ${graph_suffix} \
 	    --weighted \
 	    -q ${query_method} \
 	    -n 100 \
@@ -34,17 +33,17 @@ for query_method in ${query_methods}; do
 done
 
 
-# without weights
-query_methods=(entropy prediction_error)
-for query_method in ${query_methods}; do
-    print "${query_method} on ${cascade_dir}"
-    python3 generate_queries.py \
-	    -g ${graph} \
-	    -q ${query_method} \
-	    -n 100 \
-	    -s 250 \
-	    -p ${min_proba} \
-	    -m ${sample_method} \
-	    -c ${cascade_dir} \
-	    -d outputs/queries-weighted/${dataset_id}/${sample_method}/${query_method}-unweighted
-done
+# # without weights
+# query_methods=(entropy prediction_error)
+# for query_method in ${query_methods}; do
+#     print "${query_method} on ${cascade_dir}"
+#     python3 generate_queries.py \
+# 	    -g ${graph} \
+# 	    -q ${query_method} \
+# 	    -n 100 \
+# 	    -s 250 \
+# 	    -p ${min_proba} \
+# 	    -m ${sample_method} \
+# 	    -c ${cascade_dir} \
+# 	    -d outputs/queries-weighted/${dataset_id}/${sample_method}/${query_method}-unweighted
+# done
