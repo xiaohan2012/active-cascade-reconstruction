@@ -203,7 +203,7 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
             if self.verbose:
                 prev_n = len(self._cand_pool)
                 
-            self.prune_candidates()
+            self.prune_candidates()  #  _cand_pool updated
 
             if self.verbose:
                 print('pruning candidates from {} to {}'.format(
@@ -254,6 +254,9 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
 
         # changed to max
         # best_q = max(self._cand_pool, key=q2score.__getitem__)
+        if len(self._cand_pool) == 0:
+            raise NoMoreQuery
+
         best_q = min(self._cand_pool, key=q2score.__getitem__)
         # print('best_q', best_q)
         return best_q
