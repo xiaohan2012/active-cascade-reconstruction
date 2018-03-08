@@ -4,16 +4,23 @@ from glob import glob
 from graph_helpers import load_graph_by_name
 from helpers import infected_nodes
 
-graph = 'lattice-1024'
-model = 'si'
+graph = 'grqc'
+model = 'ic'
+suffix = '_tmp'
+stop_fraction = 0
+obs_frac = 0.1
 
 if model == 'ic':
-    dirname = 'cascade-weighted/{}-m{}-o0.1/*'.format(graph, model)
+    dirname = 'cascade-weighted/{}-m{}-s{}-o{}/*'.format(graph, model, stop_fraction, obs_frac)
 else:
-    stop_fraction = 0.15
-    dirname = 'cascade-weighted/{}-m{}-s{}-o0.1/*'.format(graph, model, stop_fraction)
+    dirname = 'cascade-weighted/{}-m{}-s{}-o{}/*'.format(graph, model, stop_fraction, obs_frac)
 
-g = load_graph_by_name(graph, weighted=True)
+g = load_graph_by_name(graph, weighted=True, suffix=suffix)
+
+gprop = g.graph_properties
+p_min, p_max = gprop['p_min'], gprop['p_max']
+print('p_min={}, p_max={}'.format(p_min, p_max))
+
 os = [pkl.load(open(p, 'rb'))[0] for p in glob(dirname)]
 cs = [pkl.load(open(p, 'rb'))[1] for p in glob(dirname)]
 obs_sizes = [len(o) for o in os]

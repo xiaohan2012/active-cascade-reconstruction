@@ -23,7 +23,7 @@ def main():
     print(g.graph_properties['p_min'], args.p_min)
     print(g.graph_properties['p_max'], args.p_max)
 
-    output_path = 'data/{}/graph_weighted.gt'.format(args.graph)
+    output_path = 'data/{}/graph_weighted_tmp.gt'.format(args.graph)
     g.save(output_path)
     
     print('dumped to {}'.format(output_path))

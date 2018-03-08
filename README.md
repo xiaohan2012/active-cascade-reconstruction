@@ -16,6 +16,18 @@
 - `gen_cascades_with_varying_size.sh`
 - `gen_cascades_with_varying_obs_fraction.sh`
 
+**UPDATE Mar 8**
+
+for IC, cascade size depends on the edge probability. so setting cascade size needs to be done by trying different edge probabilities
+
+to achieve so, do the following
+
+1. generate the weighted graph using `make_weighted_graph.py`
+2. generate cascade using `./scripts/gen_cascade_weighted.sh`
+3. check the cascade size using `print_cascade_sizes.py`
+4. modify the edge weights and go back to 1
+5. once you are fine with the size, edit and run `./scripts/mv_graph_and_cascade.sh`
+
 ## query
 
 - `query_cascades_with_varying_size.sh`

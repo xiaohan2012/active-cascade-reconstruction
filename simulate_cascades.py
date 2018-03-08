@@ -7,6 +7,8 @@ from tqdm import tqdm
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('-g', '--graph', required=True, help='graph name')
+parser.add_argument('-f', '--graph_suffix', default='', help='suffix of graph path')
+
 parser.add_argument('-n', '--n_cascades', type=int, default=100,
                     help='number of cascades')
 parser.add_argument('-o', '--obs_fraction', type=float, default=0.2,
@@ -38,11 +40,11 @@ graph_name = args.graph
 
 if not args.use_edge_weights:
     print('uniform edge weight')
-    g = load_graph_by_name(graph_name, weighted=False)
+    g = load_graph_by_name(graph_name, weighted=False, suffix=args.graph_suffix)
     p = args.infection_proba
 else:
     print('non-uniform edge weight')
-    g = load_graph_by_name(graph_name, weighted=True)
+    g = load_graph_by_name(graph_name, weighted=True, suffix=args.graph_suffix)
     p = g.edge_properties['weights']
 
 print('p=', p)

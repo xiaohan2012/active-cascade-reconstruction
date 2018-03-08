@@ -346,15 +346,15 @@ def observe_uninfected_node(g, n, obs):
     hide_disconnected_components(g, obs)
 
 
-def load_graph_by_name(name, weighted=False):
+def load_graph_by_name(name, weighted=False, suffix=''):
     if name == 'lattice':
         shape = (10, 10)
         g = lattice(shape)
     else:
         if weighted:
-            g = load_graph('data/{}/graph_weighted.gt'.format(name))
+            g = load_graph('data/{}/graph_weighted{}.gt'.format(name, suffix))
         else:
-            g = load_graph('data/{}/graph.gt'.format(name))
+            g = load_graph('data/{}/graph{}.gt'.format(name, suffix))
     assert not g.is_directed()
     return remove_filters(g)  # add shell
 
