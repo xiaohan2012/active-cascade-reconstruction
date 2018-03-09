@@ -47,6 +47,10 @@ parser.add_argument('-r', '--root_sampler', type=str,
 parser.add_argument('-s', '--n_samples', default=100, type=int,
                     help='number of samples')
 
+# specific to sampling-based sampler
+parser.add_argument('--normalize_proba', type=str,
+                    help='normalization method applied to probabilities (default: None)')
+
 # specific to prediction error-based sampler
 parser.add_argument('-p', '--min_proba', default=0.0, type=float,
                     help='(minimum) threshold used for pruning candidate nodes')
@@ -84,7 +88,9 @@ if query_strategy == 'random':
 elif query_strategy == 'pagerank':
     strategy = (PRQueryGenerator, {})
 elif query_strategy == 'entropy':
-    strategy = (EntropyQueryGenerator, {'method': 'entropy', 'root_sampler': root_sampler})
+    print('args.normalize_proba', args.normalize_proba)
+    strategy = (EntropyQueryGenerator, {'method': 'entropy', 'root_sampler': root_sampler,
+                                        'normalize_p': args.normalize_proba})
 elif query_strategy == 'prediction_error':
     print("min_proba={}".format(min_proba))
     print("num_estimation_nodes={}".format(num_estimation_nodes))
@@ -128,10 +134,8 @@ def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir, sampl
             gi=gi,
             return_tree_nodes=True)
         args.append(sampler)
-
-    if issubclass(q_gen_cls, PredictionErrorQueryGenerator):
         param['error_estimator'] = TreeBasedStatistics(gv)
-
+        
     q_gen = q_gen_cls(gv, *args, verbose=verbose, **param)
     sim = Simulator(gv, q_gen, gi=gi, print_log=verbose)
 

@@ -105,8 +105,12 @@ def aggregate_scores_over_cascades_by_methods(cascades,
             scores = []
             obs_inc = copy(obs)
             for inf_probas, query, _ in zip(inf_probas_list, queries, range(n_queries)):
-                obs_inc.add(query)
-                # need to mask out the observations
+                # mask out the non-infected observations
+                # as infected queriee are valuable
+                # if c[query] < 0:
+                if True:
+                    obs_inc.add(query)
+
                 # use precision score
                 mask = np.array([(i not in obs_inc) for i in range(len(c))])
                 try:

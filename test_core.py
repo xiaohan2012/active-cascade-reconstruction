@@ -8,13 +8,15 @@ from tree_stat import TreeBasedStatistics
 from fixture import g, gi, obs
 
 
-def test_uncertainty_scores(g, gi, obs):
+@pytest.mark.parametrize("normalize_p", ['div_max', None])
+def test_uncertainty_scores(g, gi, obs, normalize_p):
     estimator = TreeBasedStatistics(g)
     sampler = TreeSamplePool(g, 25, 'cut', gi=gi,
                              return_tree_nodes=True)
     sampler.fill(obs)
 
-    scores = uncertainty_scores(g, obs, sampler, estimator)
+    scores = uncertainty_scores(g, obs, sampler, estimator,
+                                normalize_p=normalize_p)
     
     with pytest.raises(KeyError):
         for o in obs:
