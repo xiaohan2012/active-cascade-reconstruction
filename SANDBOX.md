@@ -10,6 +10,24 @@
 3. inference algorithm consider the edge weight
    - weighted and unweighted version
 
+# evaluation criteria impact
+
+- option 1: include infected queries in the test set
+- option 2: exclude all queries in the test set
+
+observation:
+
+- for option 1, ranking is entropy > pagerank > prederror > random
+- entropy and pagerank are good at query infected nodes 
+- inference algorithm tends to low infection probability to all nodes (even for infected nodes)
+  - therefore for entropy, if infection probability is close to 0.5, it's very likely to be infected, therefore highly infected nodes are the most uncertain nodes (no way!)
+
+to think:
+
+- the validity of the inference algorithm
+- choice on evaluation criteria
+
+
 # TODO
 
 - [X] query/infer weighted SI model on grqc
@@ -20,3 +38,4 @@
 
 - [ ] plot effects of cascade model
 - [ ] why fb is so good
+
