@@ -53,7 +53,7 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
     n_queries = args.n_queries
 
     g = load_graph_by_name(args.graph_name)
-
+    
     query_dir_ids = list(map(lambda s: s.strip(), args.query_dir_ids.split(',')))
     if args.legend_labels is not None:
         labels = list(map(lambda s: s.strip(), args.legend_labels.split(',')))
@@ -88,9 +88,12 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
     # print('scores_by_method:', scores_by_method)
     for method in labels:
         assert len(scores_by_method[method]) > 0, 'no scores available'
+        for r in scores_by_method[method]:
+            for i in range(n_queries - len(r)):
+                r.append(np.nan)
+            assert len(r) == 10, "len(r)={}, r={}".format(len(r), r)
         scores = np.array(scores_by_method[method], dtype=np.float32)
-        # print(method, scores)
-        mean_scores = np.mean(scores, axis=0)
+        mean_scores = np.nanmean(scores, axis=0)
         # mean_scores = np.median(scores, axis=0)
         # print(np.std(scores,axis=0))
         ax.plot(mean_scores)

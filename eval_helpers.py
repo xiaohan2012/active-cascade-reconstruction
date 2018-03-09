@@ -115,7 +115,13 @@ def aggregate_scores_over_cascades_by_methods(cascades,
                     # in this case, there is no positive data points left in y_true[mask]
                     # therefore, precision is always zero
                     # ignore this cascade because it's too small
-                    raise TooSmallCascadeError from FloatingPointError
+                    print("WARNING: average_precision_score throws FloatingPointError")
+                    # print("because there is no positive data points left in y_true[mask]")
+                    # print("score = nan")
+                    # raise TooSmallCascadeError('thrown by average_precision_score, use `nan` instead') \
+                    #     from FloatingPointError
+                    score = np.nan
+
                 scores.append(score)
             # print(inf_dir, scores[:15])
             scores_by_method[method_label].append(scores)
