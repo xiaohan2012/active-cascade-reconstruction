@@ -21,6 +21,7 @@ observation:
 - entropy and pagerank are good at query infected nodes 
 - inference algorithm tends to low infection probability to all nodes (even for infected nodes)
   - therefore for entropy, if infection probability is close to 0.5, it's very likely to be infected, therefore highly infected nodes are the most uncertain nodes (no way!)
+  - also, for prederror, which internally uses entropy, is infected by this as well.
 
 to think:
 
