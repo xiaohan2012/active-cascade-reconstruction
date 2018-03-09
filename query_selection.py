@@ -124,9 +124,8 @@ class SamplingBasedGenerator(BaseQueryGenerator):
 
 
 class EntropyQueryGenerator(SamplingBasedGenerator):
-    def __init__(self, g, *args, method='entropy', **kwargs):
-        self.method = method
-
+    def __init__(self, g, *args, error_estimator=None, **kwargs):
+        self.error_estimator = error_estimator
         super(EntropyQueryGenerator, self).__init__(g, *args, **kwargs)
 
     def _select_query(self, g, inf_nodes):
@@ -135,7 +134,7 @@ class EntropyQueryGenerator(SamplingBasedGenerator):
         scores = uncertainty_scores(
             g, inf_nodes,
             self.sampler,
-            method=self.method)
+            self.error_estimator)
         q = max(self._cand_pool, key=scores.__getitem__)
         return q
 

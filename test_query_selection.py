@@ -39,7 +39,9 @@ def test_query_method(g, query_method, sampling_method, root_sampler):
     elif query_method == 'pagerank':
         q_gen = PRQueryGenerator(gv)
     elif query_method == 'entropy':
-        q_gen = EntropyQueryGenerator(gv, pool)
+        error_estimator = TreeBasedStatistics(gv)
+        q_gen = EntropyQueryGenerator(gv, pool,
+                                      error_estimator=error_estimator)
     elif query_method == 'error':
         error_estimator = TreeBasedStatistics(gv)
         q_gen = PredictionErrorQueryGenerator(gv, pool,

@@ -4,13 +4,17 @@ import numpy as np
 from core import uncertainty_scores, sample_steiner_trees
 from sample_pool import TreeSamplePool
 from graph_helpers import is_steiner_tree
+from tree_stat import TreeBasedStatistics
 from fixture import g, gi, obs
 
 
 def test_uncertainty_scores(g, gi, obs):
+    estimator = TreeBasedStatistics(g)
     sampler = TreeSamplePool(g, 25, 'cut', gi=gi,
                              return_tree_nodes=True)
-    scores = uncertainty_scores(g, obs, sampler, method='count')
+    sampler.fill(obs)
+
+    scores = uncertainty_scores(g, obs, sampler, estimator)
     
     with pytest.raises(KeyError):
         for o in obs:

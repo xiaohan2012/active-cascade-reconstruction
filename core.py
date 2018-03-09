@@ -7,6 +7,7 @@ from graph_helpers import (contract_graph_by_nodes,
                            extract_nodes, extract_steiner_tree,
                            has_vertex, gen_random_spanning_tree,
                            filter_graph_by_edges)
+from inference import infection_probability
 from tqdm import tqdm
 from random_steiner_tree import random_steiner_tree
 
@@ -119,9 +120,9 @@ def sample_steiner_trees(g, obs,
 
 
 # @profile
-def uncertainty_scores(g, obs,
-                       sampler,
-                       method='count'):
+def uncertainty_scores_old(g, obs,
+                           sampler,
+                           method='count'):
     """
     calculate uncertainty scores based on sampled steiner trees
 
@@ -138,26 +139,6 @@ def uncertainty_scores(g, obs,
     """
     if sampler.is_empty:
         sampler.fill(obs)
-
-    # if use_resample:
-    #     # two sets of scores
-    #     det_scores = [det_score_of_steiner_tree(st, g)
-    #                   for st in sampler.samples]
-    #     real_scores = np.exp([-st.num_edges()
-    #                           for st in sampler.samples])
-
-    #     # normalize into proba
-    #     sampling_importance = real_scores / np.array(det_scores)
-    #     sampling_importance /= sampling_importance.sum()
-
-    #     # st trees to choose
-    #     resampled_ids = np.random.choice(
-    #         np.arange(len(sampler.samples)), num_stt, replace=False,
-    #         p=sampling_importance)
-
-    #     tree_samples_resampled = [sampler.samples[i]
-    #                               for i in resampled_ids]
-    # else:
     
     if method == 'count':
         uncert = uncertainty_count
@@ -168,5 +149,38 @@ def uncertainty_scores(g, obs,
     
     non_obs_nodes = set(extract_nodes(g)) - set(obs)
     r = {n: uncert(n, sampler.samples)
+         for n in non_obs_nodes}
+    return r
+
+
+def uncertainty_scores(g, obs,
+                       sampler,
+                       error_estimator,
+                       method='count'):
+    """
+    calculate uncertainty scores based on sampled steiner trees
+
+    Args:
+
+    Graph `g`
+    list of int `obs`: list of observed nodes
+    sampler: the tree sampler
+    error_estimator: what does the actual counting
+    str `method`: {'count', 'entropy'}
+
+    Returns:
+
+    dict of (int, float): node to uncertainty score
+    """
+    if sampler.is_empty:
+        sampler.fill(obs)
+
+    p = infection_probability(g, obs, sampler, error_estimator)
+    print(p)
+    non_obs_nodes = set(extract_nodes(g)) - set(obs)
+
+    uncert = [entropy([v, 1-v]) for v in p]
+    print(uncert)
+    r = {n: uncert[n]
          for n in non_obs_nodes}
     return r
