@@ -6,6 +6,7 @@ from graph_tool.centrality import pagerank
 from graph_helpers import extract_nodes
 from root_sampler import build_root_sampler_by_pagerank_score
 
+
 class NoMoreQuery(Exception):
     pass
 
@@ -124,8 +125,11 @@ class SamplingBasedGenerator(BaseQueryGenerator):
 
 
 class EntropyQueryGenerator(SamplingBasedGenerator):
-    def __init__(self, g, *args, error_estimator=None, **kwargs):
+    def __init__(self, g, *args, error_estimator=None,
+                 normalize_p=None,
+                 **kwargs):
         self.error_estimator = error_estimator
+        self.normalize_p = normalize_p
         super(EntropyQueryGenerator, self).__init__(g, *args, **kwargs)
 
     def _select_query(self, g, inf_nodes):
@@ -134,7 +138,8 @@ class EntropyQueryGenerator(SamplingBasedGenerator):
         scores = uncertainty_scores(
             g, inf_nodes,
             self.sampler,
-            self.error_estimator)
+            self.error_estimator,
+            normalize_p=self.normalize_p)
         q = max(self._cand_pool, key=scores.__getitem__)
         return q
 
@@ -145,6 +150,7 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
                  error_estimator,
                  prune_nodes=False,
                  n_node_samples=None,
+                 normalize_p='div_max',
                  **kwargs):
         """
         n_node_samples: number of nodes used to estimate probabilities
@@ -154,6 +160,7 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
         self.min_proba = kwargs.get('min_proba', 0.0)
         self.n_node_samples = n_node_samples
         self.prune_nodes = prune_nodes
+        self.normalize_p = normalize_p
 
         super(PredictionErrorQueryGenerator, self).__init__(*args, **kwargs)
 
@@ -227,7 +234,9 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
             if len(nodes) == 0:
                 return float('inf')  # throw this node away
             else:
-                return self.error_estimator.query_score(q, nodes)
+                return self.error_estimator.query_score(
+                    q, nodes,
+                    normalize_p=self.normalize_p)
 
         q2score = {}
         # for q in tqdm(self._cand_pool)

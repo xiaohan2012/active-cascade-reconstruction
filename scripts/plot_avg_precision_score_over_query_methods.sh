@@ -1,38 +1,42 @@
 #! /bin/zsh
 
-graph="fb"
+graph="lattice-1024"
 sample_method=loop_erased
 
 inf_method="inf_probas"
 
-query_dirname='queries'
-cascade_dirname='cascade'
-inf_dirname='inf_probas'
+query_dirname='queries-weighted'
+cascade_dirname='cascade-weighted'
+inf_dirname='inf_probas-weighted'
 
-cascade_model="si"
+cascade_model="ic"
 # stop_fractions=(0.01 0.02 0.04 0.08 0.16 0.32)
 # stop_fractions=(0.04 0.08 0.16 0.32 0.64)
-stop_fractions=(0.02 0.04 0.08 0.16 0.32)
+# stop_fractions=(0.02 0.04 0.08 0.16 0.32)
+stop_fractions=(0.02)
+
 obs_fraction=0.1
-query_dir_ids="random, pagerank, entropy, prediction_error"
-inf_dir_ids="random, pagerank, entropy, prediction_error"
-labels="random, pagerank, entropy, prederror"
+query_dir_ids="random, pagerank, entropy, entropy-with-norm-p, prediction_error, prediction_error-with-norm-p"
+inf_dir_ids="random, pagerank, entropy, entropy-with-norm-p, prediction_error, prediction_error-with-norm-p"
+labels="random, pagerank, entropy, entropy-norm, prederror, prederror-norm"
+
+n_queries=30
 
 for stop_fraction in ${stop_fractions}; do
     dataset_id="${graph}-m${cascade_model}-s${stop_fraction}-o${obs_fraction}"
     # print "${data_id}"
 
-    if (( ${stop_fraction} == 0.01 )); then
-	n_queries=20
-    elif (( ${stop_fraction} == 0.02 )); then
-	n_queries=30
-    elif (( ${stop_fraction} == 0.04 )); then
-	n_queries=45
-    elif (( ${stop_fraction} == 0.08 )); then
-	n_queries=60
-    else
-	n_queries=100
-    fi
+    # if (( ${stop_fraction} == 0.01 )); then
+    # 	n_queries=20
+    # elif (( ${stop_fraction} == 0.02 )); then
+    # 	n_queries=30
+    # elif (( ${stop_fraction} == 0.04 )); then
+    # 	n_queries=45
+    # elif (( ${stop_fraction} == 0.08 )); then
+    # 	n_queries=60
+    # else
+    # 	n_queries=100
+    # fi
     print "
 python3 plot_average_precision_score.py \
 	-g ${graph} \

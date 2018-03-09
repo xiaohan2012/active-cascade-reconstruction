@@ -91,7 +91,7 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
         for r in scores_by_method[method]:
             for i in range(n_queries - len(r)):
                 r.append(np.nan)
-            assert len(r) == 10, "len(r)={}, r={}".format(len(r), r)
+            assert len(r) == n_queries, "len(r)={}, r={}".format(len(r), r)
         scores = np.array(scores_by_method[method], dtype=np.float32)
         mean_scores = np.nanmean(scores, axis=0)
         # mean_scores = np.median(scores, axis=0)

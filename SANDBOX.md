@@ -28,6 +28,13 @@ to think:
 - the validity of the inference algorithm
 - choice on evaluation criteria
 
+# normlizing the infection probability
+
+by `p /= p.max()`
+
+both entropy and prederror gives better result than itself before.
+
+http://193.166.24.212/active-network-reconstruction/figs/average_precision_score/lattice-1024-mic-s0.02-o0.1.pdf
 
 # TODO
 

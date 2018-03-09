@@ -88,15 +88,29 @@ class TreeBasedStatistics:
         p = self._remove_extreme_vals(p)
         return self._sum_entropy(p)
 
-    def query_score(self, query, targets):
+    def query_score(self, query, targets, normalize_p=None):
         num0, denum0 = self.count(query, 0, targets, return_denum=True)
         num1, denum1 = self.count(query, 1, targets, return_denum=True)
+
+        assert len(targets) == len(num0)
 
         denum0 += EPS
         denum1 += EPS
 
         p0, p1 = (self._remove_extreme_vals(num0 / denum0),
                   self._remove_extreme_vals(num1 / denum1))
+
+        if normalize_p == 'div_max':
+            if len(p0) > 0:
+                p0 /= (p0.max() + EPS)
+
+            if len(p1) > 0:
+                p1 /= (p1.max() + EPS)
+
+        elif normalize_p is None:
+            pass
+        else:
+            raise ValueError('unrecognized "normalize_p" {}'.format(normalize_p))
 
         weights = np.array([denum0, denum1]) / self.n_col
         errors = np.array([self._sum_entropy(p0), self._sum_entropy(p1)])

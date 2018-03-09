@@ -1,13 +1,13 @@
 #! /bin/zsh
 
-graph="lattice-1024"
+graph="grqc"
 sample_method=loop_erased
-query_methods=(entropy)
+query_methods=(entropy prediction_error)
 inf_method="inf_probas"
 
 cascade_model="ic"
 obs_fraction=0.1
-stop_fraction=0.02
+stop_fraction=0.03
 min_proba=0.00
 graph_suffix="_s${stop_fraction}"
 

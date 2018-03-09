@@ -41,14 +41,16 @@ def test_query_method(g, query_method, sampling_method, root_sampler):
     elif query_method == 'entropy':
         error_estimator = TreeBasedStatistics(gv)
         q_gen = EntropyQueryGenerator(gv, pool,
-                                      error_estimator=error_estimator)
+                                      error_estimator=error_estimator,
+                                      normalize_p='div_max')
     elif query_method == 'error':
         error_estimator = TreeBasedStatistics(gv)
         q_gen = PredictionErrorQueryGenerator(gv, pool,
                                               error_estimator=error_estimator,
                                               prune_nodes=True,
                                               n_node_samples=10,
-                                              root_sampler=root_sampler)
+                                              root_sampler=root_sampler,
+                                              normalize_p='div_max')
 
     sim = Simulator(gv, q_gen, gi=gi, print_log=True)
     print('simulator created')
