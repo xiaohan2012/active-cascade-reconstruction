@@ -77,6 +77,7 @@ def sample_steiner_trees(g, obs,
                          method,
                          n_samples,
                          gi=None,
+                         root=None,
                          root_sampler=None,
                          return_tree_nodes=False):
     """sample `n_samples` steiner trees that span `obs` in `g`
@@ -92,14 +93,16 @@ def sample_steiner_trees(g, obs,
     steiner_tree_samples = []
     # for i in tqdm(range(n_samples), total=n_samples):
     for i in range(n_samples):
-        if root_sampler is None:
-            # print('random root')
-            # note: isolated nodes *should* be masked
-            root = int(random.choice(list(g.vertices())))
-        else:
-            # print('custom root sampler')
-            assert callable(root_sampler), 'root_sampler should be callable'
-            root = root_sampler()
+        if root is None:
+            # if root not give, sample it using some sampler
+            if root_sampler is None:
+                # print('random root')
+                # note: isolated nodes *should* be masked
+                root = int(random.choice(list(g.vertices())))
+            else:
+                # print('custom root sampler')
+                assert callable(root_sampler), 'root_sampler should be callable'
+                root = root_sampler()
 
         if method == 'cut_naive':
             rand_t = gen_random_spanning_tree(g, root=root)
