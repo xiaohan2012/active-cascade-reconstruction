@@ -6,8 +6,11 @@ from copy import copy
 from graph_tool import Graph, GraphView, PropertyMap
 from graph_tool.topology import shortest_distance
 
+from helpers import infected_nodes
+
 
 MAXINT = np.iinfo(np.int32).max
+
 
 def observe_cascade(c, source, q, method='uniform', source_includable=False):
     """
@@ -103,15 +106,25 @@ def sample_graph_by_p(g, p):
     return GraphView(g, efilt=p)
 
 
-def get_infection_time(g, source):
+def get_infection_time(g, source, return_edges=False):
     """for IC model
     """
-    time = shortest_distance(g, source=source).a
+    time, pred_map = shortest_distance(g, source=source, pred_map=True)
+    time = np.array(time.a)
     time[time == MAXINT] = -1
-    return time
+    if return_edges:
+        edges = []
+        reached = infected_nodes(time)
+        for v in reached:
+            print(v)
+            if pred_map[v] >= 0 and pred_map[v] != v:
+                edges.append((pred_map[v], v))
+        return time, edges
+    else:
+        return time
 
 
-def ic(g, p, source=None):
+def ic(g, p, source=None, return_edges=False):
     """
     graph_tool version of simulating cascade
     return np.ndarray on vertices as the infection time in cascade
