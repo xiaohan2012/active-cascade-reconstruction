@@ -98,20 +98,22 @@ def sample_steiner_trees(g, obs,
             if root_sampler is None:
                 # print('random root')
                 # note: isolated nodes *should* be masked
-                root = int(random.choice(list(g.vertices())))
+                r = int(random.choice(list(g.vertices())))
             else:
                 # print('custom root sampler')
                 assert callable(root_sampler), 'root_sampler should be callable'
-                root = root_sampler()
+                r = root_sampler()
+        else:
+            r = root
 
         if method == 'cut_naive':
-            rand_t = gen_random_spanning_tree(g, root=root)
+            rand_t = gen_random_spanning_tree(g, root=r)
             st = extract_steiner_tree(rand_t, obs, return_nodes=return_tree_nodes)
             # if return_tree_nodes:
             #     st = set(map(int, st.vertices()))
         elif method in {'cut', 'loop_erased'}:
             assert gi is not None
-            edges = random_steiner_tree(gi, obs, root, method)
+            edges = random_steiner_tree(gi, obs, r, method)
             if return_tree_nodes:
                 st = set(u for e in edges for u in e)
             else:
