@@ -46,10 +46,13 @@ parser.add_argument('-r', '--root_sampler', type=str,
                     help='the steiner tree sampling method')
 parser.add_argument('-s', '--n_samples', default=100, type=int,
                     help='number of samples')
+parser.add_argument('-i', '--incremental_cascade', action='store_true',
+                    help='whether enable incremental cascade (probabilistic trimming) ' +
+                    'for tree samples or not')
 
 # specific to sampling-based sampler
 parser.add_argument('--normalize_proba', type=str,
-                    help='normalization method applied to probabilities (default: None)')
+                    help='(DEPRECATED) normalization method applied to probabilities (default: None)')
 
 # specific to prediction error-based sampler
 parser.add_argument('-p', '--min_proba', default=0.0, type=float,
@@ -61,6 +64,10 @@ parser.add_argument('-d', '--output_dir', default='outputs/queries', help='outpu
 parser.add_argument('-b', '--debug', action='store_true', help='if debug, use non-parallel')
 parser.add_argument('-v', '--verbose', action='store_true',
                     help='if verbose, verbose information is printed')
+
+# specific to pagerank root sampler
+parser.add_argument('--root_pagerank_noise', default=0.0, type=float,
+                    help='the epsilon value for pagerank root sampling, the higher the more noisy')
 
 args = parser.parse_args()
 
@@ -74,6 +81,7 @@ root_sampler = args.root_sampler
 # output_dir = '{}/{}'.format(args.output_dir, graph_name)
 output_dir = args.output_dir
 sampling_method = args.sampling_method
+incremental_cascade = args.incremental_cascade
 query_strategy = args.query_strategy
 
 # for prediction error-based query selector
@@ -90,6 +98,7 @@ elif query_strategy == 'pagerank':
 elif query_strategy == 'entropy':
     print('args.normalize_proba', args.normalize_proba)
     strategy = (EntropyQueryGenerator, {'method': 'entropy', 'root_sampler': root_sampler,
+                                        'root_sampler_eps': args.root_pagerank_noise,
                                         'normalize_p': args.normalize_proba})
 elif query_strategy == 'prediction_error':
     print("min_proba={}".format(min_proba))
@@ -97,13 +106,17 @@ elif query_strategy == 'prediction_error':
     strategy = (PredictionErrorQueryGenerator, {'n_node_samples': None,
                                                 'prune_nodes': True,
                                                 'root_sampler': root_sampler,
+                                                'root_sampler_eps': args.root_pagerank_noise,
                                                 'min_proba': min_proba,
                                                 'n_node_samples': num_estimation_nodes})
 else:
     raise ValueError('invalid strategy name')
 
 
-def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir, sampling_method, n_samples,
+def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir,
+              sampling_method,
+              incremental_cascade,
+              n_samples,
               verbose):
     stime = time.time()
     c_id = os.path.basename(c_path).split('.')[0]
@@ -129,10 +142,12 @@ def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir, sampl
     if issubclass(q_gen_cls, SamplingBasedGenerator):
         sampler = TreeSamplePool(
             gv,
+            edge_weights=weights,
             n_samples=n_samples,
             method=sampling_method,
             gi=gi,
-            return_tree_nodes=True)
+            return_tree_nodes=True,
+            with_inc_sampling=incremental_cascade)
         args.append(sampler)
         param['error_estimator'] = TreeBasedStatistics(gv)
         
@@ -161,13 +176,17 @@ if args.debug:
     print('====================')
     cls, param = strategy
     for path, (obs, c) in tqdm(cascade_generator):
-        one_round(g, obs, c, path, cls, param, query_strategy, output_dir, sampling_method, n_samples,
+        one_round(g, obs, c, path, cls, param, query_strategy, output_dir, sampling_method,
+                  incremental_cascade,
+                  n_samples,
                   args.verbose)
 else:
     # prevent Parallel from hanging
     openmp_set_num_threads(1)
     
     Parallel(n_jobs=-1)(delayed(one_round)(g, obs, c, path, strategy[0], strategy[1],
-                                           query_strategy, output_dir, sampling_method, n_samples,
+                                           query_strategy, output_dir, sampling_method,
+                                           incremental_cascade,
+                                           n_samples,
                                            args.verbose)
                         for path, (obs, c) in tqdm(cascade_generator))

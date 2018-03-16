@@ -2,6 +2,7 @@
 
 python3 generate_queries.py \
 	-g grqc \
+	-f _s0.03 \
 	-w \
 	-q prediction_error \
 	-n 5 \
@@ -9,6 +10,8 @@ python3 generate_queries.py \
 	-p 0.00 \
 	-m loop_erased \
 	-r pagerank \
-	-c cascade-weighted/grqc-mic-o0.1/ \
+	--root_pagerank_noise 0.5 \
+	-c cascade-weighted/grqc-mic-s0.03-o0.1/ \
 	-d outputs/queries/test/ \
 	--verbose --debug
+	# --incremental_cascade \

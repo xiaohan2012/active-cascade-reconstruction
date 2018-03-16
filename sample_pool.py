@@ -23,6 +23,7 @@ class TreeSamplePool():
         self.return_tree_nodes = return_tree_nodes
         self.with_inc_sampling = with_inc_sampling
         self._samples = []
+        print('DEBUG: TreeSamplePool.with_inc_sampling=', self.with_inc_sampling)
 
     def fill(self, obs, **kwargs):
         self._samples = sample_steiner_trees(

@@ -34,7 +34,13 @@ by `p /= p.max()`
 
 both entropy and prederror gives better result than itself before.
 
-http://193.166.24.212/active-network-reconstruction/figs/average_precision_score/lattice-1024-mic-s0.02-o0.1.pdf
+- for lattice: http://193.166.24.212/active-network-reconstruction/figs/average_precision_score/lattice-1024-mic-s0.02-o0.1.pdf
+- for grqc: http://193.166.24.212/active-network-reconstruction/figs/average_precision_score/grqc-mic-s0.03-o0.1.pdf
+
+things to check:
+
+- do we need importance resampling?
+- any bug in the code?
 
 # TODO
 
@@ -47,3 +53,12 @@ http://193.166.24.212/active-network-reconstruction/figs/average_precision_score
 - [ ] plot effects of cascade model
 - [ ] why fb is so good
 
+# probabilistic trimming and cross entropy evaluation
+
+- [X] probabilistic trimming
+- [ ] possible methods
+  - {personalized pagerank root, random root} x deterministic/probabilistic trimming
+- [X] personalzied pagerank with noise
+- [ ] cross entropy measure for evaluation
+- [ ] check bug
+- [ ] compare which inference algorithm (inc or not) gives better result?

@@ -19,6 +19,7 @@ def build_early_nbrs_sampler(g, obs, c, k=1, **kwargs):
 
 
 def build_root_sampler_by_pagerank_score(g, obs, c, eps=0.0):
+    print('DEBUG: build_root_sampler_by_pagerank_score: eps={}'.format(eps))
     pr_score = pagerank_scores(g, obs, eps)
     # print(g)
     # print('len(obs): ', len(obs))

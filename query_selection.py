@@ -87,10 +87,15 @@ class PRQueryGenerator(BaseQueryGenerator):
 
 
 class SamplingBasedGenerator(BaseQueryGenerator):
-    def __init__(self, g, sampler, *args, root_sampler=None, error_estimator=None, **kwargs):
+    def __init__(self, g, sampler, *args, root_sampler=None, error_estimator=None,
+                 root_sampler_eps=0.0,
+                 **kwargs):
         self.sampler = sampler
         assert root_sampler in {None, 'pagerank'}
+
         self.root_sampler_name = root_sampler
+        self.root_sampler_eps = root_sampler_eps
+
         # print('self.root_sampler_name', self.root_sampler_name)
         self.error_estimator = error_estimator
         super(SamplingBasedGenerator, self).__init__(g, *args, **kwargs)
@@ -100,7 +105,7 @@ class SamplingBasedGenerator(BaseQueryGenerator):
         if self.root_sampler_name == 'pagerank':
             try:
                 self.root_sampler = build_root_sampler_by_pagerank_score(
-                    self.g, obs, c)
+                    self.g, obs, c, self.root_sampler_eps)
             except ValueError as e:
                 raise NoMoreQuery from e
         else:
