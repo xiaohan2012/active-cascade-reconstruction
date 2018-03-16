@@ -63,3 +63,49 @@ things to check:
 - [ ] compare which inference algorithm (inc or not) gives better result?
   - it might be because of the incorrectness of inference method, the final result becomes bad (however, prederror's queries are still good)
 - [ ] check bug
+
+## sampling algorithm on inference result
+
+tested on lattice-100
+
+root sampling effect: 
+- `true > None > pagerank`
+- I guess we need to use `None` in practice
+
+
+when root is set to `true:
+
+- brute-force is very similar to `st_inc` (around 70%), followed by `st_vanilla`
+- note that brute-force aborts an attempt for one sample if it exceeds `timeout`
+
+when root is set to `None` or `pagerank`
+- `st_inc` better and `st_vanilla` (63% vs 60%)
+- `brute_force` takes too much time (many invalid samples are discarded)
+
+note on inference/evaluation
+
+we need to produce the inferred probability as accurate as possible, 
+however for now, it's not very possible.
+what we can do:
+
+- use IC cascade samples
+- use the actual source (it plays a huge difference)
+
+**question**
+
+- how best can we infer the infection probability? 0.6/0.7 is not very good, note that random achieves 0.5
+- could it help  if the fraction of observed nodes is too small?
+  - for `q=0.5` on `lattice-1024`, `pagerank, eps=0.0`, all around 0.6 (diff is small between inc verion and vanilla)
+  - in some cases, vanilla is better
+- for AP score, if the cascade is really small 1%, how much weight should we put on positive instances?
+
+other evaluation methods (based on IR methods):
+
+- AUC score
+  - difference to AP score: considers false negative rate
+- precisiont@k
+- confusion matrix: threshold using 0.5
+
+baseline inference:
+
+- randomly assign infection probability
