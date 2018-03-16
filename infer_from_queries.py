@@ -43,6 +43,10 @@ def infer_probas_from_queries(g, obs, c, queries,
                  root_sampler=root_sampler)
     estimator.build_matrix(sampler.samples)
 
+    # initial step (without any queries)
+    probas = infection_probability(g, obs_inf, sampler, error_estimator=estimator)
+    probas_list.append(probas)
+        
     if verbose:
         qs_iter = tqdm(queries)
     else:

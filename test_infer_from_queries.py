@@ -6,7 +6,7 @@ from experiment import gen_input
 from test_helpers import check_tree_samples, check_error_esitmator
 
 
-@pytest.mark.parametrize("cid", range(10))
+@pytest.mark.parametrize("cid", range(5))
 @pytest.mark.parametrize("sampling_method", ['cut', 'loop_erased'])
 @pytest.mark.parametrize("root_sampler_name", [None, 'pagerank'])
 def test_infer_probas_for_queries_sampling_approach(g, cid, sampling_method, root_sampler_name):
@@ -19,7 +19,7 @@ def test_infer_probas_for_queries_sampling_approach(g, cid, sampling_method, roo
         g, obs, c, queries,
         sampling_method, root_sampler_name=root_sampler_name, n_samples=100)
 
-    assert len(inf_proba_list) == n_queries
+    assert len(inf_proba_list) == n_queries + 1
     for probas in inf_proba_list:
         assert probas.shape == (g.num_vertices(), )
 
