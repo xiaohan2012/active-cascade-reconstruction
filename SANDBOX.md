@@ -60,5 +60,6 @@ things to check:
   - {personalized pagerank root, random root} x deterministic/probabilistic trimming
 - [X] personalzied pagerank with noise
 - [ ] cross entropy measure for evaluation
-- [ ] check bug
 - [ ] compare which inference algorithm (inc or not) gives better result?
+  - it might be because of the incorrectness of inference method, the final result becomes bad (however, prederror's queries are still good)
+- [ ] check bug
