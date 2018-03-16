@@ -18,8 +18,8 @@ def build_early_nbrs_sampler(g, obs, c, k=1, **kwargs):
     return f
 
 
-def build_root_sampler_by_pagerank_score(g, obs, c):
-    pr_score = pagerank_scores(g, obs)
+def build_root_sampler_by_pagerank_score(g, obs, c, eps=0.0):
+    pr_score = pagerank_scores(g, obs, eps)
     # print(g)
     # print('len(obs): ', len(obs))
     # print(pr_score)
@@ -29,4 +29,3 @@ def build_root_sampler_by_pagerank_score(g, obs, c):
         return np.random.choice(nodes, size=1, p=pr_score)[0]
 
     return aux
-                

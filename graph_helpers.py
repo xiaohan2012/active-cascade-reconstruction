@@ -401,10 +401,14 @@ def k_hop_neighbors(v, g, k):
     return aux(v, k, visited)
 
 
-def pagerank_scores(g, obs):
+def pagerank_scores(g, obs, eps=0.0):
     pers = g.new_vertex_property('float')
+    pers.a += eps  # add some noise
+
     for o in obs:
-        pers[o] = 1 / len(obs)
+        pers.a[o] += 1
+
+    pers.a /= pers.a.sum()
     rank = pagerank(g, pers=pers)
 
     for o in obs:

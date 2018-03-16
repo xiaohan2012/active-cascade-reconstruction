@@ -2,13 +2,17 @@ import pytest
 from numpy.testing import assert_almost_equal
 from graph_tool import Graph
 from graph_tool.generation import complete_graph, lattice
+from scipy.stats import entropy
 
+from fixture import g, obs
 from graph_helpers import (extract_steiner_tree, filter_graph_by_edges,
                            extract_edges, extract_nodes,
                            remove_filters,
                            contract_graph_by_nodes,
                            hide_disconnected_components,
-                           k_hop_neighbors)
+                           k_hop_neighbors,
+                           pagerank_scores)
+
 
 
 @pytest.mark.parametrize("X,edges", [([1, 3], {(1, 3)}),
@@ -99,8 +103,7 @@ def test_isolate_disconnected_components():
     assert set(extract_nodes(g)) == {0, 1, 2}
     
 
-@pytest.fixture
-def g():
+def test_k_hop_neighbors():
     """
     0 -- 1
     |    |
@@ -111,10 +114,7 @@ def g():
     edges = [(0, 1), (0, 2), (1, 3), (2, 3), (3, 4), (4, 5)]
     for u, v in edges:
         g.add_edge(u, v)
-    return g
 
-
-def test_k_hop_neighbors(g):
     assert k_hop_neighbors(0, g, k=1) == {1, 2}
     assert k_hop_neighbors(0, g, k=2) == {1, 2, 3}
     assert k_hop_neighbors(0, g, k=3) == {1, 2, 3, 4}
@@ -123,3 +123,17 @@ def test_k_hop_neighbors(g):
     
     assert k_hop_neighbors(3, g, k=1) == {1, 2, 4}
     assert k_hop_neighbors(3, g, k=2) == {0, 1, 2, 4, 5}
+
+
+def test_pagerank_scores(g, obs):
+    """as eps increases, the more uncertain the pagerank scores should be,
+    thus, higher entropy"""
+    eps_list = [0.0, 0.25, 0.5, 1.0]
+    pr_list = []
+    for eps in eps_list:
+        pr = pagerank_scores(g, obs, eps)
+        pr_list.append(pr)
+
+    for pr1, pr2 in zip(pr_list, pr_list[1:]):
+        ent1, ent2 = entropy(pr1), entropy(pr2)
+        assert ent1 < ent2
