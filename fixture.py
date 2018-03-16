@@ -2,11 +2,16 @@ import numpy as np
 import pytest
 from graph_tool.generation import lattice
 from random_steiner_tree import util
+from graph_helpers import remove_filters, get_edge_weights
 
 
 @pytest.fixture
 def g():
-    return lattice((10, 10))
+    graph = remove_filters(lattice((10, 10)))
+    ew = graph.new_edge_property('float')
+    ew.a = np.random.random(graph.num_edges())
+    graph.edge_properties['weights'] = ew
+    return graph
 
 
 @pytest.fixture
@@ -16,4 +21,7 @@ def obs(g):
 
 @pytest.fixture
 def gi(g):
-    return util.from_gt(g, None)
+    return util.from_gt(g, get_edge_weights(g))
+
+
+    

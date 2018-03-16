@@ -24,7 +24,8 @@ class TreeBasedStatistics:
 
     def update_trees(self, trees, query, state):
         invalid_tree_indices = (self._m[query, :] != state).nonzero()[0]
-        assert len(invalid_tree_indices) <= len(trees)  # need enough trees to update
+        assert len(invalid_tree_indices) <= len(trees), \
+            "need enough trees to update ({} vs {})".format(len(invalid_tree_indices), len(trees))
         # print('invalid_tree_indices', invalid_tree_indices)
         for i, t in zip(invalid_tree_indices, trees):
             self._m[:, i] = False
@@ -64,6 +65,9 @@ class TreeBasedStatistics:
         return self.unconditional_count(targets) / self.n_col
 
     def filter_out_extreme_targets(self, targets=None, min_value=0):
+        """return targets whose min(p, 1-p) > min_value,
+        where p is the unconditional probability
+        """
         if targets is None:
             targets = np.arange(self.n_row)
         proba1 = self.unconditional_proba(targets)

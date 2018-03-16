@@ -3,7 +3,7 @@ from query_selection import (RandomQueryGenerator, EntropyQueryGenerator,
                              PRQueryGenerator, PredictionErrorQueryGenerator,
                              NoMoreQuery)
 from simulator import Simulator
-from graph_helpers import remove_filters
+from graph_helpers import remove_filters, get_edge_weights
 from fixture import g
 from sample_pool import TreeSamplePool
 from random_steiner_tree.util import from_gt
@@ -14,24 +14,28 @@ from test_helpers import check_tree_samples, check_error_esitmator
 
 @pytest.mark.parametrize("query_method", ['random', 'pagerank', 'entropy', 'error'])
 @pytest.mark.parametrize("sampling_method", ['cut_naive', 'cut', 'loop_erased'])
-@pytest.mark.parametrize("root_sampler", [None, 'pagerank'])
-def test_query_method(g, query_method, sampling_method, root_sampler):
+@pytest.mark.parametrize("with_inc_sampling", [True])
+@pytest.mark.parametrize("root_sampler", [None])  # , 'pagerank'
+def test_query_method(g, query_method, sampling_method, root_sampler, with_inc_sampling):
     print('query_method: ', query_method)
     print('sampling_method: ', sampling_method)
     print('roo_sampler: ', root_sampler)
 
     gv = remove_filters(g)
-
+    edge_weights = get_edge_weights(gv)
+    
     if query_method in {'entropy', 'error'}:
-        gi = from_gt(g)
+        gi = from_gt(g, edge_weights)
     else:
         gi = None
 
     pool = TreeSamplePool(gv,
                           n_samples=20,
                           method=sampling_method,
+                          edge_weights=edge_weights,
                           gi=gi,
-                          return_tree_nodes=True  # using tree nodes
+                          return_tree_nodes=True,  # using tree nodes
+                          with_inc_sampling=with_inc_sampling
     )
 
     if query_method == 'random':

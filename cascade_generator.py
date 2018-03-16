@@ -80,7 +80,7 @@ def si(g, p, source=None, stop_fraction=0.5):
                 break
         if stop:
             break
-
+        
     tree = Graph(directed=True)
     for _ in range(g.num_vertices()):
         tree.add_vertex()
@@ -137,3 +137,38 @@ def ic(g, p, source=None, return_edges=False):
     times = get_infection_time(gv, source)
     
     return source, times, None
+
+
+def incremental_simulation(g, c, p, num_nodes, return_new_edges=False):
+    """incrementally add edges to given cascade
+    num_nodes is passed bacause vfilt might be passed
+    """
+    visited = {v: False for v in np.arange(num_nodes)}
+    new_c = copy(c)
+    for v in infected_nodes(c):
+        visited[v] = True
+
+    if return_new_edges:
+        new_edges = []
+        
+    queue = list(infected_nodes(c))
+    while len(queue) > 0:
+        u = queue.pop(0)
+        uu = g.vertex(u)
+        for e in uu.out_edges():
+            v = int(e.target())
+            if np.random.random() <= p[e] and not visited[v]:  # active
+                if return_new_edges:
+                    new_edges.append((u, v))
+                # print('adding node ', v)
+                # print('len(new_c)', len(new_c))
+                # print(len(c))
+                new_c[v] = c[u] + 1
+                visited[v] = True
+                queue.append(v)
+
+    if return_new_edges:
+        return (new_c, new_edges)
+    else:
+        return new_c
+

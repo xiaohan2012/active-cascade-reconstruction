@@ -9,6 +9,15 @@ from tree_stat import TreeBasedStatistics
 
 @pytest.fixture
 def trees():
+    """
+    0 0 1 0 0 1
+    1 0 0 1 0 0
+    1 0 0 1 1 0
+    0 0 0 1 1 1
+    1 0 1 1 0 0
+
+sum 3 0 2 4 2 2       
+    """
     return [
         {2, 5},
         {0, 3},
@@ -51,17 +60,17 @@ def test_unconditional_count_and_proba(stat, trees, targets):
 
 @pytest.mark.parametrize("targets", [None, set(range(6)), list(range(6))])
 def test_filter_out_extreme_targets(stat, trees, targets):
-    # [3, 0, 2, 4, 2, 2] --> [2, 0, 2, 1, 2, 2]
+    # [3, 0, 2, 4, 2, 2] --> [2, 0, 2, 1, 2, 2] --> [2/5, 0, 2/5, 1/5, 2/5, 2/5]
     filtered_targets = stat.filter_out_extreme_targets(targets,
-                                                       min_value=2/len(trees))
+                                                       min_value=2/len(trees))  # 2/5
     assert set(filtered_targets) == set()
 
     filtered_targets = stat.filter_out_extreme_targets(targets,
-                                                       min_value=1/len(trees))
+                                                       min_value=1/len(trees))  # 1/5
     assert set(filtered_targets) == {0, 2, 4, 5}
 
     filtered_targets = stat.filter_out_extreme_targets(targets,
-                                                       min_value=0/len(trees))
+                                                       min_value=0/len(trees))  # 0
     assert set(filtered_targets) == {0, 2, 3, 4, 5}
 
 
@@ -84,6 +93,15 @@ def test_count_and_proba(stat, trees):
     
 
 def test_update_trees(stat, new_trees):
+    """
+    1 1 0 0 0 0 (new*)
+    1 0 0 1 0 0
+    1 0 0 1 1 0
+    1 0 0 0 1 0 (new*)
+    1 0 1 1 0 0
+
+sum 5 1 1 3 2 0
+    """
     stat.update_trees(new_trees, query=0, state=1)
 
     query = 1

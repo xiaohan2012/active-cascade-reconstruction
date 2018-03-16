@@ -1,6 +1,6 @@
 import pytest
 from graph_tool import Graph
-from cascade_generator import get_infection_time
+from cascade_generator import get_infection_time, ic
 from numpy.testing import assert_array_equal
 
 

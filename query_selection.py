@@ -87,11 +87,12 @@ class PRQueryGenerator(BaseQueryGenerator):
 
 
 class SamplingBasedGenerator(BaseQueryGenerator):
-    def __init__(self, g, sampler, *args, root_sampler=None, **kwargs):
+    def __init__(self, g, sampler, *args, root_sampler=None, error_estimator=None, **kwargs):
         self.sampler = sampler
         assert root_sampler in {None, 'pagerank'}
         self.root_sampler_name = root_sampler
         # print('self.root_sampler_name', self.root_sampler_name)
+        self.error_estimator = error_estimator
         super(SamplingBasedGenerator, self).__init__(g, *args, **kwargs)
 
     def _update_root_sampler(self, obs, c, **kwargs):
@@ -110,6 +111,9 @@ class SamplingBasedGenerator(BaseQueryGenerator):
 
         self.sampler.fill(obs,
                           root_sampler=self.root_sampler)
+        # add samples to error estimator
+        self.error_estimator.build_matrix(self.sampler.samples)
+        
         # print('DONE: sampler.fill')
         super(SamplingBasedGenerator, self).receive_observation(obs, c)
 
@@ -121,14 +125,13 @@ class SamplingBasedGenerator(BaseQueryGenerator):
         self._update_root_sampler(inf_nodes, c)
         new_samples = self.sampler.update_samples(inf_nodes, node, label,
                                                   root_sampler=self.root_sampler)
-        return new_samples
+        self.error_estimator.update_trees(new_samples, node, label)
 
 
 class EntropyQueryGenerator(SamplingBasedGenerator):
-    def __init__(self, g, *args, error_estimator=None,
+    def __init__(self, g, *args,
                  normalize_p=None,
                  **kwargs):
-        self.error_estimator = error_estimator
         self.normalize_p = normalize_p
         super(EntropyQueryGenerator, self).__init__(g, *args, **kwargs)
 
@@ -147,7 +150,6 @@ class EntropyQueryGenerator(SamplingBasedGenerator):
 class PredictionErrorQueryGenerator(SamplingBasedGenerator):
     """OUR CONTRIBUTION"""
     def __init__(self, *args,
-                 error_estimator,
                  prune_nodes=False,
                  n_node_samples=None,
                  normalize_p='div_max',
@@ -156,25 +158,12 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
         n_node_samples: number of nodes used to estimate probabilities
         pass None if using all of them.
         """
-        self.error_estimator = error_estimator
         self.min_proba = kwargs.get('min_proba', 0.0)
         self.n_node_samples = n_node_samples
         self.prune_nodes = prune_nodes
         self.normalize_p = normalize_p
 
         super(PredictionErrorQueryGenerator, self).__init__(*args, **kwargs)
-
-    def receive_observation(self, obs, c):
-        super(PredictionErrorQueryGenerator, self).receive_observation(obs, c)
-        # add samples to error estimator
-        self.error_estimator.build_matrix(self.sampler.samples)
-
-    def update_observation(self, g, inf_nodes, node, label, c):
-        new_samples = super(PredictionErrorQueryGenerator, self).update_observation(
-            g, inf_nodes, node, label, c)
-
-        # remember this
-        self.error_estimator.update_trees(new_samples, node, label)
 
     def prune_candidates(self):
         self._cand_pool = set(
