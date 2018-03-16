@@ -14,8 +14,8 @@ from test_helpers import check_tree_samples, check_error_esitmator
 
 @pytest.mark.parametrize("query_method", ['random', 'pagerank', 'entropy', 'error'])
 @pytest.mark.parametrize("sampling_method", ['cut_naive', 'cut', 'loop_erased'])
-@pytest.mark.parametrize("with_inc_sampling", [True])
-@pytest.mark.parametrize("root_sampler", [None])  # , 'pagerank'
+@pytest.mark.parametrize("with_inc_sampling", [True, False])
+@pytest.mark.parametrize("root_sampler", [None, 'pagerank'])
 def test_query_method(g, query_method, sampling_method, root_sampler, with_inc_sampling):
     print('query_method: ', query_method)
     print('sampling_method: ', sampling_method)
@@ -115,7 +115,7 @@ def test_prediction_error_with_candidate_pruning(g, repeat_id):
 
     # number of candidates should be decreasing (more accurately, non-increasing)
     for prev, cur in zip(cand_nums, cand_nums[1:]):
-        assert prev > cur
+        assert prev >= cur
 
 
 def test_prediction_error_sample_nodes_for_estimation(g):
