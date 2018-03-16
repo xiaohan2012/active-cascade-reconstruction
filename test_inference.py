@@ -1,24 +1,28 @@
+import pytest
 import numpy as np
 from inference import infer_infected_nodes, infection_probability
 from graph_helpers import (gen_random_spanning_tree, extract_nodes,
                            remove_filters,
-                           observe_uninfected_node)
+                           observe_uninfected_node,
+                           get_edge_weights)
 from random_steiner_tree.util import isolate_vertex
 from sample_pool import TreeSamplePool
 from tree_stat import TreeBasedStatistics
 from fixture import g, gi, obs
 
 
-def test_inf_probas_shape(g, gi, obs):
+@pytest.mark.parametrize("with_inc_sampling", [True, False])
+def test_inf_probas_shape(g, gi, obs, with_inc_sampling):
     """might fail if the removed vertex isolates some observed nodes
     """
     error_estimator = TreeBasedStatistics(g)
     sampler = TreeSamplePool(g, 25, 'cut', gi=gi,
-                             return_tree_nodes=True)
+                             edge_weights=get_edge_weights(g),
+                             return_tree_nodes=True,
+                             with_inc_sampling=with_inc_sampling)
     sampler.fill(obs)
     error_estimator.build_matrix(sampler.samples)
 
-    g = remove_filters(g)
     n = g.num_vertices()
     all_nodes = extract_nodes(g)
     remaining_nodes = list(set(all_nodes) - set(obs))

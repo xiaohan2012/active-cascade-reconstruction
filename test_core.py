@@ -72,18 +72,18 @@ def test_TreeSamplePool_with_incremental_sampling(g, gi, obs, method, edge_weigh
             assert len(t) == g.num_vertices()
 
     # update
-    n = random.choice(
+    n_rm = random.choice(
         list(set(np.arange(g.num_vertices())) - set(obs)))
-    isolate_vertex(gi, n)
-    observe_uninfected_node(g, n, obs)
+    isolate_vertex(gi, n_rm)
+    observe_uninfected_node(g, n_rm, obs)
 
-    num_invalid_trees = sum(1 for t in sampler.samples if n in t)
+    num_invalid_trees = sum(1 for t in sampler.samples if n_rm in t)
     valid_trees = [t
                    for t in sampler.samples
-                   if n not in t]  # this tree cannot be changed even after .update
+                   if n_rm not in t]  # this tree cannot be changed even after .update
     valid_trees_old = copy(valid_trees)
     
-    new_samples = sampler.update_samples(obs, n, 0)
+    new_samples = sampler.update_samples(obs, n_rm, 0)
     
     assert len(sampler.samples) == n_samples
 
@@ -96,6 +96,9 @@ def test_TreeSamplePool_with_incremental_sampling(g, gi, obs, method, edge_weigh
         if edge_weight == 1.0:
             assert len(t) == g.num_vertices()  # now it's 99
 
+    for t in sampler.samples:
+        assert n_rm not in t  # because n_rm is removed
+        
     # make sure valid trees before and after update remaint the same
     for t1, t2 in zip(valid_trees, valid_trees_old):
         assert t1 == t2
