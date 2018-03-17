@@ -1,13 +1,13 @@
 #! /bin/zsh
 
 graphs=('lattice-1024' 'grqc' 'fb')
-graph_suffices=("0.02" '0.03' '0.02')
+graph_suffices=("0.02" '0.03' '0.2')
 
 n_runs=$((8 * 96))
 obs_fractions=(0.1 0.25 0.5 0.75)
 
 
-for i ({1..3}); do
+for i ({3..3}); do
     print ${i}
     graph=${graphs[${i}]}
     graph_suffix=${graph_suffices[${i}]}
