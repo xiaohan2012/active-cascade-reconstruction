@@ -1,12 +1,12 @@
 #! /bin/zsh
 
-graph="fb"
-sample_method=loop_erased
+graph="grqc"
+sample_method=cut
 inf_method="inf_probas"
 
 cascade_model="ic"
-obs_fraction=0.1
-stop_fraction=0.2
+obs_fraction=0.5
+stop_fraction=0.03
 graph_suffix="_s${stop_fraction}"
 
 root_sampler='true_root'
