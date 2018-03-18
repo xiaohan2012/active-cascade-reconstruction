@@ -141,7 +141,7 @@ if __name__ == '__main__':
                         help='query method used for infer hidden infections')
     parser.add_argument('-r', '--root_sampler', type=str,
                         default='pagerank',
-                        choices={'pagerank', None},
+                        choices={'pagerank', 'random', 'true_root'},
                         help='the steiner tree sampling method')
 
     parser.add_argument('-c', '--cascade_dir',
