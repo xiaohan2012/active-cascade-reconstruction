@@ -1,14 +1,15 @@
 #! /bin/zsh
 
-graph="grqc"
+graph="fb"
 sample_method=loop_erased
 inf_method="inf_probas"
 
 cascade_model="ic"
 obs_fraction=0.1
-stop_fraction=0.03
+stop_fraction=0.2
 graph_suffix="_s${stop_fraction}"
 
+root_sampler='true_root'
 query_methods=(random pagerank entropy prediction_error)
 
 dataset_id="${graph}-m${cascade_model}-s${stop_fraction}-o${obs_fraction}"
@@ -25,6 +26,7 @@ for query_method in ${query_methods}; do
 	    -m ${inf_method} \
 	    -c ${cascade_dir} \
 	    --query_method ${query_method} \
+	    --root_sampler ${root_sampler} \
 	    -q outputs/queries-weighted/${dataset_id}/${sample_method}/${query_method} \
 	    -p outputs/${inf_method}-weighted/${dataset_id}/${sample_method}/${query_method}
 

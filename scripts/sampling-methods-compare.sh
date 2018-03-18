@@ -7,7 +7,7 @@ n_runs=$((8 * 96))
 obs_fractions=(0.1 0.25 0.5 0.75)
 
 
-for i ({3..3}); do
+for i ({1..3}); do
     print ${i}
     graph=${graphs[${i}]}
     graph_suffix=${graph_suffices[${i}]}

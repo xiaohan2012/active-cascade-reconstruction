@@ -1,6 +1,6 @@
 #! /bin/zsh
 
-graph="lattice-1024"
+graph="grqc"
 sample_method=loop_erased
 
 inf_method="inf_probas"
@@ -13,14 +13,14 @@ cascade_model="ic"
 # stop_fractions=(0.01 0.02 0.04 0.08 0.16 0.32)
 # stop_fractions=(0.04 0.08 0.16 0.32 0.64)
 # stop_fractions=(0.02 0.04 0.08 0.16 0.32)
-stop_fractions=(0.02)
+stop_fractions=(0.03)
 
 obs_fraction=0.1
 query_dir_ids="random, pagerank, entropy, entropy-with-norm-p, prediction_error, prediction_error-with-norm-p"
 inf_dir_ids="random, pagerank, entropy, entropy-with-norm-p, prediction_error, prediction_error-with-norm-p"
 labels="random, pagerank, entropy, entropy-norm, prederror, prederror-norm"
 
-n_queries=30
+n_queries=50
 
 for stop_fraction in ${stop_fractions}; do
     dataset_id="${graph}-m${cascade_model}-s${stop_fraction}-o${obs_fraction}"
