@@ -21,6 +21,8 @@ from root_sampler import build_root_sampler_by_pagerank_score, build_true_root_s
 def infer_probas_from_queries(g, obs, c, queries,
                               sampling_method, root_sampler_name, n_samples,
                               verbose=False):
+    n_nodes = g.num_vertices()
+
     assert root_sampler_name in {'random', 'pagerank', 'true_root'}
 
     if root_sampler_name == 'pagerank':
@@ -59,6 +61,7 @@ def infer_probas_from_queries(g, obs, c, queries,
         else:
             observe_uninfected_node(g, q, obs_inf)
             isolate_vertex(gi, q)
+            print('g.num_vertices()', g.num_vertices())
 
         # update samples
         label = int(c[q] >= 0)
@@ -74,6 +77,11 @@ def infer_probas_from_queries(g, obs, c, queries,
 
         # new probas
         probas = infection_probability(g, obs_inf, sampler, error_estimator=estimator)
+
+        # make sure data dimension does not change
+        assert len(probas) == n_nodes
+        assert g.num_vertices() == n_nodes, '{} != {}'.format(g.num_vertices(), n_nodes)
+
         probas_list.append(probas)
 
     return probas_list, sampler, estimator

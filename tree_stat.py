@@ -2,6 +2,7 @@ import numpy as np
 
 EPS = 1e-10
 
+
 class TreeBasedStatistics:
     def __init__(self, g, trees=None):
         self._g = g

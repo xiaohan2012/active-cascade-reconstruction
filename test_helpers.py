@@ -26,3 +26,4 @@ def check_error_esitmator(qs, c, est):
         else:
             # uninfected
             assert est._m[q, :].sum() == 0
+    assert (est.n_row, est.n_col) == est._m.shape

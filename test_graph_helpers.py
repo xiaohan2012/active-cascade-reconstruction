@@ -11,7 +11,8 @@ from graph_helpers import (extract_steiner_tree, filter_graph_by_edges,
                            contract_graph_by_nodes,
                            hide_disconnected_components,
                            k_hop_neighbors,
-                           pagerank_scores)
+                           pagerank_scores,
+                           reachable_node_set)
 
 
 
@@ -137,3 +138,11 @@ def test_pagerank_scores(g, obs):
     for pr1, pr2 in zip(pr_list, pr_list[1:]):
         ent1, ent2 = entropy(pr1), entropy(pr2)
         assert ent1 < ent2
+
+
+def test_reachable_node_set():
+    g = Graph(directed=False)
+    g.add_vertex(4)
+    g.add_edge_list([(0, 1), (1, 2)])
+    actual = reachable_node_set(g, source=0)
+    assert actual == {0, 1, 2}

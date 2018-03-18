@@ -8,7 +8,7 @@ from test_helpers import check_tree_samples, check_error_esitmator
 
 @pytest.mark.parametrize("cid", range(5))
 @pytest.mark.parametrize("sampling_method", ['cut', 'loop_erased'])
-@pytest.mark.parametrize("root_sampler_name", [None, 'pagerank'])
+@pytest.mark.parametrize("root_sampler_name", ['random', 'pagerank', 'true_root'])
 def test_infer_probas_for_queries_sampling_approach(g, cid, sampling_method, root_sampler_name):
     n_queries = 20
     obs, c = gen_input(g, model='ic')

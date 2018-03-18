@@ -343,7 +343,7 @@ def observe_uninfected_node(g, n, obs):
     with side effect
     """
     isolate_node(g, n)
-    hide_disconnected_components(g, obs)
+    # hide_disconnected_components(g, obs)
 
 
 def load_graph_by_name(name, weighted=False, suffix=''):
@@ -429,3 +429,9 @@ def get_edge_weights(g, key='weights'):
         # print('weighted graph')
         weights = g.edge_properties[key]
     return weights
+
+
+def reachable_node_set(g, source):
+    prop = label_components(g)[0]
+    cid = prop[source]
+    return set((prop.a == cid).nonzero()[0])
