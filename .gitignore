@@ -108,3 +108,6 @@ data/
 figs/
 outputs/
 cascade-weighted/
+
+eval_result/
+tmp/
