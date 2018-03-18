@@ -42,17 +42,13 @@ parser.add_argument('-m', '--sampling_method', default='loop_erased', type=str,
                     help='the steiner tree sampling method')
 parser.add_argument('-r', '--root_sampler', type=str,
                     default='pagerank',
-                    choices={'pagerank', None},
+                    choices={'pagerank', 'random', 'true_root'},
                     help='the steiner tree sampling method')
 parser.add_argument('-s', '--n_samples', default=100, type=int,
                     help='number of samples')
 parser.add_argument('-i', '--incremental_cascade', action='store_true',
                     help='whether enable incremental cascade (probabilistic trimming) ' +
                     'for tree samples or not')
-
-# specific to sampling-based sampler
-parser.add_argument('--normalize_proba', type=str,
-                    help='(DEPRECATED) normalization method applied to probabilities (default: None)')
 
 # specific to prediction error-based sampler
 parser.add_argument('-p', '--min_proba', default=0.0, type=float,
@@ -71,6 +67,11 @@ parser.add_argument('--root_pagerank_noise', default=0.0, type=float,
 
 args = parser.parse_args()
 
+print("Args:")
+print('-' * 10)
+for k, v in args._get_kwargs():
+    print("{}={}".format(k, v))
+        
 graph_name = args.graph
 graph_suffix = args.graph_suffix
 
@@ -96,10 +97,8 @@ if query_strategy == 'random':
 elif query_strategy == 'pagerank':
     strategy = (PRQueryGenerator, {})
 elif query_strategy == 'entropy':
-    print('args.normalize_proba', args.normalize_proba)
     strategy = (EntropyQueryGenerator, {'method': 'entropy', 'root_sampler': root_sampler,
-                                        'root_sampler_eps': args.root_pagerank_noise,
-                                        'normalize_p': args.normalize_proba})
+                                        'root_sampler_eps': args.root_pagerank_noise})
 elif query_strategy == 'prediction_error':
     print("min_proba={}".format(min_proba))
     print("num_estimation_nodes={}".format(num_estimation_nodes))

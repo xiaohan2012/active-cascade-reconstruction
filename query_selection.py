@@ -91,7 +91,7 @@ class SamplingBasedGenerator(BaseQueryGenerator):
                  root_sampler_eps=0.0,
                  **kwargs):
         self.sampler = sampler
-        assert root_sampler in {None, 'pagerank'}
+        assert root_sampler in {'random', 'pagerank', 'true_root'}
 
         self.root_sampler_name = root_sampler
         self.root_sampler_eps = root_sampler_eps
@@ -108,8 +108,10 @@ class SamplingBasedGenerator(BaseQueryGenerator):
                     self.g, obs, c, self.root_sampler_eps)
             except ValueError as e:
                 raise NoMoreQuery from e
-        else:
-            self.root_sampler = self.root_sampler_name
+        elif self.root_sampler_name == 'true_root':
+            raise NotImplementedError('to do bro')
+        elif self.root_sampler_name == 'random':
+            self.root_sampler = None  # equivalent to 'random'
 
     def receive_observation(self, obs, c, **kwargs):
         self._update_root_sampler(obs, c, **kwargs)
@@ -135,9 +137,7 @@ class SamplingBasedGenerator(BaseQueryGenerator):
 
 class EntropyQueryGenerator(SamplingBasedGenerator):
     def __init__(self, g, *args,
-                 normalize_p=None,
                  **kwargs):
-        self.normalize_p = normalize_p
         super(EntropyQueryGenerator, self).__init__(g, *args, **kwargs)
 
     def _select_query(self, g, inf_nodes):
@@ -146,8 +146,7 @@ class EntropyQueryGenerator(SamplingBasedGenerator):
         scores = uncertainty_scores(
             g, inf_nodes,
             self.sampler,
-            self.error_estimator,
-            normalize_p=self.normalize_p)
+            self.error_estimator)
         q = max(self._cand_pool, key=scores.__getitem__)
         return q
 
@@ -157,7 +156,6 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
     def __init__(self, *args,
                  prune_nodes=False,
                  n_node_samples=None,
-                 normalize_p='div_max',
                  **kwargs):
         """
         n_node_samples: number of nodes used to estimate probabilities
@@ -166,7 +164,6 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
         self.min_proba = kwargs.get('min_proba', 0.0)
         self.n_node_samples = n_node_samples
         self.prune_nodes = prune_nodes
-        self.normalize_p = normalize_p
 
         super(PredictionErrorQueryGenerator, self).__init__(*args, **kwargs)
 
@@ -229,8 +226,7 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
                 return float('inf')  # throw this node away
             else:
                 return self.error_estimator.query_score(
-                    q, nodes,
-                    normalize_p=self.normalize_p)
+                    q, nodes)
 
         q2score = {}
         # for q in tqdm(self._cand_pool)

@@ -15,11 +15,11 @@ from test_helpers import check_tree_samples, check_error_esitmator
 @pytest.mark.parametrize("query_method", ['random', 'pagerank', 'entropy', 'error'])
 @pytest.mark.parametrize("sampling_method", ['cut_naive', 'cut', 'loop_erased'])
 @pytest.mark.parametrize("with_inc_sampling", [True, False])
-@pytest.mark.parametrize("root_sampler", [None, 'pagerank'])
+@pytest.mark.parametrize("root_sampler", ['random', 'pagerank'])
 def test_query_method(g, query_method, sampling_method, root_sampler, with_inc_sampling):
     print('query_method: ', query_method)
     print('sampling_method: ', sampling_method)
-    print('roo_sampler: ', root_sampler)
+    print('root_sampler: ', root_sampler)
 
     gv = remove_filters(g)
     edge_weights = get_edge_weights(gv)
@@ -46,15 +46,14 @@ def test_query_method(g, query_method, sampling_method, root_sampler, with_inc_s
         error_estimator = TreeBasedStatistics(gv)
         q_gen = EntropyQueryGenerator(gv, pool,
                                       error_estimator=error_estimator,
-                                      normalize_p='div_max')
+                                      root_sampler=root_sampler)
     elif query_method == 'error':
         error_estimator = TreeBasedStatistics(gv)
         q_gen = PredictionErrorQueryGenerator(gv, pool,
                                               error_estimator=error_estimator,
                                               prune_nodes=True,
                                               n_node_samples=10,
-                                              root_sampler=root_sampler,
-                                              normalize_p='div_max')
+                                              root_sampler=root_sampler)
 
     sim = Simulator(gv, q_gen, gi=gi, print_log=True)
     print('simulator created')
