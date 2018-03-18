@@ -66,23 +66,35 @@ things to check:
 
 ## sampling algorithm on inference result
 
-tested on lattice-100
+## note on evaluation metrics
 
-root sampling effect: 
-- `true > None > pagerank`
-- I guess we need to use `None` in practice
+- auc: very close to 1, because of the large fraction of uninfected nodes
+- precision/recall/f1: much lower (around 0.5)
+- ap score: similar to f1
+
+## note on baseline inference method random
+
+it gives:
+
+- close to zero ap, precision, and f1.
+- close to 0.5 auc and recall
+
+so our inference algorithm makes sense
+
+## effect of `q`
+
+## effect of root sampling
+
+random is actually better than pagerank, but worse than `true root`
+
+##  effect of sampling algorithm
+
+it depends on `q` and evaluation metric.
+
+in general, `incremental` achieves larger recall but lower precision and lower overall f1
 
 
-when root is set to `true:
-
-- brute-force is very similar to `st_inc` (around 70%), followed by `st_vanilla`
-- note that brute-force aborts an attempt for one sample if it exceeds `timeout`
-
-when root is set to `None` or `pagerank`
-- `st_inc` better and `st_vanilla` (63% vs 60%)
-- `brute_force` takes too much time (many invalid samples are discarded)
-
-note on inference/evaluation
+## on final evaluation
 
 we need to produce the inferred probability as accurate as possible, 
 however for now, it's not very possible.
@@ -91,21 +103,5 @@ what we can do:
 - use IC cascade samples
 - use the actual source (it plays a huge difference)
 
-**question**
 
-- how best can we infer the infection probability? 0.6/0.7 is not very good, note that random achieves 0.5
-- could it help  if the fraction of observed nodes is too small?
-  - for `q=0.5` on `lattice-1024`, `pagerank, eps=0.0`, all around 0.6 (diff is small between inc verion and vanilla)
-  - in some cases, vanilla is better
-- for AP score, if the cascade is really small 1%, how much weight should we put on positive instances?
 
-other evaluation methods (based on IR methods):
-
-- AUC score
-  - difference to AP score: considers false negative rate
-- precisiont@k
-- confusion matrix: threshold using 0.5
-
-baseline inference:
-
-- randomly assign infection probability
