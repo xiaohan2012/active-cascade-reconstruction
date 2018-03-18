@@ -5,15 +5,14 @@ from graph_helpers import load_graph_by_name
 from helpers import infected_nodes
 
 graph = 'grqc'
-model = 'ic'
-suffix = '_tmp'
-stop_fraction = 0
+model = 'si'
+# suffix = '_tmp'
+# stop_fraction = 0
+suffix = '_s0.03'
+stop_fraction = 0.03
 obs_frac = 0.1
 
-if model == 'ic':
-    dirname = 'cascade-weighted/{}-m{}-s{}-o{}/*'.format(graph, model, stop_fraction, obs_frac)
-else:
-    dirname = 'cascade-weighted/{}-m{}-s{}-o{}/*'.format(graph, model, stop_fraction, obs_frac)
+dirname = 'cascade-weighted/{}-m{}-s{}-o{}/*'.format(graph, model, stop_fraction, obs_frac)
 
 g = load_graph_by_name(graph, weighted=True, suffix=suffix)
 
