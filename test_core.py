@@ -94,7 +94,7 @@ def test_TreeSamplePool_with_incremental_sampling(g, gi, obs, method, edge_weigh
         assert isinstance(t, set)
         assert set(obs).issubset(t)
         if edge_weight == 1.0:
-            assert len(t) == g.num_vertices()  # now it's 99
+            assert len(t) == (g.num_vertices() - 1)  # because of noden isolation, now it's 99
 
     for t in sampler.samples:
         assert n_rm not in t  # because n_rm is removed
