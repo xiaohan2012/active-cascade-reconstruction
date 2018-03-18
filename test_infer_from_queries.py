@@ -11,7 +11,7 @@ from test_helpers import check_tree_samples, check_error_esitmator
 @pytest.mark.parametrize("root_sampler_name", [None, 'pagerank'])
 def test_infer_probas_for_queries_sampling_approach(g, cid, sampling_method, root_sampler_name):
     n_queries = 20
-    obs, c = gen_input(g)
+    obs, c = gen_input(g, model='ic')
     remaining_nodes = list(set(np.arange(g.num_vertices())) - set(obs))
     queries = np.random.permutation(remaining_nodes)[:n_queries]
 
@@ -20,8 +20,17 @@ def test_infer_probas_for_queries_sampling_approach(g, cid, sampling_method, roo
         sampling_method, root_sampler_name=root_sampler_name, n_samples=100)
 
     assert len(inf_proba_list) == n_queries + 1
-    for probas in inf_proba_list:
+    for i, probas in enumerate(inf_proba_list):
         assert probas.shape == (g.num_vertices(), )
+
+        for o in obs:
+            assert probas[o] == 1.0
+
+        for q in queries[:i]:  # previous i-1 queries
+            if c[q] == -1:
+                assert probas[q] == 0.0
+            else:
+                assert probas[q] == 1.0
 
     check_tree_samples(queries, c, sampler.samples)
     check_error_esitmator(queries, c, estimator)

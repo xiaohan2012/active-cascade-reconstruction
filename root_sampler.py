@@ -30,3 +30,12 @@ def build_root_sampler_by_pagerank_score(g, obs, c, eps=0.0):
         return np.random.choice(nodes, size=1, p=pr_score)[0]
 
     return aux
+
+
+def build_true_root_sampler(c):
+    source = np.nonzero(c == 0)[0][0]
+
+    def aux():
+        return source
+
+    return aux

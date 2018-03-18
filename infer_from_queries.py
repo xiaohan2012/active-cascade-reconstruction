@@ -15,16 +15,18 @@ from graph_helpers import (load_graph_by_name, remove_filters,
 from sample_pool import TreeSamplePool
 from random_steiner_tree.util import from_gt, isolate_vertex
 from tree_stat import TreeBasedStatistics
-from root_sampler import build_root_sampler_by_pagerank_score
+from root_sampler import build_root_sampler_by_pagerank_score, build_true_root_sampler
 
 
 def infer_probas_from_queries(g, obs, c, queries,
                               sampling_method, root_sampler_name, n_samples,
                               verbose=False):
-    assert root_sampler_name in {None, 'pagerank'}
+    assert root_sampler_name in {'random', 'pagerank', 'true_root'}
 
     if root_sampler_name == 'pagerank':
         root_sampler = build_root_sampler_by_pagerank_score(g, obs, c)
+    elif root_sampler_name == 'true_root':
+        root_sampler = build_true_root_sampler(c)
     else:
         root_sampler = None
 
@@ -158,6 +160,11 @@ if __name__ == '__main__':
                         help='')
     
     args = parser.parse_args()
+
+    print("Args:")
+    print('-' * 10)
+    for k, v in args._get_kwargs():
+        print("{}={}".format(k, v))
 
     graph_name = args.graph
     graph_suffix = args.graph_suffix
