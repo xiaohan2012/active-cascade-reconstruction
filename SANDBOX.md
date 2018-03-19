@@ -83,6 +83,10 @@ so our inference algorithm makes sense
 
 ## effect of `q`
 
+- for ap: `st_inc` is better when `q<0.5` 
+- for roc: `st_inc` is always better
+
+
 ## effect of root sampling
 
 random is actually better than pagerank, but worse than `true root`
