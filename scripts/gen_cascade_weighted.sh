@@ -1,15 +1,16 @@
 #! /bin/zsh
 
-graph="lattice-1024"
-graph_suffix='_s0.02'
+graph="grqc"
+graph_suffix='_s0.03'
 cascade_model="ic"
 n_cascades=96
-obs_fraction=0.5
-stop_fraction=0.03
+obs_fraction=0.1
+cascade_fraction=0.005
 min_size=10
+max_size=30
 
 
-dataset_id="${graph}-m${cascade_model}-s${stop_fraction}-o${obs_fraction}"
+dataset_id="${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}"
 
 ourput_dir="cascade-weighted/${dataset_id}"
 
@@ -23,6 +24,7 @@ python3 simulate_cascades.py \
 	--use_edge_weights \
 	-m ${cascade_model} \
 	-d ${ourput_dir} \
-	-s ${stop_fraction} \
-	--min_size ${min_size}
+	-s ${cascade_fraction} \
+	--min_size ${min_size} \
+	--max_size ${max_size}
 

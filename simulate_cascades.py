@@ -30,12 +30,20 @@ parser.add_argument('-p', '--infection_proba', type=float, default=0.5,
                     help='infection probability')
 parser.add_argument('--min_size', type=int, default=10,
                     help='minimum cascade size (applicable for IC model)')
+parser.add_argument('--max_size', type=int, default=10,
+                    help='maximum cascade size (applicable for IC model)')
 parser.add_argument('-w', '--use_edge_weights', action='store_true',
                     help="""flag on using random edge probability.
 If ON, edge weight is sampled uniformly from [p_min, p_max]""")
 
 
 args = parser.parse_args()
+
+print("Args:")
+print('-' * 10)
+for k, v in args._get_kwargs():
+    print("{}={}".format(k, v))
+
 graph_name = args.graph
 
 if not args.use_edge_weights:
@@ -57,7 +65,8 @@ for i in tqdm(range(args.n_cascades)):
                        q=args.obs_fraction,
                        p=p,
                        model=args.cascade_model,
-                       min_size=args.min_size)
+                       min_size=args.min_size,
+                       max_size=args.max_size)
 
     # d = os.path.join(args.output_dir, graph_name)
     d = args.output_dir

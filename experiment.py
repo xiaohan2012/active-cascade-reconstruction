@@ -10,7 +10,8 @@ from graph_helpers import (isolate_node, remove_filters,
                            load_graph_by_name)
 
 
-def gen_input(g, source=None, cascade_path=None, stop_fraction=0.25, p=0.5, q=0.1, model='si', min_size=10):
+def gen_input(g, source=None, cascade_path=None, stop_fraction=0.25, p=0.5, q=0.1, model='si',
+              min_size=10, max_size=100):
     if cascade_path is None:
         if model == 'si':
             s, c, _ = si(g, p, stop_fraction=stop_fraction,
@@ -18,7 +19,8 @@ def gen_input(g, source=None, cascade_path=None, stop_fraction=0.25, p=0.5, q=0.
         elif model == 'ic':
             while True:
                 s, c, _ = ic(g, p, source=source)
-                if np.sum(c >= 0) >= min_size:  # size is large enough
+                size = np.sum(c >= 0)
+                if size >= min_size and size <= max_size:  # size fits
                     # print('big enough')
                     break
                 # print('small')

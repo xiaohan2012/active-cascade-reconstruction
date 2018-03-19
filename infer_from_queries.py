@@ -61,7 +61,7 @@ def infer_probas_from_queries(g, obs, c, queries,
         else:
             observe_uninfected_node(g, q, obs_inf)
             isolate_vertex(gi, q)
-            print('g.num_vertices()', g.num_vertices())
+            # print('g.num_vertices()', g.num_vertices())
 
         # update samples
         label = int(c[q] >= 0)
