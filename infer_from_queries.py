@@ -96,6 +96,7 @@ def one_round(g, obs, c, c_path,
               n_samples=250,
               root_sampler=None,
               sampling_method='loop_erased',
+              with_inc_sampling=False,
               debug=False,
               verbose=False):
     print('\nprocessing {} started, query_method={}, root_sampler={}, \n'.format(
@@ -121,6 +122,7 @@ def one_round(g, obs, c, c_path,
                                                       sampling_method,
                                                       root_sampler,
                                                       n_samples,
+                                                      with_inc_sampling=with_inc_sampling,
                                                       verbose=verbose)
         pkl.dump(probas_list, open(path, 'wb'))
     else:
@@ -147,6 +149,9 @@ if __name__ == '__main__':
                         default='inf_probas',
                         choices=('inf_probas'),
                         help='method used for infer hidden infections')
+    parser.add_argument('-i', '--with_inc_sampling',
+                        action='store_true',
+                        help='whether with incremental sampling or not')
     parser.add_argument('--query_method',
                         help='query method used for infer hidden infections')
     parser.add_argument('-r', '--root_sampler', type=str,
@@ -195,6 +200,7 @@ if __name__ == '__main__':
                                                query_dirname,
                                                inf_proba_dirname, n_samples=n_samples,
                                                root_sampler=args.root_sampler,
+                                               with_inc_sampling=args.with_inc_sampling,
                                                verbose=args.verbose)
                             for path, (obs, c) in tqdm(cascades))
     else:
@@ -204,4 +210,5 @@ if __name__ == '__main__':
                       query_dirname,
                       inf_proba_dirname, n_samples=n_samples,
                       root_sampler=args.root_sampler,
+                      with_inc_sampling=args.with_inc_sampling,
                       verbose=args.verbose)
