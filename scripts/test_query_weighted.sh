@@ -1,6 +1,6 @@
 #! /bin/zsh
 
-python3 generate_queries.py \
+kernprof -l generate_queries.py \
 	-g grqc \
 	-f _s0.03 \
 	-w \
@@ -13,5 +13,5 @@ python3 generate_queries.py \
 	--root_pagerank_noise 0.5 \
 	-c cascade-weighted/grqc-mic-s0.03-o0.1/ \
 	-d outputs/queries/test/ \
-	--verbose --debug
-	# --incremental_cascade \
+	--verbose --debug \
+	--incremental_cascade

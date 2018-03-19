@@ -3,8 +3,7 @@ import numpy as np
 from inference import infer_infected_nodes, infection_probability
 from graph_helpers import (gen_random_spanning_tree, extract_nodes,
                            remove_filters,
-                           observe_uninfected_node,
-                           get_edge_weights)
+                           observe_uninfected_node)
 from random_steiner_tree.util import isolate_vertex
 from sample_pool import TreeSamplePool
 from tree_stat import TreeBasedStatistics
@@ -17,7 +16,6 @@ def test_inf_probas_shape(g, gi, obs, with_inc_sampling):
     """
     error_estimator = TreeBasedStatistics(g)
     sampler = TreeSamplePool(g, 25, 'cut', gi=gi,
-                             edge_weights=get_edge_weights(g),
                              return_tree_nodes=True,
                              with_inc_sampling=with_inc_sampling)
     sampler.fill(obs)

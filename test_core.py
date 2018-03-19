@@ -47,15 +47,14 @@ def test_sample_steiner_trees(g, gi, obs, return_tree_nodes, method):
 
 
 @pytest.mark.parametrize("method", ['cut', 'loop_erased'])
-@pytest.mark.parametrize("edge_weight", [1.0, 0.5])
+@pytest.mark.parametrize("edge_weight", [1.0, 0.5, 0.0])
 def test_TreeSamplePool_with_incremental_sampling(g, gi, obs, method, edge_weight):
-    
     edge_weights = g.new_edge_property("float")
-    edge_weights.set_value(edge_weight)  # for sure to include all nodes
+    edge_weights.set_value(edge_weight)  # if edge =1.0, for sure to include all nodes
+    g.edge_properties['weights'] = edge_weights
     
     n_samples = 100
     sampler = TreeSamplePool(g, n_samples, method,
-                             edge_weights=edge_weights,
                              gi=gi,
                              return_tree_nodes=True,
                              with_inc_sampling=True)
@@ -82,7 +81,7 @@ def test_TreeSamplePool_with_incremental_sampling(g, gi, obs, method, edge_weigh
                    for t in sampler.samples
                    if n_rm not in t]  # this tree cannot be changed even after .update
     valid_trees_old = copy(valid_trees)
-    
+
     new_samples = sampler.update_samples(obs, n_rm, 0)
     
     assert len(sampler.samples) == n_samples
@@ -95,6 +94,8 @@ def test_TreeSamplePool_with_incremental_sampling(g, gi, obs, method, edge_weigh
         assert set(obs).issubset(t)
         if edge_weight == 1.0:
             assert len(t) == (g.num_vertices() - 1)  # because of noden isolation, now it's 99
+        else:
+            assert len(t) < (g.num_vertices() - 1)
 
     for t in sampler.samples:
         assert n_rm not in t  # because n_rm is removed

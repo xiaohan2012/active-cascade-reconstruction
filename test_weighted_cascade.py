@@ -17,9 +17,11 @@ def test_gen_input(g, cascade_model, weighted, source):
     if weighted:
         p = g.edge_properties['weights']
     else:
-        p = 0.8
-    
-    rows = [gen_input(g, p=p, model=cascade_model, source=source, stop_fraction=0.1)
+        p = g.new_edge_property('float')
+        p.set_value(0.8)
+    # print(cascade_model, weighted, source)
+    rows = [gen_input(g, p=p, model=cascade_model, source=source, stop_fraction=0.1,
+                      min_size=5, max_size=99999)
             for i in range(10)]
 
     # make sure no two cascades are the same

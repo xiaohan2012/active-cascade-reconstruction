@@ -3,21 +3,26 @@ import numpy as np
 from infer_from_queries import (infer_probas_from_queries)
 from fixture import g
 from experiment import gen_input
+from graph_helpers import get_edge_weights
 from test_helpers import check_tree_samples, check_error_esitmator
 
 
-@pytest.mark.parametrize("cid", range(5))
+@pytest.mark.parametrize("cid", range(2))
 @pytest.mark.parametrize("sampling_method", ['cut', 'loop_erased'])
 @pytest.mark.parametrize("root_sampler_name", ['random', 'pagerank', 'true_root'])
-def test_infer_probas_for_queries_sampling_approach(g, cid, sampling_method, root_sampler_name):
-    n_queries = 20
-    obs, c = gen_input(g, model='ic')
+@pytest.mark.parametrize("with_inc_sampling", [False, True])
+def test_infer_probas_for_queries_sampling_approach(g, cid, sampling_method, root_sampler_name,
+                                                    with_inc_sampling):
+    n_queries = 10
+    p = get_edge_weights(g)
+    obs, c = gen_input(g, model='ic', p=p, min_size=10, max_size=99999)
     remaining_nodes = list(set(np.arange(g.num_vertices())) - set(obs))
     queries = np.random.permutation(remaining_nodes)[:n_queries]
 
     inf_proba_list, sampler, estimator = infer_probas_from_queries(
         g, obs, c, queries,
-        sampling_method, root_sampler_name=root_sampler_name, n_samples=100)
+        sampling_method, root_sampler_name=root_sampler_name, n_samples=100,
+        with_inc_sampling=with_inc_sampling)
 
     assert len(inf_proba_list) == n_queries + 1
     for i, probas in enumerate(inf_proba_list):

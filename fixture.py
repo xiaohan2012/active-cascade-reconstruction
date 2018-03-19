@@ -9,7 +9,7 @@ from graph_helpers import remove_filters, get_edge_weights
 def g():
     graph = remove_filters(lattice((10, 10)))
     ew = graph.new_edge_property('float')
-    ew.a = np.random.random(graph.num_edges())
+    ew.a = np.random.random(graph.num_edges()) * 0.2 + 0.8
     graph.edge_properties['weights'] = ew
     return graph
 

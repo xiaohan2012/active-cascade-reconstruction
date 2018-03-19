@@ -20,6 +20,7 @@ from root_sampler import build_root_sampler_by_pagerank_score, build_true_root_s
 
 def infer_probas_from_queries(g, obs, c, queries,
                               sampling_method, root_sampler_name, n_samples,
+                              with_inc_sampling=False,
                               verbose=False):
     n_nodes = g.num_vertices()
 
@@ -41,6 +42,7 @@ def infer_probas_from_queries(g, obs, c, queries,
     sampler = TreeSamplePool(g, n_samples=n_samples,
                              method=sampling_method,
                              gi=gi,
+                             with_inc_sampling=with_inc_sampling,
                              return_tree_nodes=True)
     estimator = TreeBasedStatistics(g)
     sampler.fill(obs,

@@ -4,7 +4,7 @@ import numpy as np
 from copy import copy
 
 from graph_tool import Graph, GraphView, PropertyMap
-from graph_tool.topology import shortest_distance
+from graph_tool.topology import shortest_distance, label_components
 
 from helpers import infected_nodes
 
@@ -100,7 +100,7 @@ def sample_graph_by_p(g, p):
     """
     if isinstance(p, PropertyMap):
         p = p.a
-    flags = (np.random.random(g.num_edges()) <= p)
+    flags = (np.random.random(p.shape) <= p)
     p = g.new_edge_property('bool')
     p.set_2d_array(flags)
     return GraphView(g, efilt=p)
@@ -143,32 +143,48 @@ def incremental_simulation(g, c, p, num_nodes, return_new_edges=False):
     """incrementally add edges to given cascade
     num_nodes is passed bacause vfilt might be passed
     """
-    visited = {v: False for v in np.arange(num_nodes)}
-    new_c = copy(c)
+    # print('incremental_simulation -> g', g)
+    gv = sample_graph_by_p(g, p)
+
+    new_infected_nodes = set(infected_nodes(c))
+    comp = label_components(gv)[0]
+    covered_cids = set()
     for v in infected_nodes(c):
-        visited[v] = True
+        cid = comp[v]
+        if cid not in covered_cids:
+            new_infected_nodes |= set((comp.a == cid).nonzero()[0])
+            covered_cids.add(cid)
+    
+    # visited = {v: False for v in np.arange(num_nodes)}
+    # new_c = copy(c)
+    # for v in infected_nodes(c):
+    #     visited[v] = True
+
+    # if return_new_edges:
+    #     new_edges = []
+
+    # # bfs on all infected nodes
+
+    # queue = list(infected_nodes(c))
+    # while len(queue) > 0:
+    #     u = queue.pop(0)
+    #     uu = g.vertex(u)
+    #     for e in uu.out_edges():
+    #         v = int(e.target())
+    #         if np.random.random() <= p[e] and not visited[v]:  # active
+    #             if return_new_edges:
+    #                 new_edges.append((u, v))
+    #             # print('adding node ', v)
+    #             # print('len(new_c)', len(new_c))
+    #             # print(len(c))
+    #             new_c[v] = c[u] + 1
+    #             visited[v] = True
+    #             queue.append(v)
+    new_c = np.ones(g.num_vertices()) * (-1)
+    new_c[list(new_infected_nodes)] = 1
 
     if return_new_edges:
-        new_edges = []
-        
-    queue = list(infected_nodes(c))
-    while len(queue) > 0:
-        u = queue.pop(0)
-        uu = g.vertex(u)
-        for e in uu.out_edges():
-            v = int(e.target())
-            if np.random.random() <= p[e] and not visited[v]:  # active
-                if return_new_edges:
-                    new_edges.append((u, v))
-                # print('adding node ', v)
-                # print('len(new_c)', len(new_c))
-                # print(len(c))
-                new_c[v] = c[u] + 1
-                visited[v] = True
-                queue.append(v)
-
-    if return_new_edges:
-        return (new_c, new_edges)
+        raise Exception("`return_new_edges` not supported anymore")
     else:
         return new_c
 

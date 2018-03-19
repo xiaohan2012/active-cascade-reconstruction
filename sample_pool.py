@@ -2,7 +2,7 @@ import numpy as np
 from graph_tool import GraphView
 
 from core import sample_steiner_trees
-from graph_helpers import has_vertex
+from graph_helpers import has_vertex, get_edge_weights
 from core1 import matching_trees
 from helpers import infected_nodes
 from cascade_generator import incremental_simulation
@@ -10,20 +10,18 @@ from cascade_generator import incremental_simulation
 
 class TreeSamplePool():
     def __init__(self, g, n_samples, method,
-                 edge_weights=None,
                  gi=None,
                  with_inc_sampling=False,
                  return_tree_nodes=True):
         self.g = g
         self.num_nodes = g.num_vertices()  # fixed
         self.n_samples = n_samples
-        self.edge_weights = edge_weights
         self.gi = gi
         self.method = method
         self.return_tree_nodes = return_tree_nodes
         self.with_inc_sampling = with_inc_sampling
         self._samples = []
-        # print('DEBUG: TreeSamplePool.with_inc_sampling=', self.with_inc_sampling)
+        print('DEBUG: TreeSamplePool.with_inc_sampling=', self.with_inc_sampling)
 
     def fill(self, obs, **kwargs):
         self._samples = sample_steiner_trees(
@@ -47,12 +45,14 @@ class TreeSamplePool():
                             'Please pass in a set of nodes')
         fake_c = np.ones(self.num_nodes) * (-1)
         fake_c[list(tree_nodes)] = 1
-        # print('len(tree_nodes)', len(tree_nodes))
-        assert self.edge_weights is not None, 'for incremental edge addition, edge weight should be given'
-        new_c = incremental_simulation(self.g, fake_c, self.edge_weights,
+
+        edge_weights = get_edge_weights(self.g)
+        assert edge_weights is not None, 'for incremental edge addition, edge weight should be given'
+
+        new_c = incremental_simulation(self.g, fake_c, edge_weights,
                                        self.num_nodes,
                                        return_new_edges=False)
-        # print('len(infected_nodes(new_c))', len(infected_nodes(new_c)))
+
         return set(infected_nodes(new_c))
         
     # @profile

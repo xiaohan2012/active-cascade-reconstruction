@@ -32,7 +32,6 @@ def test_query_method(g, query_method, sampling_method, root_sampler, with_inc_s
     pool = TreeSamplePool(gv,
                           n_samples=20,
                           method=sampling_method,
-                          edge_weights=edge_weights,
                           gi=gi,
                           return_tree_nodes=True,  # using tree nodes
                           with_inc_sampling=with_inc_sampling
