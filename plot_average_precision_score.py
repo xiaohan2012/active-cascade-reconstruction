@@ -1,5 +1,6 @@
 # coding: utf-8
 
+import os
 import numpy as np
 import matplotlib
 import argparse
@@ -7,6 +8,7 @@ matplotlib.use('pdf')
 
 from matplotlib import pyplot as plt
 from cycler import cycler
+from sklearn.metrics import average_precision_score, f1_score, roc_auc_score
 
 from helpers import load_cascades
 from graph_helpers import load_graph_by_name
@@ -19,6 +21,11 @@ if __name__ == '__main__':
     parser.add_argument('-g', '--graph_name', help='graph name')
     parser.add_argument('-d', '--data_id', help='data id (e.g, "grqc-mic-o0.1")')
 
+    # eval method
+    parser.add_argument('-e', '--eval_method',
+                        choices=('ap', 'auc'),
+                        help='evalulation method')
+    
     # root directory names
     parser.add_argument('-c', '--cascade_dirname', help='cascade directory name')
     parser.add_argument('--inf_dirname', help='')
@@ -69,6 +76,13 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
 
     assert n_queries > 0, 'non-positive num of queries'
 
+    if args.eval_method == 'ap':
+        eval_func = average_precision_score
+    elif args.eval_method == 'auc':
+        eval_func = roc_auc_score
+    else:
+        raise NotImplementedError(args.eval_method)
+        
     scores_by_method = aggregate_scores_over_cascades_by_methods(
         cascades,
         labels,
@@ -76,7 +90,8 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
         inf_dir_ids,
         n_queries,
         inf_result_dirname,
-        query_dirname)
+        query_dirname,
+        eval_func)
 
     plt.clf()
 
@@ -105,5 +120,9 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
     ax.yaxis.label.set_fontsize(20)
 
     # plt.ylim(0.2, 0.8)
-    fig.savefig('figs/average_precision_score/{}.pdf'.format(args.fig_name))
+    dirname = 'figs/{}'.format(args.``eval_method)
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
+
+    fig.savefig('figs/{}/{}.pdf'.format(args.eval_method, args.fig_name))
 

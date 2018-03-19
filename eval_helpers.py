@@ -2,7 +2,6 @@ import numpy as np
 import os
 import pickle as pkl
 from copy import copy
-from sklearn.metrics import average_precision_score
 from tqdm import tqdm
 
 from graph_helpers import extract_nodes
@@ -60,7 +59,9 @@ def aggregate_scores_over_cascades_by_methods(cascades,
                                               query_dir_ids,
                                               inf_dir_ids,
                                               n_queries,
-                                              inf_result_dirname, query_dirname):
+                                              inf_result_dirname,
+                                              query_dirname,
+                                              eval_func):
     """
     each element in `method_labels` uniquely identifies one experiment
 
@@ -106,7 +107,7 @@ def aggregate_scores_over_cascades_by_methods(cascades,
             obs_inc = copy(obs)
             for inf_probas, query, _ in zip(inf_probas_list, queries, range(n_queries)):
                 # mask out the non-infected observations
-                # as infected queriee are valuable
+                # as infected queries are valuable
                 # if c[query] < 0:
                 if True:
                     obs_inc.add(query)
@@ -114,7 +115,10 @@ def aggregate_scores_over_cascades_by_methods(cascades,
                 # use precision score
                 mask = np.array([(i not in obs_inc) for i in range(len(c))])
                 try:
-                    score = average_precision_score(y_true[mask], inf_probas[mask])
+                    score = eval_func(y_true[mask], inf_probas[mask])
+                    # y_pred = np.asarray((inf_probas >= 0.5), dtype=np.bool)
+                    # score = f1_score(y_true[mask], y_pred[mask])
+                    
                 except FloatingPointError:
                     # in this case, there is no positive data points left in y_true[mask]
                     # therefore, precision is always zero
@@ -127,6 +131,15 @@ def aggregate_scores_over_cascades_by_methods(cascades,
                     score = np.nan
 
                 scores.append(score)
+            # print('method', method_label)
+            # print('len(obs)', len(obs))
+            # print('len(infected)', len(infected))
+            # print(scores)
+            # assert len(obs_inc) == (len(obs) + n_queries), '{} != {}'.format(
+            #     len(obs_inc),
+            #     len(obs) + n_queries
+            # )
+
             # print(inf_dir, scores[:15])
             scores_by_method[method_label].append(scores)
         # print('---'*10)

@@ -1,7 +1,7 @@
 #! /bin/zsh
 
 graph="grqc"
-sample_method=loop_erased
+sample_method=cut
 
 inf_method="inf_probas"
 
@@ -14,13 +14,14 @@ cascade_model="ic"
 # stop_fractions=(0.04 0.08 0.16 0.32 0.64)
 # stop_fractions=(0.02 0.04 0.08 0.16 0.32)
 stop_fractions=(0.03)
-obs_fraction=0.1
+obs_fraction=0.5
 
+eval_method="auc"
 query_dir_ids="random, pagerank, entropy, prediction_error"
 inf_dir_ids="random, pagerank, entropy, prediction_error"
 labels="random, pagerank, entropy, prederror"
 
-n_queries=50
+n_queries=30
 
 for stop_fraction in ${stop_fractions}; do
     dataset_id="${graph}-m${cascade_model}-s${stop_fraction}-o${obs_fraction}"
@@ -41,6 +42,7 @@ for stop_fraction in ${stop_fractions}; do
 python3 plot_average_precision_score.py \
 	-g ${graph} \
 	-d ${dataset_id} \
+        -e ${eval_method} \
 	-c ${cascade_dirname} \
 	--query_dirname ${query_dirname} \
 	--inf_dirname ${inf_dirname} \
