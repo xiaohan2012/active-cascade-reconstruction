@@ -10,8 +10,8 @@ from matplotlib import pyplot as plt
 from graph_helpers import load_graph_by_name
 
 
-graph_name = 'lattice-1024'
-suffix = 's0.02'
+graph_name = 'grqc'
+suffix = 's0.03'
 aspects = ['roc', 'ap', 'precision', 'recall', 'f1']
 
 qs = ['0.1', '0.25', '0.5', '0.75']
