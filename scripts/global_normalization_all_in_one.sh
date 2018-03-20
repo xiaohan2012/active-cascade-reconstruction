@@ -51,5 +51,33 @@ for query_method in ${query_methods}; do
 	    --query_method ${query_method} \
 	    --root_sampler ${root_sampler} \
 	    -q outputs/queries-weighted/${dataset_id}${gn_suffix}/${sample_method}/${query_method} \
-	    -p outputs/${inf_method}-weighted/${dataset_id}${gn_suffix}/${sample_method}/${query_method} \
+	    -p outputs/${inf_method}-weighted/${dataset_id}${gn_suffix}/${sample_method}/${query_method}
+    
 done
+
+
+query_dirname='queries-weighted'
+cascade_dirname='cascade-weighted'
+inf_dirname='inf_probas-weighted'
+
+eval_method="ap"
+
+query_dir_ids="entropy, prediction_error"
+inf_dir_ids="entropy, prediction_error"
+labels="entropy, prederror"
+
+python3 plot_average_precision_score.py \
+	-g ${graph} \
+	-d ${dataset_id}${gn_suffix} \
+        -e ${eval_method} \
+	-c ${cascade_dirname} \
+	--query_dirname ${query_dirname} \
+	--inf_dirname ${inf_dirname} \
+	-s ${sample_method} \
+	-n ${n_queries} \
+        --query_dir_ids ${query_dir_ids} \
+	--inf_dir_ids ${inf_dir_ids} \
+	--legend_labels ${labels} \
+        -f ${dataset_id}${gn_suffix}
+
+
