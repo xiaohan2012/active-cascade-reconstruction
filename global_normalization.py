@@ -6,6 +6,7 @@ def normalize_globally(g):
     weights = get_edge_weights(g)
     deg = g.degree_property_map("out", weights)
     w_max = deg.a.max()
+    print('w_max', w_max)
     print('old weight', weights.a)
     new_g = g.copy()
     new_weights = get_edge_weights(new_g)
@@ -25,6 +26,19 @@ def normalize_globally(g):
 
     new_g.edge_properties['weights'] = new_weights
     return new_g
+
+
+def reverse_edge_weights(g):
+    weights = get_edge_weights(g)
+    for e in g.edges():
+        u, v = int(e.source()), int(e.target())
+        if u < v:
+            er = g.edge(e.target(), e.source())
+            # print('before', weights[e], weights[er])
+            weights[e], weights[er] = weights[er], weights[e]
+            # print('after', weights[e], weights[er])
+    g.edge_properties['weights'] = weights
+    return g
 
 
 def main():
