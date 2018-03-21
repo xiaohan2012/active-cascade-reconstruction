@@ -11,6 +11,11 @@
 
 # shell scripts
 
+## graph preprocessing
+
+- use `make_graph_weighted.py` to add weights and use the resulting graph to simulate cascade
+- use `preprocess_graph.py` to apply global normalization and edge reversing
+
 ## cascade generation
 
 - `gen_cascades_with_varying_size.sh`

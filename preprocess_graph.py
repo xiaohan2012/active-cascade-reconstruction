@@ -47,7 +47,7 @@ def preprocess(g):
 def main():
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('-g', '--graph', help='graph name')
-    parser.add_argument('-s', '--graph_suffix', help='')
+    parser.add_argument('-s', '--graph_suffix', default='', help='')
     parser.add_argument('-w', '--weighted', action='store_true', help='')
     parser.add_argument('-o', '--output_path', help='')
     
