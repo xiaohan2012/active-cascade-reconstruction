@@ -1,7 +1,7 @@
 import pytest
 from graph_tool import Graph
 from graph_helpers import extract_nodes, extract_edges, get_edge_weights
-from global_normalization import normalize_globally, reverse_edge_weights
+from preprocess_graph import normalize_globally, reverse_edge_weights
 
 
 @pytest.fixture
