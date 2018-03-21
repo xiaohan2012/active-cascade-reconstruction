@@ -3,16 +3,14 @@ from graph_helpers import load_graph_by_name, get_edge_weights
 
 
 def normalize_globally(g):
+    print('global normlization')
     weights = get_edge_weights(g)
     deg = g.degree_property_map("out", weights)
     w_max = deg.a.max()
-    print('w_max', w_max)
-    print('old weight', weights.a)
     new_g = g.copy()
     new_weights = get_edge_weights(new_g)
     new_weights.a /= w_max
     new_deg = new_g.degree_property_map("out", new_weights)
-    print('new weight (before self-loops)', new_weights.a)
 
     # add self-loops
     self_loops = [(v, v) for v in new_g.vertices()]
@@ -22,13 +20,13 @@ def normalize_globally(g):
     new_weights = get_edge_weights(new_g)
     for v, v in self_loops:
         new_weights[new_g.edge(v, v)] = 1 - new_deg[v]
-    print('new weight (after self-loops)', new_weights.a)
 
     new_g.edge_properties['weights'] = new_weights
     return new_g
 
 
 def reverse_edge_weights(g):
+    print('reversing')
     weights = get_edge_weights(g)
     for e in g.edges():
         u, v = int(e.source()), int(e.target())
@@ -39,6 +37,11 @@ def reverse_edge_weights(g):
             # print('after', weights[e], weights[er])
     g.edge_properties['weights'] = weights
     return g
+
+
+def preprocess(g):
+    return reverse_edge_weights(
+        normalize_globally(g))
 
 
 def main():
@@ -53,7 +56,7 @@ def main():
     g = load_graph_by_name(args.graph,
                            weighted=args.weighted,
                            suffix=args.graph_suffix)
-    new_g = normalize_globally(g)
+    new_g = preprocess(g)
 
     new_g.save(args.output_path)
     print('saved to {}'.format(args.output_path))

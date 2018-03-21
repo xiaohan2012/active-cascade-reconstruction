@@ -3,7 +3,7 @@ import pytest
 from graph_tool.generation import lattice
 from random_steiner_tree import util
 from graph_helpers import remove_filters, get_edge_weights
-from global_normalization import normalize_globally
+from preprocess_graph import preprocess
 
 
 @pytest.fixture
@@ -19,7 +19,7 @@ def g():
     ew.a = np.random.random(graph.num_edges()) * 0.2 + 0.8
     graph.edge_properties['weights'] = ew
 
-    return normalize_globally(graph)
+    return preprocess(graph)
 
 
 @pytest.fixture

@@ -1,7 +1,7 @@
 import pytest
 from graph_tool import Graph
 from graph_helpers import extract_nodes, extract_edges, get_edge_weights
-from preprocess_graph import normalize_globally, reverse_edge_weights
+from preprocess_graph import normalize_globally, preprocess
 
 
 @pytest.fixture
@@ -67,9 +67,8 @@ def test_normalize_globally(g):
         assert pytest.approx(1.0) == deg[v]
 
 
-def test_reverse_edge_weights(g):
-    norm_g = normalize_globally(g)
-    norm_g = reverse_edge_weights(norm_g)
+def test_preprocess(g):
+    norm_g = preprocess(g)
 
     max_w = 1.5
     expected_edges_and_weights = {

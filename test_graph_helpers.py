@@ -124,7 +124,7 @@ def test_k_hop_neighbors():
     |    |
     2 -- 3 -- 4  -- 5
     """
-    g = Graph(directed=True)
+    g = Graph(directed=False)
     g.add_vertex(6)
     edges = [(0, 1), (0, 2), (1, 3), (2, 3), (3, 4), (4, 5)]
     for u, v in edges:
