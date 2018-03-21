@@ -252,6 +252,9 @@ def init_visitor(g, root):
 
 
 def is_tree(t):
+    # to undirected
+    t = GraphView(t, directed=False)
+    
     # num nodes = num edges+1
     if t.num_vertices() != (t.num_edges() + 1):
         return False

@@ -22,6 +22,7 @@ def test_query_method(g, query_method, sampling_method, root_sampler, with_inc_s
     print('root_sampler: ', root_sampler)
 
     gv = remove_filters(g)
+    print(gv.num_edges())
     edge_weights = get_edge_weights(gv)
     
     if query_method in {'entropy', 'error'}:
@@ -57,7 +58,7 @@ def test_query_method(g, query_method, sampling_method, root_sampler, with_inc_s
     sim = Simulator(gv, q_gen, gi=gi, print_log=True)
     print('simulator created')
     n_queries = 10
-    qs, aux = sim.run(n_queries)
+    qs, aux = sim.run(n_queries, gen_input_kwargs={'min_size': 20})
     print('sim.run finished')
     
     assert len(qs) == n_queries

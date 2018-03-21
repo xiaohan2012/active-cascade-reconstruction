@@ -8,14 +8,15 @@ from sample_pool import TreeSamplePool
 from graph_helpers import is_steiner_tree
 from tree_stat import TreeBasedStatistics
 from graph_helpers import observe_uninfected_node
-from random_steiner_tree.util import isolate_vertex
+from random_steiner_tree.util import isolate_vertex, edges as gi_edges
 from fixture import g, gi, obs
 
 
 @pytest.mark.parametrize("normalize_p", ['div_max', None])
-def test_uncertainty_scores(g, gi, obs, normalize_p):
+@pytest.mark.parametrize("sampling_method", ['cut', 'loop_erased'])
+def test_uncertainty_scores(g, gi, obs, normalize_p, sampling_method):
     estimator = TreeBasedStatistics(g)
-    sampler = TreeSamplePool(g, 25, 'cut', gi=gi,
+    sampler = TreeSamplePool(g, 25, sampling_method, gi=gi,
                              return_tree_nodes=True)
     sampler.fill(obs)
 
@@ -31,7 +32,7 @@ def test_uncertainty_scores(g, gi, obs, normalize_p):
         
 
 @pytest.mark.parametrize("return_tree_nodes", [True, False])
-@pytest.mark.parametrize("method", ['cut_naive', 'cut', 'loop_erased'])
+@pytest.mark.parametrize("method", ['cut', 'loop_erased'])
 def test_sample_steiner_trees(g, gi, obs, return_tree_nodes, method):
     n_samples = 100
     st_trees_all = sample_steiner_trees(g, obs, method, n_samples,
@@ -75,6 +76,12 @@ def test_TreeSamplePool_with_incremental_sampling(g, gi, obs, method, edge_weigh
         list(set(np.arange(g.num_vertices())) - set(obs)))
     isolate_vertex(gi, n_rm)
     observe_uninfected_node(g, n_rm, obs)
+
+    print('n_rm', n_rm)
+    print('n_rm.out_edges()', list(g.vertex(n_rm).out_edges()))
+    print('n_rm.in_edges()', list(g.vertex(n_rm).in_edges()))
+    edges = {e for e in gi_edges(gi) if n_rm in set(e)}
+    print('gi.vertex(n_rem).edges()', edges)
 
     num_invalid_trees = sum(1 for t in sampler.samples if n_rm in t)
     valid_trees = [t

@@ -58,7 +58,7 @@ def one_round_experiment(g, obs, c, q_gen, query_method, ks,
         # if debug, we need to check how the graph is changed
         g = remove_filters(g)  # protect the original graph
 
-    assert not g.is_directed()
+    # assert not g.is_directed()
     
     performance = {k: [] for k in ks}  # grouped by k values
     inf_nodes = list(obs)

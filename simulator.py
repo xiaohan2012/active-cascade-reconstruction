@@ -17,11 +17,11 @@ class Simulator():
         self.print_log = print_log
 
     # @profile
-    def run(self, n_queries, obs=None, c=None):
+    def run(self, n_queries, obs=None, c=None, gen_input_kwargs={}):
         """return the list of query nodes
         """
         if obs is None or c is None:
-            obs, c = gen_input(self.g)
+            obs, c = gen_input(self.g, **gen_input_kwargs)
 
         self.q_gen.receive_observation(obs, c)
 

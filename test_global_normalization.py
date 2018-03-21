@@ -6,7 +6,7 @@ from global_normalization import normalize_globally
 
 @pytest.fixture
 def g():
-    g = Graph(directed=False)
+    g = Graph(directed=True)
     g.add_vertex(4)
     g.add_edge_list([(0, 1), (1, 3), (0, 2), (2, 3)])
     weights = g.new_edge_property('float')

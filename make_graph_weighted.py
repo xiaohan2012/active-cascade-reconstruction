@@ -13,6 +13,11 @@ def main():
     args = parser.parse_args()
     g = load_graph_by_name(args.graph)
 
+    g.set_directed(True)
+    edges_iter = list(g.edges())
+    for e in edges_iter:
+        g.add_edge(e.target(), e.source())
+    
     weights = g.new_edge_property('float')
     weights.a = np.random.random(g.num_edges()) * (args.p_max - args.p_min) + args.p_min
 
