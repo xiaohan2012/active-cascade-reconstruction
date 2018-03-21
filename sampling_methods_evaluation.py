@@ -60,7 +60,8 @@ def describe_stuff(scores_by_root_sampling_method):
 
 
 def print_result(df_by_keys):
-    keys = ['pagerank-eps0.0', 'pagerank-eps0.5', 'pagerank-eps1.0', 'random_root', 'true root']
+    # 'pagerank-eps0.0', 'pagerank-eps0.5', 'pagerank-eps1.0',
+    keys = ['random_root', 'true_root']
     for k in keys:
         df = df_by_keys[k]
         print(k)
@@ -78,6 +79,7 @@ if __name__ == '__main__':
     parser.add_argument('-f', '--graph_suffix',
                         required=True,
                         help='suffix of graph name')
+    parser.add_argument('-i', '--input_path', help='graph name')    
     parser.add_argument('-q', '--obs_fraction',
                         type=float,
                         help='fraction of observed infections')
@@ -93,12 +95,13 @@ if __name__ == '__main__':
 
     graph_name = args.graph
     suffix = args.graph_suffix
+    output_path = args.output_path
     
     q = args.obs_fraction
 
-    g = load_graph_by_name(graph_name, weighted=True, suffix='_'+suffix)
+    g = load_graph_by_name(graph_name, weighted=True, suffix=suffix)
 
-    stuff = pkl.load(open('outputs/inf_probas/{}-{}-q{}.pkl'.format(graph_name, suffix, q), 'rb'))
+    stuff = pkl.load(open(args.input_path, 'rb'))
 
     ap_scores_by_root_sampling_method = accumulate_score(stuff, average_precision_score)
     roc_scores_by_root_sampling_method = accumulate_score(stuff, roc_auc_score)
@@ -114,7 +117,7 @@ if __name__ == '__main__':
     recall_df_by_root_sampling_method = describe_stuff(recall_by_root_sampling_method)
     f1_df_by_root_sampling_method = describe_stuff(f1_scores_by_root_sampling_method)
 
-    output_path = 'eval_result/{}-{}-q{}-by_root_sampling_methods.pkl'.format(graph_name, suffix, q)
+    # output_path = 'eval_result/{}-{}-q{}-by_root_sampling_methods.pkl'.format(graph_name, suffix, q)
     print('output_path', output_path)
 
     result = {

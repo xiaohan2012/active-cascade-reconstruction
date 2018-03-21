@@ -15,11 +15,12 @@ for i ({1..3}); do
     max_size=${max_sizes[${i}]}
     
     for obs_fraction in ${obs_fractions}; do
-	output_path="outputs/inf_probas/${graph}-s${min_size}-${max_size}-q${obs_fraction}.pkl"
-	# print ${output_path}
+	input_path="outputs/inf_probas/${graph}-s${min_size}-${max_size}-q${obs_fraction}.pkl"
+	output_path="eval_result/${graph}-s${min_size}-${max_size}-q${obs_fraction}-by_root_sampling_methods.pkl"
 	print "python3 sampling_methods_evaluation.py \
 -g ${graph} \
 -f ${graph_suffix} \
+-i ${input_path} \
 -q ${obs_fraction} \
 -o ${output_path}"
     done
