@@ -12,7 +12,7 @@ from joblib import delayed, Parallel
 
 from experiment import gen_input
 from helpers import infected_nodes
-from graph_helpers import load_graph_by_name
+from graph_helpers import load_graph_by_name, get_edge_weights
 from core import sample_steiner_trees
 from tree_stat import TreeBasedStatistics
 from random_steiner_tree.util import from_gt
@@ -49,7 +49,7 @@ def incremental_simulation(g, c, p, return_new_edges=False):
         return new_c
 
 
-def one_run(g, q, eps, root_sampler_name):
+def one_run(g, norm_g, q, eps, root_sampler_name, min_size, max_size, with_inc=False):
     n_samples = 100
 
     p = g.edge_properties['weights']
@@ -57,7 +57,9 @@ def one_run(g, q, eps, root_sampler_name):
     obs, c = gen_input(
         g, source=None,
         p=p, q=q,
-        model='ic', min_size=10)
+        model='ic',
+        min_size=min_size,
+        max_size=max_size)
 
     # inf_nodes = infected_nodes(c)
     source = np.nonzero(c == 0)[0][0]
@@ -71,35 +73,39 @@ def one_run(g, q, eps, root_sampler_name):
 
     # method 2:
     # vanilla steiner tree sampling
-    gi = from_gt(g)
+    gi = from_gt(norm_g, weights=get_edge_weights(norm_g))
     st_tree_nodes = sample_steiner_trees(g, obs, root=root_sampler(),
                                          method='cut', n_samples=n_samples, gi=gi, return_tree_nodes=True)
     node_stat = TreeBasedStatistics(g, st_tree_nodes)
     st_naive_probas = node_stat.unconditional_proba()
 
-    # method 3
-    # with incremental cascade simulation
-    st_tree_nodes = sample_steiner_trees(g, obs, root=root_sampler(),
-                                         method='cut', n_samples=n_samples, gi=gi, return_tree_nodes=True)
-    new_tree_nodes = []
-    for nodes in st_tree_nodes:
-        fake_c = np.ones(g.num_vertices()) * (-1)
-        fake_c[list(nodes)] = 1
-        new_c = incremental_simulation(g, fake_c, p, return_new_edges=False)
-        new_tree_nodes.append(infected_nodes(new_c))
-    node_stat = TreeBasedStatistics(g, new_tree_nodes)
-    st_tree_inc_probas = node_stat.unconditional_proba()
-        
-    # y_true = np.zeros((len(c), ))
-    # y_true[inf_nodes] = 1
+    if with_inc:
+        # method 3
+        # with incremental cascade simulation
+        st_tree_nodes = sample_steiner_trees(g, obs, root=root_sampler(),
+                                             method='cut', n_samples=n_samples, gi=gi, return_tree_nodes=True)
+        new_tree_nodes = []
+        for nodes in st_tree_nodes:
+            fake_c = np.ones(g.num_vertices()) * (-1)
+            fake_c[list(nodes)] = 1
+            new_c = incremental_simulation(g, fake_c, p, return_new_edges=False)
+            new_tree_nodes.append(infected_nodes(new_c))
+        node_stat = TreeBasedStatistics(g, new_tree_nodes)
+        st_tree_inc_probas = node_stat.unconditional_proba()
+            
+        # y_true = np.zeros((len(c), ))
+        # y_true[inf_nodes] = 1
 
-    # mask = np.array([(i not in obs) for i in range(len(c))])
+        # mask = np.array([(i not in obs) for i in range(len(c))])
 
-    row = {'c': c,
-           'obs': obs,
-           'st_naive_probas': st_naive_probas,
-           'st_tree_inc_probas': st_tree_inc_probas
+    row = {
+        'c': c,
+        'obs': obs,
+        'st_naive_probas': st_naive_probas
     }
+
+    if with_inc:
+        row['st_tree_inc_probas'] = st_tree_inc_probas
     # # for inf_probas in [brute_force_inf_probas, st_naive_probas, st_tree_inc_probas]:
     # for inf_probas in [st_naive_probas, st_tree_inc_probas]:
     #     row.append(average_precision_score(y_true[mask], inf_probas[mask]))
@@ -117,6 +123,13 @@ if __name__ == '__main__':
     parser.add_argument('-n', '--n_runs',
                         type=int,
                         help='num. of runs')
+    parser.add_argument('--min_size',
+                        type=int,
+                        help='minimum cascade size')
+    parser.add_argument('--max_size',
+                        type=int,
+                        help='maximum cascade size')
+    
     parser.add_argument('-q', '--obs_fraction',
                         type=float,
                         help='fraction of observed infections')
@@ -134,12 +147,19 @@ if __name__ == '__main__':
     suffix = args.graph_suffix
     n_runs = args.n_runs
     q = args.obs_fraction
+    min_size = args.min_size
+    max_size = args.max_size
+    
+    g = load_graph_by_name(graph_name, weighted=True)
+    norm_g = load_graph_by_name(graph_name, weighted=True, suffix=suffix)
 
-    g = load_graph_by_name(graph_name, weighted=True, suffix=suffix)
-
+    print('g.num_edges()', g.num_edges())
+    print('norm_g.num_edges()', norm_g.num_edges())
+    
     result = {}
     for eps in [0.0, 0.5, 1.0]:
-        rows = Parallel(n_jobs=-1)(delayed(one_run)(g, q, eps, 'pagerank')
+        rows = Parallel(n_jobs=-1)(delayed(one_run)(g, norm_g, q, eps, 'pagerank',
+                                                    min_size, max_size)
                                    for i in tqdm(range(n_runs), total=n_runs))
         # df = pd.DataFrame(rows, columns=['st_vanilla', 'st_inc'])
         print('pagerank, eps=', eps)
@@ -147,17 +167,19 @@ if __name__ == '__main__':
         result['pagerank-eps{}'.format(eps)] = rows
 
     print('root sampler = None')
-    rows = Parallel(n_jobs=-1)(delayed(one_run)(g, q, 0.0, None)
+    rows = Parallel(n_jobs=-1)(delayed(one_run)(g, norm_g, q, 0.0, None,
+                                                min_size, max_size)
                                for i in tqdm(range(n_runs), total=n_runs))
     # df = pd.DataFrame(rows, columns=['st_vanilla', 'st_inc'])
     # print(df.describe())
     result['random_root'] = rows
 
     print('root sampler = real source')
-    rows = Parallel(n_jobs=-1)(delayed(one_run)(g, q, 0.0, 'true')
+    rows = Parallel(n_jobs=-1)(delayed(one_run)(g, norm_g, q, 0.0, 'true',
+                                                min_size, max_size)
                                for i in tqdm(range(n_runs), total=n_runs))
     # df = pd.DataFrame(rows, columns=['st_vanilla', 'st_inc'])
     # print(df.describe())
-    result['true root'] = rows
+    result['true_root'] = rows
 
     pkl.dump(result, open(args.output_path, 'wb'))

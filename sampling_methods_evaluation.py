@@ -26,11 +26,12 @@ def accumulate_score(stuff, eval_func):
             mask = np.array([(i not in obs) for i in range(len(c))])
 
             score = {}
-            names = ['random', 'st_naive', 'st_inc']
+            # names = ['random', 'st_naive', 'st_inc']
+            names = ['random', 'st_naive']
             random_inf_p = np.random.random(g.num_vertices())
             for name, inf_probas in zip(names, [random_inf_p,
-                                                row['st_naive_probas'],
-                                                row['st_tree_inc_probas']]):
+                                                row['st_naive_probas']]):
+                                                # row['st_tree_inc_probas']]):
                 score[name] = eval_func(y_true[mask], inf_probas[mask])
             scores_by_root_sampling_method[root_sampling_method].append(score)
     return scores_by_root_sampling_method
@@ -77,9 +78,6 @@ if __name__ == '__main__':
     parser.add_argument('-f', '--graph_suffix',
                         required=True,
                         help='suffix of graph name')
-    parser.add_argument('-n', '--n_runs',
-                        type=int,
-                        help='num. of runs')
     parser.add_argument('-q', '--obs_fraction',
                         type=float,
                         help='fraction of observed infections')
