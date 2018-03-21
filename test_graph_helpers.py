@@ -1,6 +1,7 @@
 import pytest
 from numpy.testing import assert_almost_equal
 from graph_tool import Graph
+from graph_tool.topology import label_components
 from graph_tool.generation import complete_graph, lattice
 from scipy.stats import entropy
 
@@ -9,6 +10,7 @@ from graph_helpers import (extract_steiner_tree, filter_graph_by_edges,
                            extract_edges, extract_nodes,
                            remove_filters,
                            contract_graph_by_nodes,
+                           isolate_node,
                            hide_disconnected_components,
                            k_hop_neighbors,
                            pagerank_scores,
@@ -86,6 +88,18 @@ def test_contract_graph_by_nodes():
     assert_almost_equal(new_weights.a, weights.a)
 
 
+def test_isolate_node():
+    g = remove_filters(Graph(directed=True))
+    g.add_vertex(4)
+    g.add_edge_list([(0, 1), (1, 0), (0, 2,), (2, 0), (0, 3), (3, 0)])
+
+    isolate_node(g, 1)
+    assert set(label_components(g, directed=False)[0].a) == {0, 1}
+
+    isolate_node(g, 0)
+    assert set(label_components(g, directed=False)[0].a) == {0, 1, 2, 3}
+
+
 def test_isolate_disconnected_components():
     ######### case 1 #######
     g = remove_filters(Graph(directed=False))
@@ -110,7 +124,7 @@ def test_k_hop_neighbors():
     |    |
     2 -- 3 -- 4  -- 5
     """
-    g = Graph(directed=False)
+    g = Graph(directed=True)
     g.add_vertex(6)
     edges = [(0, 1), (0, 2), (1, 3), (2, 3), (3, 4), (4, 5)]
     for u, v in edges:

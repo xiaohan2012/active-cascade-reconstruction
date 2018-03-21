@@ -2,7 +2,7 @@ import numpy as np
 import itertools
 from copy import copy
 from collections import defaultdict
-from itertools import repeat
+from itertools import repeat, chain
 
 from graph_tool import Graph, GraphView, load_graph
 from graph_tool.search import bfs_search, BFSVisitor
@@ -38,7 +38,7 @@ def filter_graph_by_edges(g, edges):
 
 
 def get_leaves(t):
-    assert t.is_directed() is False
+    # assert t.is_directed() is False
     return np.nonzero(t.degree_property_map(deg='out').a == 1)[0]
 
 
@@ -279,7 +279,8 @@ def isolate_node(g, n):
     **with side-effect**
     """
     efilt = g.get_edge_filter()[0]
-    incident_edges = g.vertex(n).out_edges()
+    v = g.vertex(n)
+    incident_edges = chain(v.out_edges(), v.in_edges())
 
     for e in incident_edges:
         # print('isolate node: hiding {}'.format(e))
@@ -308,7 +309,7 @@ def remove_filters(g):
     vfilt.a = True
 
     # print('making GraphView started')
-    gv = GraphView(g, efilt=efilt, vfilt=vfilt, directed=False)
+    gv = GraphView(g, efilt=efilt, vfilt=vfilt, directed=g.is_directed())
     # print('making GraphView done')
     return gv
 
@@ -357,7 +358,7 @@ def load_graph_by_name(name, weighted=False, suffix=''):
             path = 'data/{}/graph{}.gt'.format(name, suffix)
         print('load graph from {}'.format(path))
         g = load_graph(path)
-    assert not g.is_directed()
+    # assert not g.is_directed()
     return remove_filters(g)  # add shell
 
 
