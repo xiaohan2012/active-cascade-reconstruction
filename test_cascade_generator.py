@@ -27,19 +27,17 @@ def test_get_infection_time(g):
     assert_array_equal(time, [0, 1, 2, 3])
 
 
-@pytest.mark.parametrize('return_tree', [True, False])
-def test_ic(g, p, return_tree):
-    source, time, tree = ic(g, p, 0, return_tree=return_tree)
+@pytest.mark.parametrize('return_tree_edges', [True, False])
+def test_ic(g, p, return_tree_edges):
+    source, time, tree_edges = ic(g, p, 0, return_tree_edges=return_tree_edges)
 
     assert source == 0
     assert_array_equal(time, [0, 1, 2, 3])
 
-    if return_tree:
-        assert tree.is_directed()
-        assert extract_nodes(tree) == [0, 1, 2, 3]
-        assert extract_edges(tree) == [(0, 1), (1, 2), (2, 3)]
+    if return_tree_edges:
+        assert tree_edges == [(0, 1), (1, 2), (2, 3)]
     else:
-        assert tree is None
+        assert tree_edges is None
 
 
 @pytest.fixture

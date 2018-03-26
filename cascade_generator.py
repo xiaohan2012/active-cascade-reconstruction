@@ -33,7 +33,7 @@ def observe_cascade(c, source, q, method='uniform',
         return np.argsort(c)[-num_obs:]
     elif method == 'leaves':
         assert tree is not None, 'to get the leaves, the cascade tree is required'
-        print('get leaves...')
+        # print('get leaves...')
         return get_leaves(tree, deg='out')
     else:
         raise ValueError('unknown method {}'.format(method))
@@ -123,7 +123,7 @@ def get_infection_time(g, source, return_edges=False):
         edges = []
         reached = infected_nodes(time)
         for v in reached:
-            print(v)
+            # print(v)
             if pred_map[v] >= 0 and pred_map[v] != v:
                 edges.append((pred_map[v], v))
         return time, edges
@@ -131,7 +131,8 @@ def get_infection_time(g, source, return_edges=False):
         return time
 
 
-def ic(g, p, source=None, return_tree=False):
+def ic(g, p, source=None, return_tree_edges=False,
+       min_size=0, max_size=1e10):
     """
     graph_tool version of simulating cascade
     return np.ndarray on vertices as the infection time in cascade
@@ -141,16 +142,24 @@ def ic(g, p, source=None, return_tree=False):
         source = random.choice(np.arange(g.num_vertices(), dtype=int))
     gv = sample_graph_by_p(g, p)
 
-    stuff = get_infection_time(gv, source, return_edges=return_tree)
+    times = get_infection_time(gv, source, return_edges=False)
+    size = len(infected_nodes(times))
 
-    if not return_tree:
+    if size < min_size or size > max_size:
+        # size does not fit
+        # early stopping to save time
+        return source, times, None
+    
+    stuff = get_infection_time(gv, source, return_edges=return_tree_edges)
+
+    if not return_tree_edges:
         times = stuff
-        tree = None
+        tree_edges = None
     else:
         times, tree_edges = stuff
-        tree = filter_graph_by_edges(gv, tree_edges)
+        # tree = filter_graph_by_edges(gv, tree_edges)
     
-    return source, times, tree
+    return source, times, tree_edges
 
 
 def incremental_simulation(g, c, p, num_nodes, return_new_edges=False):

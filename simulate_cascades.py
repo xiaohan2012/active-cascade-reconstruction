@@ -36,6 +36,10 @@ parser.add_argument('-w', '--use_edge_weights', action='store_true',
                     help="""flag on using random edge probability.
 If ON, edge weight is sampled uniformly from [p_min, p_max]""")
 
+parser.add_argument('--observation_method', type=str, choices=('uniform', 'leaves', 'late'),
+                    help='how infections are observed')
+
+
 
 args = parser.parse_args()
 
@@ -65,6 +69,7 @@ for i in tqdm(range(args.n_cascades)):
                        q=args.obs_fraction,
                        p=p,
                        model=args.cascade_model,
+                       observation_method=args.observation_method,
                        min_size=args.min_size,
                        max_size=args.max_size)
 

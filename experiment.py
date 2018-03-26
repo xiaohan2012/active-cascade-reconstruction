@@ -6,6 +6,7 @@ from query_selection import EntropyQueryGenerator
 from inference import infection_probability
 from eval_helpers import top_k_infection_precision_recall
 from graph_helpers import (isolate_node, remove_filters,
+                           filter_graph_by_edges,
                            hide_disconnected_components,
                            load_graph_by_name)
 
@@ -13,6 +14,7 @@ from graph_helpers import (isolate_node, remove_filters,
 def gen_input(g, source=None, cascade_path=None, stop_fraction=0.25, p=0.5, q=0.1, model='si',
               observation_method='uniform',
               min_size=10, max_size=100):
+    # print('observation_method', observation_method)
     tree_requiring_methods = {'leaves'}
 
     if cascade_path is None:
@@ -21,11 +23,15 @@ def gen_input(g, source=None, cascade_path=None, stop_fraction=0.25, p=0.5, q=0.
                             source=source)
         elif model == 'ic':
             while True:
-                s, c, tree = ic(g, p, source=source,
-                                return_tree=(observation_method in tree_requiring_methods))
+                s, c, tree_edges = ic(g, p, source=source,
+                                      min_size=min_size,
+                                      max_size=max_size,
+                                      return_tree_edges=(observation_method in tree_requiring_methods))
                 size = np.sum(c >= 0)
                 if size >= min_size and size <= max_size:  # size fits
                     # print('big enough')
+                    # do this later because it's slow
+                    tree = filter_graph_by_edges(g, tree_edges)
                     break
                 # print('{} not in range ({}, {})'.format(size, min_size, max_size))
         else:
@@ -34,6 +40,7 @@ def gen_input(g, source=None, cascade_path=None, stop_fraction=0.25, p=0.5, q=0.
         print('load from cache')
         c = pkl.load(open(cascade_path, 'rb'))
         s = np.nonzero([c == 0])[1][0]
+        tree = None
 
     obs = observe_cascade(c, s, q, observation_method, tree=tree)
     return obs, c
