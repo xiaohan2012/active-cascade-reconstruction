@@ -4,7 +4,7 @@ from tqdm import tqdm
 from core import uncertainty_scores
 from graph_tool.centrality import pagerank
 from graph_helpers import extract_nodes
-from root_sampler import build_root_sampler_by_pagerank_score
+from root_sampler import build_root_sampler_by_pagerank_score, build_true_root_sampler
 
 
 class NoMoreQuery(Exception):
@@ -109,7 +109,8 @@ class SamplingBasedGenerator(BaseQueryGenerator):
             except ValueError as e:
                 raise NoMoreQuery from e
         elif self.root_sampler_name == 'true_root':
-            raise NotImplementedError('to do bro')
+            self.root_sampler = build_true_root_sampler(c)
+            # raise NotImplementedError('to do bro')
         elif self.root_sampler_name == 'random':
             self.root_sampler = None  # equivalent to 'random'
 
