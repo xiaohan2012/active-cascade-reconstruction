@@ -47,6 +47,11 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
 
     args = parser.parse_args()
 
+    print("Args:")
+    print('-' * 10)
+    for k, v in args._get_kwargs():
+        print("{}={}".format(k, v))
+    
     inf_result_dirname = 'outputs/{}/{}/{}'.format(args.inf_dirname,
                                                    args.data_id,
                                                    args.sampling_method)
@@ -120,7 +125,7 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
     ax.yaxis.label.set_fontsize(20)
 
     # plt.ylim(0.2, 0.8)
-    dirname = 'figs/{}'.format(args.``eval_method)
+    dirname = 'figs/{}'.format(args.eval_method)
     if not os.path.exists(dirname):
         os.makedirs(dirname)
 
