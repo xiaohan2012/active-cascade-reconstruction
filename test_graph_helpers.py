@@ -14,7 +14,8 @@ from graph_helpers import (extract_steiner_tree, filter_graph_by_edges,
                            hide_disconnected_components,
                            k_hop_neighbors,
                            pagerank_scores,
-                           reachable_node_set)
+                           reachable_node_set,
+                           get_leaves)
 
 
 
@@ -160,3 +161,28 @@ def test_reachable_node_set():
     g.add_edge_list([(0, 1), (1, 2)])
     actual = reachable_node_set(g, source=0)
     assert actual == {0, 1, 2}
+
+
+
+@pytest.fixture
+def tree():
+    g = Graph(directed=True)
+    g.add_vertex(4)
+    g.add_edge_list([(0, 1), (1, 2), (1, 3)])
+    return g
+
+
+@pytest.fixture
+def line():
+    g = Graph(directed=True)
+    g.add_vertex(4)
+    g.add_edge_list([(0, 1), (1, 2), (2, 3)])
+    return g
+
+
+@pytest.mark.parametrize('tree, expected',
+                         [(tree(), [2, 3]),
+                          (line(), [3])])
+def test_get_leaves(tree, expected):
+    leaves = get_leaves(tree, deg='out')
+    assert list(leaves) == expected

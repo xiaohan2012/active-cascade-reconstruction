@@ -37,9 +37,10 @@ def filter_graph_by_edges(g, edges):
     return GraphView(g, efilt=efilt, vfilt=vfilt)
 
 
-def get_leaves(t):
+def get_leaves(t, deg):
+    assert deg in {'in', 'out'}
     # assert t.is_directed() is False
-    return np.nonzero(t.degree_property_map(deg='out').a == 1)[0]
+    return np.nonzero(t.degree_property_map(deg=deg).a == 0)[0]
 
 
 def extract_nodes(g):

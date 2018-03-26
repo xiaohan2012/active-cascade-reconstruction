@@ -7,12 +7,13 @@ from graph_tool import Graph, GraphView, PropertyMap
 from graph_tool.topology import shortest_distance, label_components
 
 from helpers import infected_nodes
-
+from graph_helpers import filter_graph_by_edges, get_leaves
 
 MAXINT = np.iinfo(np.int32).max
 
 
-def observe_cascade(c, source, q, method='uniform', source_includable=False):
+def observe_cascade(c, source, q, method='uniform',
+                    tree=None, source_includable=False):
     """
     given a cascade `c` and `source`,
     return a list of observed nodes according to probability `q`
@@ -30,6 +31,12 @@ def observe_cascade(c, source, q, method='uniform', source_includable=False):
         return np.random.permutation(all_infection)[:num_obs]
     elif method == 'late':
         return np.argsort(c)[-num_obs:]
+    elif method == 'leaves':
+        assert tree is not None, 'to get the leaves, the cascade tree is required'
+        print('get leaves...')
+        return get_leaves(tree, deg='out')
+    else:
+        raise ValueError('unknown method {}'.format(method))
 
 
 def si(g, p, source=None, stop_fraction=0.5):
@@ -124,7 +131,7 @@ def get_infection_time(g, source, return_edges=False):
         return time
 
 
-def ic(g, p, source=None, return_edges=False):
+def ic(g, p, source=None, return_tree=False):
     """
     graph_tool version of simulating cascade
     return np.ndarray on vertices as the infection time in cascade
@@ -134,9 +141,16 @@ def ic(g, p, source=None, return_edges=False):
         source = random.choice(np.arange(g.num_vertices(), dtype=int))
     gv = sample_graph_by_p(g, p)
 
-    times = get_infection_time(gv, source)
+    stuff = get_infection_time(gv, source, return_edges=return_tree)
+
+    if not return_tree:
+        times = stuff
+        tree = None
+    else:
+        times, tree_edges = stuff
+        tree = filter_graph_by_edges(gv, tree_edges)
     
-    return source, times, None
+    return source, times, tree
 
 
 def incremental_simulation(g, c, p, num_nodes, return_new_edges=False):

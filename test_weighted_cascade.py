@@ -3,7 +3,10 @@ import numpy as np
 from graph_helpers import load_graph_by_name
 from helpers import infected_nodes
 from experiment import gen_input
+
+from graph_tool import Graph
 from itertools import combinations
+
 
 @pytest.fixture
 def g():
@@ -38,3 +41,18 @@ def test_gen_input(g, cascade_model, weighted, source):
             c = r[1]
             frac = len(infected_nodes(c)) / g.num_vertices()
             assert frac <= 0.11
+
+
+def test_gen_input_with_leaves_observed():
+    g = Graph(directed=True)
+    g.add_vertex(4)
+    g.add_edge_list([(0, 1), (1, 2), (2, 3)])
+    p = g.new_edge_property('float')
+    p.set_value(1.0)
+    
+    obs, c = gen_input(g, source=0, model='ic',
+                       p=p,
+                       observation_method='leaves',
+                       min_size=0, max_size=100)
+    assert list(obs) == [3]
+    assert list(c) == list(range(4))
