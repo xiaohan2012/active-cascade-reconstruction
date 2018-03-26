@@ -9,14 +9,14 @@ from collections import Counter
 graph = 'grqc'
 model = 'ic'
 # suffix = '_tmp'
-# stop_fraction = 0
-suffix = '_s0.03'
-stop_fraction = 0.03
-obs_frac = 0.5
+# cascade_fraction = 0
+# suffix = '_s0.01'
+cascade_fraction = 0.02
+obs_frac = "leaves"
 
-dirname = 'cascade-weighted/{}-m{}-s{}-o{}/*'.format(graph, model, stop_fraction, obs_frac)
+dirname = 'cascade-weighted/{}-m{}-s{}-o{}/*'.format(graph, model, cascade_fraction, obs_frac)
 
-g = load_graph_by_name(graph, weighted=True, suffix=suffix)
+g = load_graph_by_name(graph, weighted=True)
 
 gprop = g.graph_properties
 p_min, p_max = gprop['p_min'], gprop['p_max']
@@ -35,6 +35,12 @@ print('top cascade freq:')
 for _, c in Counter(cascasdes).most_common(10):
     print('freq:', c)
 
-print('size describe:')
+print('cascade size describe:')
 print(pd.Series(c_sizes).describe())
+print('-' * 10)
 print('fraction', np.mean(c_sizes) / g.num_vertices())
+
+print('-' * 10)
+print('obs_sizes describe:')
+print(pd.Series(obs_sizes).describe())
+

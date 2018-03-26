@@ -43,8 +43,14 @@ def test_ic(g, p, return_tree_edges):
 @pytest.fixture
 def tree1():
     g = Graph(directed=True)
-    g.add_vertex(4)
+    g.add_vertex(5)  # one remaining singleton
     g.add_edge_list([(0, 1), (1, 2), (1, 3)])
+
+    # to test 4 is not included
+    vfilt = g.new_vertex_property('bool')
+    vfilt.set_value(True)
+    vfilt[4] = False
+    g.set_vertex_filter(vfilt)
     return g
 
 

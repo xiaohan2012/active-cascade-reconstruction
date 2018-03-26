@@ -8,7 +8,8 @@ from eval_helpers import top_k_infection_precision_recall
 from graph_helpers import (isolate_node, remove_filters,
                            filter_graph_by_edges,
                            hide_disconnected_components,
-                           load_graph_by_name)
+                           load_graph_by_name,
+                           extract_edges)
 
 
 def gen_input(g, source=None, cascade_path=None, stop_fraction=0.25, p=0.5, q=0.1, model='si',
@@ -32,6 +33,11 @@ def gen_input(g, source=None, cascade_path=None, stop_fraction=0.25, p=0.5, q=0.
                     # print('big enough')
                     # do this later because it's slow
                     tree = filter_graph_by_edges(g, tree_edges)
+                    print('tree.is_directed()', tree.is_directed())
+                    print('tree.num_vertices()', tree.num_vertices())
+                    print('tree.num_edges()', tree.num_edges())
+                    # print('source', s)
+                    # print('tree.edges()', extract_edges(tree))
                     break
                 # print('{} not in range ({}, {})'.format(size, min_size, max_size))
         else:
@@ -43,6 +49,7 @@ def gen_input(g, source=None, cascade_path=None, stop_fraction=0.25, p=0.5, q=0.
         tree = None
 
     obs = observe_cascade(c, s, q, observation_method, tree=tree)
+    print('len(obs)', len(obs))
     return obs, c
 
 # @profile

@@ -40,7 +40,13 @@ def filter_graph_by_edges(g, edges):
 def get_leaves(t, deg):
     assert deg in {'in', 'out'}
     # assert t.is_directed() is False
-    return np.nonzero(t.degree_property_map(deg=deg).a == 0)[0]
+    vfilt = t._Graph__filter_state['vertex_filter'][0]
+    if vfilt is None:
+        return np.nonzero(t.degree_property_map(deg=deg).a == 0)[0]
+    else:
+        mask = np.logical_and((t.degree_property_map(deg=deg).a == 0),
+                              vfilt.a > 0)
+        return np.nonzero(mask)[0]
 
 
 def extract_nodes(g):
