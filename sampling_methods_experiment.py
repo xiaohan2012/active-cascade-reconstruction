@@ -49,7 +49,11 @@ def incremental_simulation(g, c, p, return_new_edges=False):
         return new_c
 
 
-def one_run(g, norm_g, q, eps, root_sampler_name, min_size, max_size, with_inc=False):
+def one_run(g, norm_g, q, eps, root_sampler_name, min_size, max_size,
+            observation_method="uniform",
+            with_inc=False):
+    print("observation_method", observation_method)
+
     n_samples = 100
 
     p = g.edge_properties['weights']
@@ -58,9 +62,11 @@ def one_run(g, norm_g, q, eps, root_sampler_name, min_size, max_size, with_inc=F
         g, source=None,
         p=p, q=q,
         model='ic',
+        observation_method=observation_method,
         min_size=min_size,
         max_size=max_size)
 
+    print('cascade size', len(infected_nodes(c)))
     # inf_nodes = infected_nodes(c)
     source = np.nonzero(c == 0)[0][0]
 
@@ -75,7 +81,8 @@ def one_run(g, norm_g, q, eps, root_sampler_name, min_size, max_size, with_inc=F
     # vanilla steiner tree sampling
     gi = from_gt(norm_g, weights=get_edge_weights(norm_g))
     st_tree_nodes = sample_steiner_trees(g, obs, root=root_sampler(),
-                                         method='cut', n_samples=n_samples, gi=gi, return_tree_nodes=True)
+                                         method='cut', n_samples=n_samples,
+                                         gi=gi, return_tree_nodes=True)
     node_stat = TreeBasedStatistics(g, st_tree_nodes)
     st_naive_probas = node_stat.unconditional_proba()
 
@@ -83,7 +90,8 @@ def one_run(g, norm_g, q, eps, root_sampler_name, min_size, max_size, with_inc=F
         # method 3
         # with incremental cascade simulation
         st_tree_nodes = sample_steiner_trees(g, obs, root=root_sampler(),
-                                             method='cut', n_samples=n_samples, gi=gi, return_tree_nodes=True)
+                                             method='cut', n_samples=n_samples, gi=gi,
+                                             return_tree_nodes=True)
         new_tree_nodes = []
         for nodes in st_tree_nodes:
             fake_c = np.ones(g.num_vertices()) * (-1)
@@ -133,6 +141,9 @@ if __name__ == '__main__':
     parser.add_argument('-q', '--obs_fraction',
                         type=float,
                         help='fraction of observed infections')
+    parser.add_argument('--observation_method',
+                        type=str,
+                        help='observation method')
     parser.add_argument('-o', '--output_path',
                         help='output_path')
 
@@ -147,6 +158,7 @@ if __name__ == '__main__':
     suffix = args.graph_suffix
     n_runs = args.n_runs
     q = args.obs_fraction
+    observation_method = args.observation_method
     min_size = args.min_size
     max_size = args.max_size
     
@@ -157,9 +169,11 @@ if __name__ == '__main__':
     print('norm_g.num_edges()', norm_g.num_edges())
     
     result = {}
-    for eps in [0.0, 0.5, 1.0]:
+    # if False:
+    for eps in [0.0, 0.5]:
         rows = Parallel(n_jobs=-1)(delayed(one_run)(g, norm_g, q, eps, 'pagerank',
-                                                    min_size, max_size)
+                                                    min_size, max_size,
+                                                    observation_method=observation_method)
                                    for i in tqdm(range(n_runs), total=n_runs))
         # df = pd.DataFrame(rows, columns=['st_vanilla', 'st_inc'])
         print('pagerank, eps=', eps)
@@ -168,7 +182,8 @@ if __name__ == '__main__':
 
     print('root sampler = None')
     rows = Parallel(n_jobs=-1)(delayed(one_run)(g, norm_g, q, 0.0, None,
-                                                min_size, max_size)
+                                                min_size, max_size,
+                                                observation_method=observation_method)
                                for i in tqdm(range(n_runs), total=n_runs))
     # df = pd.DataFrame(rows, columns=['st_vanilla', 'st_inc'])
     # print(df.describe())
@@ -176,7 +191,8 @@ if __name__ == '__main__':
 
     print('root sampler = real source')
     rows = Parallel(n_jobs=-1)(delayed(one_run)(g, norm_g, q, 0.0, 'true',
-                                                min_size, max_size)
+                                                min_size, max_size,
+                                                observation_method=observation_method)
                                for i in tqdm(range(n_runs), total=n_runs))
     # df = pd.DataFrame(rows, columns=['st_vanilla', 'st_inc'])
     # print(df.describe())
