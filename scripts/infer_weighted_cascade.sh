@@ -1,16 +1,19 @@
 #! /bin/zsh
 
 graph="grqc"
+graph_suffix="_preprocessed"
+obs_fraction="leaves"
+cascade_fraction=0.02
+
 sample_method=cut
+cascade_model="ic"
+root_sampler='true_root'
+query_methods=(random pagerank entropy prediction_error)
+
 inf_method="inf_probas"
 
-cascade_model="ic"
-obs_fraction=0.1
-cascade_fraction=0.005
-graph_suffix="_s0.03"
 
-root_sampler='true_root'
-query_methods=(random pagerank entropy entropy-inc prediction_error prediction_error-inc)
+
 
 dataset_id="${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}"
 
@@ -28,8 +31,8 @@ for query_method in ${query_methods}; do
 	    --query_method ${query_method} \
 	    --root_sampler ${root_sampler} \
 	    -q outputs/queries-weighted/${dataset_id}/${sample_method}/${query_method} \
-	    -p outputs/${inf_method}-weighted/${dataset_id}/${sample_method}/${query_method} \
-	    --with_inc_sampling
+	    -p outputs/${inf_method}-weighted/${dataset_id}/${sample_method}/${query_method}
+	    # --with_inc_sampling
 
     # # infer on unweighted graph using weighted queries
     # # this is done to check the effects of edge weights on inference performance

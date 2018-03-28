@@ -1,6 +1,6 @@
 #! /bin/zsh
 
-graph="grqc"
+graph="lattice-1024"
 sample_method=cut
 
 inf_method="inf_probas"
@@ -10,30 +10,37 @@ cascade_dirname='cascade-weighted'
 inf_dirname='inf_probas-weighted'
 
 cascade_model="ic"
-# stop_fractions=(0.01 0.02 0.04 0.08 0.16 0.32)
-# stop_fractions=(0.04 0.08 0.16 0.32 0.64)
-# stop_fractions=(0.02 0.04 0.08 0.16 0.32)
-stop_fractions=(0.03)
-obs_fraction=0.5
+# cascade_fractions=(0.01 0.02 0.04 0.08 0.16 0.32)
+# cascade_fractions=(0.04 0.08 0.16 0.32 0.64)
+# cascade_fractions=(0.02 0.04 0.08 0.16 0.32)
+cascade_fractions=(0.02)
+obs_fraction="leaves"
 
-eval_method="auc"
+# eval_method="ap"
+eval_method="precision_at_cascade_size"
+eval_with_mask=False
+
+# query_dir_ids="random, pagerank, entropy, entropy-inc, prediction_error, prediction_error-inc"
+# inf_dir_ids="random, pagerank, entropy, entropy-inc, prediction_error, prediction_error-inc"
+# labels="random, pagerank, entropy, entropy-inc, prediction_error, prederr-inc"
+
 query_dir_ids="random, pagerank, entropy, prediction_error"
 inf_dir_ids="random, pagerank, entropy, prediction_error"
-labels="random, pagerank, entropy, prederror"
+labels="random, pagerank, entropy, prediction_error"
 
-n_queries=30
+n_queries=10
 
-for stop_fraction in ${stop_fractions}; do
-    dataset_id="${graph}-m${cascade_model}-s${stop_fraction}-o${obs_fraction}"
+for cascade_fraction in ${cascade_fractions}; do
+    dataset_id="${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}"
     # print "${data_id}"
 
-    # if (( ${stop_fraction} == 0.01 )); then
+    # if (( ${cascade_fraction} == 0.01 )); then
     # 	n_queries=20
-    # elif (( ${stop_fraction} == 0.02 )); then
+    # elif (( ${cascade_fraction} == 0.02 )); then
     # 	n_queries=30
-    # elif (( ${stop_fraction} == 0.04 )); then
+    # elif (( ${cascade_fraction} == 0.04 )); then
     # 	n_queries=45
-    # elif (( ${stop_fraction} == 0.08 )); then
+    # elif (( ${cascade_fraction} == 0.08 )); then
     # 	n_queries=60
     # else
     # 	n_queries=100
@@ -43,6 +50,7 @@ python3 plot_average_precision_score.py \
 	-g ${graph} \
 	-d ${dataset_id} \
         -e ${eval_method} \
+        --eval_with_mask ${eval_with_mask} \
 	-c ${cascade_dirname} \
 	--query_dirname ${query_dirname} \
 	--inf_dirname ${inf_dirname} \

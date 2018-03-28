@@ -1,12 +1,12 @@
 #! /bin/zsh
 
-graph="grqc"
+graph="p2p"
 cascade_model="ic"
 n_cascades=96
 cascade_fraction=0.02
 obs_fraction=0.5
-min_size=40
-max_size=120
+min_size=80
+max_size=160
 obs_method="leaves"
 
 dataset_id="${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_method}"
