@@ -12,7 +12,7 @@ from sklearn.metrics import average_precision_score, f1_score, roc_auc_score
 
 from helpers import load_cascades
 from graph_helpers import load_graph_by_name
-from eval_helpers import aggregate_scores_over_cascades_by_methods
+from eval_helpers import aggregate_scores_over_cascades_by_methods, precision_at_cascade_size
 
 np.seterr(divide='raise', invalid='raise')
 
@@ -23,8 +23,11 @@ if __name__ == '__main__':
 
     # eval method
     parser.add_argument('-e', '--eval_method',
-                        choices=('ap', 'auc'),
+                        choices=('ap', 'auc', 'precision_at_cascade_size'),
                         help='evalulation method')
+    parser.add_argument('--eval_with_mask',
+                        type=bool,
+                        help='whether evaluate with masks or not. If True, queries and obs are excluded')
     
     # root directory names
     parser.add_argument('-c', '--cascade_dirname', help='cascade directory name')
@@ -85,6 +88,9 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
         eval_func = average_precision_score
     elif args.eval_method == 'auc':
         eval_func = roc_auc_score
+    elif args.eval_method == 'precision_at_cascade_size':
+        print('precision_at_cascade_size')
+        eval_func = precision_at_cascade_size
     else:
         raise NotImplementedError(args.eval_method)
         
@@ -96,7 +102,8 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
         n_queries,
         inf_result_dirname,
         query_dirname,
-        eval_func)
+        eval_func,
+        args.eval_with_mask)
 
     plt.clf()
 

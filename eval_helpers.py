@@ -5,6 +5,7 @@ from copy import copy
 from tqdm import tqdm
 
 from graph_helpers import extract_nodes
+from sklearn.metrics import precision_score
 
 
 class TooSmallCascadeError(Exception):
@@ -36,6 +37,12 @@ def infection_precision_recall(preds, c, obs):
     return precision, recall
 
 
+def precision_at_cascade_size(y, probas):
+    k = (y > 0).sum()
+    pred_idx = np.argsort(probas)[::-1][:k]
+    return precision_score(y[pred_idx], np.ones(k))
+
+
 def top_k_infection_precision_recall(g, inf_probas, c, obs, k):
     """
     take the top k infections ordered by inf_probas, from high to low
@@ -61,7 +68,8 @@ def aggregate_scores_over_cascades_by_methods(cascades,
                                               n_queries,
                                               inf_result_dirname,
                                               query_dirname,
-                                              eval_func):
+                                              eval_func,
+                                              eval_with_mask):
     """
     each element in `method_labels` uniquely identifies one experiment
 
@@ -115,7 +123,10 @@ def aggregate_scores_over_cascades_by_methods(cascades,
                 # use precision score
                 mask = np.array([(i not in obs_inc) for i in range(len(c))])
                 try:
-                    score = eval_func(y_true[mask], inf_probas[mask])
+                    if eval_with_mask:
+                        score = eval_func(y_true[mask], inf_probas[mask])
+                    else:
+                        score = eval_func(y_true, inf_probas)
                     # y_pred = np.asarray((inf_probas >= 0.5), dtype=np.bool)
                     # score = f1_score(y_true[mask], y_pred[mask])
                     
