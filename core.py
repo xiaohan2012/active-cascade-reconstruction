@@ -104,7 +104,9 @@ def sample_steiner_trees(g, obs,
             else:
                 # print('custom root sampler')
                 assert callable(root_sampler), 'root_sampler should be callable'
+                # print('root_sampler', root_sampler)
                 r = root_sampler()
+                # print('root', r)
         else:
             r = root
 

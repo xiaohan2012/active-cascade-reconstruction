@@ -91,7 +91,7 @@ so our inference algorithm makes sense
 
 random is actually better than pagerank, but worse than `true root`
 
-##  effect of sampling algorithm
+## effect of sampling algorithm
 
 it depends on `q` and evaluation metric.
 
@@ -108,4 +108,28 @@ what we can do:
 - use the actual source (it plays a huge difference)
 
 
+# March 22: after graph proprocessing
 
+observation on infection probability:
+
+- true root > pagerank(eps=0.0) > pagerank(eps=0.5) > random
+- report proba = 0.5 gives larger gap
+- http://193.166.24.212/active-network-reconstruction/figs/infection-probability/
+
+just noticed that the cascade being generated might be quite biased, need to re-run the experiment
+
+observation on AP scores vs \#queries
+
+- after the preprocessing, gap between prederror and random is larger on grqc
+- lattice still gives strange result, this might correlate with fact that infection probabilities on infected/uninfected nodes do not separate well
+
+# Mar 28
+
+why prederror is bad on lattice-1028?
+
+- sampling is noisy making inferred probability noisy
+- prederror considers the uninfected/low-proba nodes, which we are less interested
+
+one fix:
+
+- exclude low probability nodes

@@ -49,6 +49,7 @@ def main():
     parser.add_argument('-g', '--graph', help='graph name')
     parser.add_argument('-s', '--graph_suffix', default='', help='')
     parser.add_argument('-w', '--weighted', action='store_true', help='')
+    parser.add_argument('-r', '--only_reserve', action='store_true', help='')
     parser.add_argument('-o', '--output_path', help='')
     
     args = parser.parse_args()
@@ -56,7 +57,11 @@ def main():
     g = load_graph_by_name(args.graph,
                            weighted=args.weighted,
                            suffix=args.graph_suffix)
-    new_g = preprocess(g)
+    if args.only_reserve:
+        print('only_reserve')
+        new_g = reverse_edge_weights(g)
+    else:
+        new_g = preprocess(g)
 
     new_g.save(args.output_path)
     print('saved to {}'.format(args.output_path))

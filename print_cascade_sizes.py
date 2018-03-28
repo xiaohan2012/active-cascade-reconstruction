@@ -6,7 +6,7 @@ from graph_helpers import load_graph_by_name
 from helpers import infected_nodes, cascade_source
 from collections import Counter
 
-graph = 'grqc'
+graph = 'p2p'
 model = 'ic'
 # suffix = '_tmp'
 # cascade_fraction = 0

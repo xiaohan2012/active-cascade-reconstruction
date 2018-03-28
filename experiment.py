@@ -14,7 +14,8 @@ from graph_helpers import (isolate_node, remove_filters,
 
 def gen_input(g, source=None, cascade_path=None, stop_fraction=0.25, p=0.5, q=0.1, model='si',
               observation_method='uniform',
-              min_size=10, max_size=100):
+              min_size=10, max_size=100,
+              return_tree=False):
     # print('observation_method', observation_method)
     tree_requiring_methods = {'leaves'}
 
@@ -50,7 +51,11 @@ def gen_input(g, source=None, cascade_path=None, stop_fraction=0.25, p=0.5, q=0.
 
     obs = observe_cascade(c, s, q, observation_method, tree=tree)
     print('len(obs)', len(obs))
-    return obs, c
+
+    if not return_tree:
+        return obs, c
+    else:
+        return obs, c, tree
 
 # @profile
 def one_round_experiment(g, obs, c, q_gen, query_method, ks,

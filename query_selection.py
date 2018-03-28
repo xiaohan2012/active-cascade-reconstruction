@@ -130,6 +130,7 @@ class SamplingBasedGenerator(BaseQueryGenerator):
         # rigorously speaking,
         # root sampler should be updated, for example
         # earliet node might be updated, or uninfected nodes get removed
+        # print('update observation, self.root_sampler', self.root_sampler)
         self._update_root_sampler(inf_nodes, c)
         new_samples = self.sampler.update_samples(inf_nodes, node, label,
                                                   root_sampler=self.root_sampler)
