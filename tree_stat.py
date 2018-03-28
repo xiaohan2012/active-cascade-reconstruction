@@ -86,7 +86,7 @@ class TreeBasedStatistics:
         return v[(v != 0) & (v != 1)]
 
     def _sum_entropy(self, p):
-        return -(p * np.log(p) + (1-p) * np.log(1-p)).sum()
+        return -(p * np.log2(p) + (1-p) * np.log2(1-p)).sum()
 
     def prediction_error(self, query, condition, targets):
         p = self.proba(query, condition, targets)
@@ -104,4 +104,11 @@ class TreeBasedStatistics:
 
         weights = np.array([denum0, denum1]) / self.n_col
         errors = np.array([self._sum_entropy(p0), self._sum_entropy(p1)])
+
+        if False:
+            print("p(uninfected)={}, p(infected)={}".format(weights[0], weights[1]))
+            print('p(infected | q uninfected)={}'.format(p0))
+            print('p(infected | q infected)={}'.format(p1))
+            print('errors={}', errors)
+        
         return (weights * errors).sum()
