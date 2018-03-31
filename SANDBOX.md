@@ -149,6 +149,11 @@ reversing makes a difference while normalization does not
 
 # Mar 31
 
+- 8 nodes
+- 1 root
+- 2 terms
+- 10000000 samples
+
 ```
 cosine similarity
 
