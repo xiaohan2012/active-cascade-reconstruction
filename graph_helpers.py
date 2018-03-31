@@ -25,6 +25,7 @@ def filter_graph_by_edges(g, edges):
     """
     efilt = g.new_edge_property('bool')
     efilt.set_value(False)
+
     for i, j in edges:
         efilt[g.edge(i, j)] = True
 

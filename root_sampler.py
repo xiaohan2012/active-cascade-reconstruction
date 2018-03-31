@@ -39,3 +39,12 @@ def build_true_root_sampler(c):
         return source
 
     return aux
+
+
+def build_out_degree_root_sampler(g, power=2):
+    out_deg = np.power(g.degree_property_map('out').a, 2)
+    out_deg_norm = out_deg / out_deg.sum()
+
+    def aux():
+        return np.random.choice(g.num_vertices(), p=out_deg_norm)
+    return aux

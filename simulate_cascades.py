@@ -4,6 +4,8 @@ import argparse
 from graph_helpers import load_graph_by_name
 from experiment import gen_input
 from tqdm import tqdm
+from root_sampler import build_out_degree_root_sampler
+
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('-g', '--graph', required=True, help='graph name')
@@ -40,7 +42,6 @@ parser.add_argument('--observation_method', type=str, choices=('uniform', 'leave
                     help='how infections are observed')
 
 
-
 args = parser.parse_args()
 
 print("Args:")
@@ -62,16 +63,21 @@ else:
 print('p=', p)
 print('p.a=', p.a)
 
+root_sampler = build_out_degree_root_sampler(g)
+
 for i in tqdm(range(args.n_cascades)):
-    obs, c = gen_input(g,
-                       cascade_path=args.cascade_path,
-                       stop_fraction=args.stop_fraction,
-                       q=args.obs_fraction,
-                       p=p,
-                       model=args.cascade_model,
-                       observation_method=args.observation_method,
-                       min_size=args.min_size,
-                       max_size=args.max_size)
+    obs, c, tree = gen_input(
+        g,
+        source=root_sampler(),
+        cascade_path=args.cascade_path,
+        stop_fraction=args.stop_fraction,
+        q=args.obs_fraction,
+        p=p,
+        model=args.cascade_model,
+        observation_method=args.observation_method,
+        min_size=args.min_size,
+        max_size=args.max_size,
+        return_tree=(args.observation_method == 'leaves'))
 
     # d = os.path.join(args.output_dir, graph_name)
     d = args.output_dir
