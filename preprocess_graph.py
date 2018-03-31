@@ -50,6 +50,7 @@ def main():
     parser.add_argument('-s', '--graph_suffix', default='', help='')
     parser.add_argument('-w', '--weighted', action='store_true', help='')
     parser.add_argument('-r', '--only_reserve', action='store_true', help='')
+    parser.add_argument('-n', '--only_normalize', action='store_true', help='')
     parser.add_argument('-o', '--output_path', help='')
     
     args = parser.parse_args()
@@ -60,6 +61,9 @@ def main():
     if args.only_reserve:
         print('only_reserve')
         new_g = reverse_edge_weights(g)
+    elif args.only_normalize:
+        print('only normlize')
+        new_g = normalize_globally(g)
     else:
         new_g = preprocess(g)
 
