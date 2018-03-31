@@ -133,3 +133,44 @@ why prederror is bad on lattice-1028?
 one fix:
 
 - exclude low probability nodes
+
+
+# Mar 29
+
+## edge direction for "cut" and "loop_erased"
+
+- pointing away from root (`predmap` stores the parent)
+
+## effect of reversing and global normalization
+
+reversing makes a difference while normalization does not
+
+- http://193.166.24.212:9999/notebooks/why-producing-large-trees.ipynb
+
+# Mar 31
+
+```
+cosine similarity
+
+      (True, cut)  (True, lerw)  (lerw, cut)
+       count   960.000000    960.000000   960.000000
+       mean      0.996456      0.996459     0.999992
+       std       0.002140      0.002136     0.000004
+       min       0.987642      0.987831     0.999974
+       25%       0.995206      0.995191     0.999990
+       50%       0.997031      0.997036     0.999993
+       75%       0.998093      0.998092     0.999996
+       max       0.999848      0.999860     0.999999
+
+Minkowsky-1 distance
+
+      (True, cut)  (True, lerw)  (lerw, cut)
+      count   960.000000    960.000000   960.000000
+      mean      0.086958      0.086958     0.013373
+      std       0.026215      0.026213     0.001699
+      min       0.022336      0.022178     0.005653
+      25%       0.067143      0.067020     0.012273
+      50%       0.083389      0.083383     0.013384
+      75%       0.101893      0.102235     0.014610
+      max       0.173388      0.173642     0.018177
+``` 
