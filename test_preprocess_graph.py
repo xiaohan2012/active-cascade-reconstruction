@@ -1,7 +1,7 @@
 import pytest
 from graph_tool import Graph
 from graph_helpers import extract_nodes, extract_edges, get_edge_weights
-from preprocess_graph import normalize_globally, preprocess
+from preprocess_graph import normalize_globally, preprocess, reverse_edge_weights
 
 
 @pytest.fixture
@@ -95,3 +95,16 @@ def test_preprocess(g):
     for (u, v), w in expected_edges_and_weights.items():
         print(u, v)
         assert pytest.approx(w) == new_edge_weights[norm_g.edge(u, v)]
+
+
+def test_reverse_edge_weights(g):
+    g_cp = g.copy()
+    g_rev = reverse_edge_weights(g)
+
+    p = get_edge_weights(g_cp)
+    p_rev = get_edge_weights(g_rev)
+
+    for e in g_cp.edges():
+        u, v = int(e.source()), int(e.target())
+        if u < v:
+            assert p[g_cp.edge(u, v)] == p_rev[g_rev.edge(v, u)]
