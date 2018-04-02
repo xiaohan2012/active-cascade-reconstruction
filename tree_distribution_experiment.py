@@ -3,6 +3,7 @@
 import networkx as nx
 import numpy as np
 import pandas as pd
+import pickle as pkl
 import random
 
 from scipy.spatial.distance import cosine, cdist
@@ -89,20 +90,51 @@ def one_run(num_vertices, size_X, n_samples, low=LOW, high=HIGH):
 
 
 if __name__ == '__main__':
-    NUM_VERTICES = 8
-    SIZE_X = 2
-    N_SAMPLES = 10000000
-    N_RUNS = 960
+    import argparse
+    parser = argparse.ArgumentParser(description='')
+    parser.add_argument('-n', '--num_vertices',
+                        type=int,
+                        help='num of vertices of the complete graph')
+    parser.add_argument('-x', '--num_terminals',
+                        type=int, default=2,
+                        help='num  of terminals of the complete graph')
+    parser.add_argument('-k', '--n_samples',
+                        type=int, default=10000000,
+                        help='num  of steiner tree samples')
+    parser.add_argument('-r', '--n_runs',
+                        type=int, default=48,
+                        help='num of runs')
+    parser.add_argument('-o', '--output',
+                        help='output path')
+
+    args = parser.parse_args()
+
+    print("Args:")
+    print('-' * 10)
+    for k, v in args._get_kwargs():
+        print("{}={}".format(k, v))
+
+    num_vertices = args.num_vertices
+    size_x = args.num_terminals
+    n_samples = args.n_samples
+    n_runs = args.n_runs
 
     openmp_set_num_threads(1)
     
-    records = Parallel(n_jobs=-1)(
-        delayed(one_run)(NUM_VERTICES, SIZE_X, n_samples=N_SAMPLES, low=LOW, high=HIGH)
-        for i in tqdm(range(N_RUNS), total=N_RUNS))
-    cosine_records, abs_records= zip(*records)
+    records = Parallel(n_jobs=4)(
+        delayed(one_run)(num_vertices, size_x, n_samples=n_samples, low=LOW, high=HIGH)
+        for i in tqdm(range(n_runs), total=n_runs))
+    cosine_records, abs_records = zip(*records)
 
     cosine_df = pd.DataFrame.from_records(filter(None, cosine_records))
     abs_df = pd.DataFrame.from_records(filter(None, abs_records))
-    print(cosine_df.describe())
-    print(abs_df.describe())
+    
+    data = {
+        'cosine_sim': cosine_df.describe(),
+        'l1_dist': abs_df.describe()
+    }
+    for k, d in data.items():
+        print(k)
+        print(d)
+    pkl.dump(data, open(args.output, 'wb'))
     
