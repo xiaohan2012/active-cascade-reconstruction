@@ -114,17 +114,42 @@ def one_run(num_vertices, num_terminals, n_samples, sampling_method, low, high):
 
 
 if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser(description='')
+    parser.add_argument('-n', '--num_vertices',
+                        type=int,
+                        help='num of vertices of the complete graph')
+    parser.add_argument('-x', '--num_terminals',
+                        type=int, default=2,
+                        help='num  of terminals of the complete graph')
+    parser.add_argument('-k', '--n_samples',
+                        type=int, default=10000000,
+                        help='num  of steiner tree samples')
+    parser.add_argument('-r', '--n_runs',
+                        type=int, default=48,
+                        help='num of runs')
+    parser.add_argument('-o', '--output',
+                        help='output path')
+
+    args = parser.parse_args()
+
+    print("Args:")
+    print('-' * 10)
+    for k, v in args._get_kwargs():
+        print("{}={}".format(k, v))
+    
     high = 1
     low = 0.0
     sampling_method = 'loop_erased'
-    num_vertices = 8
-    num_terminals = 2
-    n_samples = 10000000
+    num_vertices = args.num_vertices
+    num_terminals = args.num_terminals
+    n_samples = args.n_samples
 
-    n_runs = 96
+    n_runs = args.n_runs
 
-    recs = Parallel(n_jobs=-1)(
+    recs = Parallel(n_jobs=4)(
         delayed(one_run)(num_vertices, num_terminals, n_samples, sampling_method,
                          low, high) for i in tqdm(range(n_runs), total=n_runs))
     df = pd.DataFrame.from_records(recs)
-    print(df.describe())
+
+    df.describe().to_pickle(args.output)
