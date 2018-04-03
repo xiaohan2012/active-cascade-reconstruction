@@ -453,3 +453,6 @@ def swap_end_points(edges):
     edges = [(v, u) for u, v in edges]  # pointing towards the root
     return tuple(sorted(edges))
         
+
+def extract_nodes_from_tuples(edges):
+    return {u for e in edges for u in e}

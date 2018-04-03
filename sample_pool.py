@@ -3,7 +3,8 @@ import networkx as nx
 from graph_tool import GraphView
 
 from core import sample_steiner_trees
-from graph_helpers import has_vertex, get_edge_weights, filter_graph_by_edges
+from graph_helpers import (has_vertex, get_edge_weights, filter_graph_by_edges,
+                           extract_nodes_from_tuples)
 from proba_helpers import tree_probability_gt, ic_cascade_probability_gt
 from core1 import matching_trees
 from helpers import infected_nodes
@@ -16,6 +17,7 @@ class TreeSamplePool():
                  with_inc_sampling=False,
                  with_resampling=False,
                  return_type='nodes'):
+        assert return_type in {'nodes', 'tuples'}, 'invalid return_type {}'.format(return_type)
         self.g = g
         self.num_nodes = g.num_vertices()  # fixed
         self.n_samples = n_samples
@@ -81,21 +83,15 @@ class TreeSamplePool():
         new_samples
         """
         assert label in {0, 1}  # 0: uninfected, 1: infected
-        if not self.return_type:
-            # use tree
-            if label == 1:
-                assert node in inf_nodes
-
-                def feasible(t):
-                    return has_vertex(t, node)
-            else:
-                def feasible(t):
-                    return not has_vertex(t, node)
-                
-            valid_samples = [t for t in self._samples
-                             if feasible(t)]
-        else:
-            # use nodes
+        if self._internal_return_type == 'tuples':
+            valid_samples = []
+            for t in self._samples:
+                nodes = extract_nodes_from_tuples(t)
+                if label == 1 and node in nodes:
+                    valid_samples.append(t)
+                elif label == 0 and node not in nodes:
+                    valid_samples.append(t)
+        elif self.return_type == 'nodes':
             valid_samples = matching_trees(self._samples, node, label)
             
         new_samples = sample_steiner_trees(
@@ -125,8 +121,7 @@ class TreeSamplePool():
             return self._samples
         else:
             if self.return_type == 'nodes':
-                return [{u for e in t for u in e}
-                        for t in self._samples]
+                return list(map(extract_nodes_from_tuples, self._samples))
             elif self.return_type == 'tree':
                 return [filter_graph_by_edges(self.g, t)
                         for t in self._samples]
@@ -139,19 +134,19 @@ class TreeSamplePool():
 
     def resample_trees(self, trees):
         possible_trees = list(set(trees))
-        if self.p is None:
-            self.p = get_edge_weights(self.g)
+
+        self.p = get_edge_weights(self.g)
+        
+
+        # this is required for speed
+        # graph_tool's out_neighbours is slow
+        self.g_nx = nx.DiGraph()
+        for e in self.g.edges():
+            self.g_nx.add_edge(int(e.source()), int(e.target()))
             
-        if self.g_nx is None:
-            # this is required for speed
-            # graph_tool's out_neighbours is slow
-            self.g_nx = nx.DiGraph()
-            for e in self.g.edges():
-                self.g_nx.add_edge(int(e.source()), int(e.target()))
-                
-        if self.p_dict is None:
-            self.p_dict = {tuple(map(int, [e.source(), e.target()])): self.p[e]
-                           for e in self.g.edges()}
+
+        self.p_dict = {tuple(map(int, [e.source(), e.target()])): self.p[e]
+                       for e in self.g.edges()}
         
         out_degree = self.g.degree_property_map('out', weight=self.p)
         out_degree_dict = {int(v): out_degree[v] for v in self.g.vertices()}
