@@ -93,7 +93,8 @@ def test_TreeSamplePool_with_incremental_sampling(g, gi, obs, method, edge_weigh
                    if n_rm not in t]  # this tree cannot be changed even after .update
     valid_trees_old = copy(valid_trees)
 
-    new_samples = sampler.update_samples(obs, n_rm, 0)
+    sampler.update_samples(obs, n_rm, 0)
+    new_samples = sampler.samples
     
     assert len(sampler.samples) == n_samples
 
