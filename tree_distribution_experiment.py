@@ -8,34 +8,13 @@ import random
 
 from scipy.spatial.distance import cosine, cdist
 from tqdm import tqdm
-from collections import Counter
 from itertools import combinations
 from joblib import Parallel, delayed
 from graph_tool import openmp_set_num_threads
 
-from random_steiner_tree import random_steiner_tree
 from random_steiner_tree.util import from_nx
 
-
-def swap_end_points(edges):
-    edges = [(v, u) for u, v in edges]  # pointing towards the root
-    return tuple(sorted(edges))
-
-
-def sampled_tree_freqs(gi, X, root, sampling_method, n_samples):
-    tree_freq = Counter()
-    for i in range(n_samples):
-        t = swap_end_points(random_steiner_tree(gi, X, root, method=sampling_method))
-        tree_freq[t] += 1
-    # actual_probas = np.array(list(tree_freq.values())) / n_samples
-    return tree_freq
-
-
-def tree_proba(g, edges):
-    numer = np.product([g[u][v]['weight'] for u, v in edges])
-    denum = np.product([g.out_degree(u, weight='weight') for u, v in edges])
-    
-    return numer / denum
+from proba_helpers import sampled_tree_freqs, tree_probability_nx as tree_probability
 
 
 HIGH = 1
@@ -72,7 +51,7 @@ def one_run(num_vertices, size_X, n_samples, low=LOW, high=HIGH):
     lerw_actual_probas = np.array([lerw_tree_freq[t] / n_samples for t in all_trees])
     cut_actual_probas = np.array([cut_tree_freq[t] / n_samples for t in all_trees])
 
-    expected_probas = np.array([tree_proba(g, t)
+    expected_probas = np.array([tree_probability(g, t)
                                 for t in all_trees])
     expected_probas /= expected_probas.sum()
 

@@ -11,27 +11,8 @@ from collections import Counter, OrderedDict
 from random_steiner_tree import random_steiner_tree
 from random_steiner_tree.util import from_nx
 
-
-def tree_probability(g, edges):
-    numer = np.product([g[u][v]['weight'] for u, v in edges])
-    denum = np.product([g.out_degree(u, weight='weight') for u, v in edges])
-    return numer / denum
-
-
-def casccade_probability(g, casdade_edges):
-    return np.product([g[u][v]['weight'] for u, v in casdade_edges])
-
-
-def swap_end_points(edges):
-    edges = [(v, u) for u, v in edges]  # pointing towards the root
-    return tuple(sorted(edges))
-
-
-def sampled_tree_freqs(gi, X, root, sampling_method, N):
-    trees = [swap_end_points(random_steiner_tree(gi, X, root, method=sampling_method))
-             for i in range(N)]
-    tree_freq = Counter(trees)
-    return tree_freq
+from graph_helpers import swap_end_points
+from proba_helpers import casccade_probability_nx, tree_probability_nx, sampled_tree_freqs
 
 
 def l1_dist(probas1, probas2):
@@ -65,7 +46,7 @@ def one_run(num_vertices, num_terminals, n_samples, sampling_method, low, high):
     possible_trees = list(tree_freq_rev.keys())
 
     tree_probas_rev = np.array([tree_freq_rev[t] for t in possible_trees]) / n_samples
-    cascade_probas = np.array([casccade_probability(g_rev, t) for t in possible_trees])
+    cascade_probas = np.array([casccade_probability_nx(g_rev, t) for t in possible_trees])
     cascade_probas /= cascade_probas.sum()
 
     # distance without re-sampling
@@ -78,8 +59,8 @@ def one_run(num_vertices, num_terminals, n_samples, sampling_method, low, high):
     possible_trees = list(set(trees))
 
     # caching table
-    p_tbl = {t: casccade_probability(g_rev, t) for t in possible_trees}
-    pi_tbl = {t: tree_probability(g_rev, t) for t in possible_trees}
+    p_tbl = {t: casccade_probability_nx(g_rev, t) for t in possible_trees}
+    pi_tbl = {t: tree_probability_nx(g_rev, t) for t in possible_trees}
 
     p_T = np.array([p_tbl.get(t, 0) for t in trees])
     pi_T = np.array([pi_tbl.get(t, 0) for t in trees])
@@ -98,7 +79,7 @@ def one_run(num_vertices, num_terminals, n_samples, sampling_method, low, high):
 
     # here we calculate the probas based on g_rev
     # because edges point towards root
-    cascade_probas = np.array([casccade_probability(g_rev, t) for t in possible_trees])
+    cascade_probas = np.array([casccade_probability_nx(g_rev, t) for t in possible_trees])
     cascade_probas /= cascade_probas.sum()
 
     cos_sim_together = 1 - cosine(resampled_tree_probas, cascade_probas)

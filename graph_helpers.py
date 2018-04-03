@@ -447,3 +447,9 @@ def reachable_node_set(g, source):
     prop = label_components(g)[0]
     cid = prop[source]
     return set((prop.a == cid).nonzero()[0])
+
+
+def swap_end_points(edges):
+    edges = [(v, u) for u, v in edges]  # pointing towards the root
+    return tuple(sorted(edges))
+        
