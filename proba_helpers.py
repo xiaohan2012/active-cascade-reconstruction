@@ -32,3 +32,14 @@ def sampled_tree_freqs(gi, X, root, sampling_method, N):
              for i in range(N)]
     tree_freq = Counter(trees)
     return tree_freq
+
+
+def ic_cascade_probability_gt(g, p_dict, cascade_edges, nbr_dict):
+    probas_from_active_edges = np.product([p_dict[(u, v)] for u, v in cascade_edges])
+    inactive_edges = {(u, int(w))
+                      for u, v in cascade_edges
+                      for w in nbr_dict[u]
+                      if v != w}
+    inactive_edges -= set(cascade_edges)
+    probas_from_inactive_edges = np.product([p_dict[(u, v)] for u, v in inactive_edges])
+    return probas_from_active_edges * probas_from_inactive_edges

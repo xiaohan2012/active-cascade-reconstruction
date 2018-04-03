@@ -53,7 +53,7 @@ def gen_input(g, source=None, cascade_path=None, stop_fraction=0.25, p=0.5, q=0.
         tree = None
 
     obs = observe_cascade(c, s, q, observation_method, tree=tree)
-
+    # print(obs)
     if not return_tree:
         return obs, c, None
     else:
