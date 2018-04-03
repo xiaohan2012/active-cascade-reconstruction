@@ -34,3 +34,5 @@ def test_resampling(g, gi, obs, return_type):
     print(len(unique_resampled_trees))
     assert len(unique_resampled_trees) < 10  # far few unique resampled trees
     assert len(unique_sampled_trees) == N_SAMPLES  # with high probability
+
+    
