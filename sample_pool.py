@@ -1,8 +1,10 @@
 import numpy as np
+import networkx as nx
 from graph_tool import GraphView
 
 from core import sample_steiner_trees
-from graph_helpers import has_vertex, get_edge_weights
+from graph_helpers import has_vertex, get_edge_weights, filter_graph_by_edges
+from proba_helpers import tree_probability_gt, ic_cascade_probability_gt
 from core1 import matching_trees
 from helpers import infected_nodes
 from cascade_generator import incremental_simulation
@@ -12,15 +14,28 @@ class TreeSamplePool():
     def __init__(self, g, n_samples, method,
                  gi=None,
                  with_inc_sampling=False,
-                 return_tree_nodes=True):
+                 with_resampling=False,
+                 return_type='nodes'):
         self.g = g
         self.num_nodes = g.num_vertices()  # fixed
         self.n_samples = n_samples
         self.gi = gi
         self.method = method
-        self.return_tree_nodes = return_tree_nodes
+        self.return_type = return_type
         self.with_inc_sampling = with_inc_sampling
         self._samples = []
+
+        self.with_resampling = with_resampling
+        if self.with_resampling:
+            # to enable resampling
+            # needs to return edge tuples
+            self._internal_return_type = 'tuples'
+            self.p = None
+            self.g_nx = None
+            self.p_dict = None
+        else:
+            self._internal_return_type = return_type
+            
         print('DEBUG: TreeSamplePool.with_inc_sampling=', self.with_inc_sampling)
 
     def fill(self, obs, **kwargs):
@@ -28,7 +43,7 @@ class TreeSamplePool():
             self.g, obs,
             method=self.method,
             n_samples=self.n_samples,
-            return_tree_nodes=self.return_tree_nodes,
+            return_type=self._internal_return_type,
             gi=self.gi,
             **kwargs)
 
@@ -36,8 +51,10 @@ class TreeSamplePool():
             self._samples = [self.add_incremental_edges(s)
                              for s in self._samples]
 
-        # self._tree_nodes_samples = [set(extract_nodes(t))
-        #                             for t in self._samples]
+        if self.with_resampling:
+            print('DEBUG: TreeSamplePool.with_resampling=', self.with_resampling)
+            self._old_samples = self._samples
+            self._samples = self.resample_trees(self._samples)
 
     def add_incremental_edges(self, tree_nodes):
         if isinstance(tree_nodes, GraphView):
@@ -64,7 +81,7 @@ class TreeSamplePool():
         new_samples
         """
         assert label in {0, 1}  # 0: uninfected, 1: infected
-        if not self.return_tree_nodes:
+        if not self.return_type:
             # use tree
             if label == 1:
                 assert node in inf_nodes
@@ -85,7 +102,7 @@ class TreeSamplePool():
             self.g, inf_nodes,
             method=self.method,
             n_samples=self.n_samples - len(valid_samples),
-            return_tree_nodes=self.return_tree_nodes,
+            return_type=self._internal_return_type,
             gi=self.gi,
             **kwargs)
 
@@ -96,12 +113,66 @@ class TreeSamplePool():
             
         self._samples = valid_samples + new_samples
 
-        return new_samples
+        if self.with_resampling:
+            self._old_samples = self._samples
+            self._samples = self.resample_trees(self._samples)
+
+        # return new_samples
 
     @property
     def samples(self):
-        return self._samples
+        if not self.with_resampling:
+            return self._samples
+        else:
+            if self.return_type == 'nodes':
+                return [{u for e in t for u in e}
+                        for t in self._samples]
+            elif self.return_type == 'tree':
+                return [filter_graph_by_edges(self.g, t)
+                        for t in self._samples]
+            else:
+                return self._samples
 
     @property
     def is_empty(self):
         return len(self._samples) == 0
+
+    def resample_trees(self, trees):
+        possible_trees = list(set(trees))
+        if self.p is None:
+            self.p = get_edge_weights(self.g)
+            
+        if self.g_nx is None:
+            # this is required for speed
+            # graph_tool's out_neighbours is slow
+            self.g_nx = nx.DiGraph()
+            for e in self.g.edges():
+                self.g_nx.add_edge(int(e.source()), int(e.target()))
+                
+        if self.p_dict is None:
+            self.p_dict = {tuple(map(int, [e.source(), e.target()])): self.p[e]
+                           for e in self.g.edges()}
+        
+        out_degree = self.g.degree_property_map('out', weight=self.p)
+        out_degree_dict = {int(v): out_degree[v] for v in self.g.vertices()}
+
+        # caching table
+        p_tbl = {t: ic_cascade_probability_gt(self.g, self.p_dict, t, self.g_nx)
+                 for t in possible_trees}
+        pi_tbl = {t: tree_probability_gt(out_degree_dict, self.p_dict, t)
+                  for t in possible_trees}
+
+        p_T = np.array([p_tbl[t] for t in trees])
+        pi_T = np.array([pi_tbl[t] for t in trees])
+        sampling_weights = p_T / pi_T
+            
+        sampling_weights /= sampling_weights.sum()  # normlization
+            
+        # re-sampling trees by weights
+        resampled_tree_idx = np.random.choice(self.n_samples,
+                                              p=sampling_weights,
+                                              replace=True,
+                                              size=self.n_samples)
+
+        resampled_trees = [trees[i] for i in resampled_tree_idx]
+        return resampled_trees

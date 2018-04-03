@@ -7,7 +7,8 @@ from graph_helpers import (contract_graph_by_nodes,
                            extract_nodes, extract_steiner_tree,
                            has_vertex, gen_random_spanning_tree,
                            filter_graph_by_edges,
-                           reachable_node_set)
+                           reachable_node_set,
+                           swap_end_points)
 from inference import infection_probability
 from tqdm import tqdm
 from random_steiner_tree import random_steiner_tree
@@ -80,14 +81,14 @@ def sample_steiner_trees(g, obs,
                          gi=None,
                          root=None,
                          root_sampler=None,
-                         return_tree_nodes=False):
+                         return_type=False):
     """sample `n_samples` steiner trees that span `obs` in `g`
 
     `method`: the method for sampling steiner tree
     `n_samples`: sample size
     `gi`: the Graph object that is used if `method` in {'cut', 'loop_erased'}
     `root_sampler`: function that samples a root
-    `return_tree_nodes`: if True, return the set of nodes that are in the sampled steiner tree
+    `return_type`: if True, return the set of nodes that are in the sampled steiner tree
     """
     assert method in {'cut', 'cut_naive', 'loop_erased'}
 
@@ -112,16 +113,20 @@ def sample_steiner_trees(g, obs,
 
         if method == 'cut_naive':
             rand_t = gen_random_spanning_tree(g, root=r)
-            st = extract_steiner_tree(rand_t, obs, return_nodes=return_tree_nodes)
-            # if return_tree_nodes:
+            st = extract_steiner_tree(rand_t, obs, return_nodes=return_type)
+            # if return_type:
             #     st = set(map(int, st.vertices()))
         elif method in {'cut', 'loop_erased'}:
             assert gi is not None
             edges = random_steiner_tree(gi, obs, r, method)
-            if return_tree_nodes:
+            if return_type == 'nodes':
                 st = set(u for e in edges for u in e)
-            else:
+            elif return_type == 'tuples':
+                st = swap_end_points(edges)
+            elif return_type == 'tree':
                 st = filter_graph_by_edges(g, edges)
+            else:
+                raise ValueError('unknown return_type {}'.format(return_type))
 
         steiner_tree_samples.append(st)
 

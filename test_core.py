@@ -17,7 +17,7 @@ from fixture import g, gi, obs
 def test_uncertainty_scores(g, gi, obs, normalize_p, sampling_method):
     estimator = TreeBasedStatistics(g)
     sampler = TreeSamplePool(g, 25, sampling_method, gi=gi,
-                             return_tree_nodes=True)
+                             return_type=True)
     sampler.fill(obs)
 
     scores = uncertainty_scores(g, obs, sampler, estimator,
@@ -31,20 +31,24 @@ def test_uncertainty_scores(g, gi, obs, normalize_p, sampling_method):
         assert scores[u] >= 0
         
 
-@pytest.mark.parametrize("return_tree_nodes", [True, False])
+@pytest.mark.parametrize("return_type", ['nodes', 'tuples', 'tree'])
 @pytest.mark.parametrize("method", ['cut', 'loop_erased'])
-def test_sample_steiner_trees(g, gi, obs, return_tree_nodes, method):
+def test_sample_steiner_trees(g, gi, obs, return_type, method):
     n_samples = 100
     st_trees_all = sample_steiner_trees(g, obs, method, n_samples,
                                         gi=gi,
-                                        return_tree_nodes=return_tree_nodes)
+                                        return_type=return_type)
     assert len(st_trees_all) == n_samples
 
     for t in st_trees_all:
-        if return_tree_nodes:
+        if return_type == 'nodes':
             assert set(obs).issubset(t)
-        else:
+        elif return_type == 'tree':
             assert is_steiner_tree(t, obs)
+        elif return_type == 'tuples':
+            assert isinstance(t, tuple)
+        else:
+            raise Exception
 
 
 @pytest.mark.parametrize("method", ['cut', 'loop_erased'])
@@ -57,7 +61,7 @@ def test_TreeSamplePool_with_incremental_sampling(g, gi, obs, method, edge_weigh
     n_samples = 100
     sampler = TreeSamplePool(g, n_samples, method,
                              gi=gi,
-                             return_tree_nodes=True,
+                             return_type='nodes',
                              with_inc_sampling=True)
 
     sampler.fill(obs)
