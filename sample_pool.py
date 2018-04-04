@@ -5,7 +5,8 @@ from graph_tool import GraphView
 from core import sample_steiner_trees
 from graph_helpers import (has_vertex, get_edge_weights, filter_graph_by_edges,
                            extract_nodes_from_tuples)
-from proba_helpers import tree_probability_gt, ic_cascade_probability_gt
+from proba_helpers import tree_probability_gt, ic_cascade_probability_gt, \
+    cascade_probability_gt
 from core1 import matching_trees
 from helpers import infected_nodes
 from cascade_generator import incremental_simulation
@@ -16,6 +17,7 @@ class TreeSamplePool():
                  gi=None,
                  with_inc_sampling=False,
                  with_resampling=False,
+                 true_casacde_proba_func=ic_cascade_probability_gt,
                  return_type='nodes'):
         assert return_type in {'nodes', 'tuples'}, 'invalid return_type {}'.format(return_type)
         self.g = g
@@ -27,6 +29,7 @@ class TreeSamplePool():
         self.with_inc_sampling = with_inc_sampling
         self._samples = []
 
+        self.true_casacde_proba_func = true_casacde_proba_func
         self.with_resampling = with_resampling
         if self.with_resampling:
             # to enable resampling
@@ -38,7 +41,7 @@ class TreeSamplePool():
         else:
             self._internal_return_type = return_type
             
-        print('DEBUG: TreeSamplePool.with_inc_sampling=', self.with_inc_sampling)
+        # print('DEBUG: TreeSamplePool.with_inc_sampling=', self.with_inc_sampling)
 
     def fill(self, obs, **kwargs):
         self._samples = sample_steiner_trees(
@@ -113,7 +116,8 @@ class TreeSamplePool():
             self._old_samples = self._samples
             self._samples = self.resample_trees(self._samples)
 
-        # return new_samples
+        # only useful if re-sampling is NOT enabled
+        return new_samples
 
     @property
     def samples(self):
@@ -137,14 +141,12 @@ class TreeSamplePool():
 
         self.p = get_edge_weights(self.g)
         
-
         # this is required for speed
         # graph_tool's out_neighbours is slow
         self.g_nx = nx.DiGraph()
         for e in self.g.edges():
             self.g_nx.add_edge(int(e.source()), int(e.target()))
             
-
         self.p_dict = {tuple(map(int, [e.source(), e.target()])): self.p[e]
                        for e in self.g.edges()}
         
@@ -152,7 +154,7 @@ class TreeSamplePool():
         out_degree_dict = {int(v): out_degree[v] for v in self.g.vertices()}
 
         # caching table
-        p_tbl = {t: ic_cascade_probability_gt(self.g, self.p_dict, t, self.g_nx)
+        p_tbl = {t: self.true_casacde_proba_func(self.g, self.p_dict, t, self.g_nx)
                  for t in possible_trees}
         pi_tbl = {t: tree_probability_gt(out_degree_dict, self.p_dict, t)
                   for t in possible_trees}

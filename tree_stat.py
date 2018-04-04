@@ -56,6 +56,7 @@ class TreeBasedStatistics:
             return sub_m.sum(axis=1), len(mask)
 
     def unconditional_count(self, targets=None):
+        assert self._m is not None, 'occurence matrix not initialized yet'
         if targets is None:
             sub_m = self._m
         else:
