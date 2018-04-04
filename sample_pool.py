@@ -152,19 +152,27 @@ class TreeSamplePool():
         
         out_degree = self.g.degree_property_map('out', weight=self.p)
         out_degree_dict = {int(v): out_degree[v] for v in self.g.vertices()}
-
+        
         # caching table
-        p_tbl = {t: self.true_casacde_proba_func(self.g, self.p_dict, t, self.g_nx)
-                 for t in possible_trees}
-        pi_tbl = {t: tree_probability_gt(out_degree_dict, self.p_dict, t)
-                  for t in possible_trees}
+        # and we work in the log domain
+        log_p_tbl = {t: self.true_casacde_proba_func(self.g, self.p_dict, t, self.g_nx, using_log=True)
+                     for t in possible_trees}
+        log_pi_tbl = {t: tree_probability_gt(out_degree_dict, self.p_dict, t, using_log=True)
+                      for t in possible_trees}
 
-        p_T = np.array([p_tbl[t] for t in trees])
-        pi_T = np.array([pi_tbl[t] for t in trees])
-        sampling_weights = p_T / pi_T
-            
-        sampling_weights /= sampling_weights.sum()  # normlization
-            
+        log_p_T = np.array([log_p_tbl[t] for t in trees])
+        log_pi_T = np.array([log_pi_tbl[t] for t in trees])
+        
+        sampling_weights = np.exp(log_p_T - log_pi_T)  # back to probabiliy
+
+        weight_sum = sampling_weights.sum()
+        if weight_sum > 0:
+            sampling_weights /= weight_sum  # normlization
+        else:
+            # uniform sampling
+            sampling_weights = np.ones(len(sampling_weights))
+            sampling_weights /= sampling_weights.sum()
+
         # re-sampling trees by weights
         resampled_tree_idx = np.random.choice(self.n_samples,
                                               p=sampling_weights,

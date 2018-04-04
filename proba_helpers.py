@@ -6,27 +6,36 @@ from random_steiner_tree import random_steiner_tree
 from graph_helpers import swap_end_points, extract_nodes_from_tuples
 
 
-def tree_probability_gt(out_degree, p_dict, edges):
-    numer = np.product([p_dict[(u, v)] for u, v in edges])
-    denum = np.product([out_degree[u] for u, _ in edges])
-    assert denum > 0, [out_degree[u] for u, _ in edges]
-    return numer / denum
+def tree_probability_gt(out_degree, p_dict, edges, using_log=True):
+    if using_log:
+        log_numer = np.log([p_dict[(u, v)] for u, v in edges]).sum()
+        log_denum = np.log([out_degree[u] for u, _ in edges]).sum()
+        return log_numer - log_denum
+    else:
+        numer = np.product([p_dict[(u, v)] for u, v in edges])
+        denum = np.product([out_degree[u] for u, _ in edges])
+        assert denum > 0, [out_degree[u] for u, _ in edges]
+        return numer / denum
 
 
-def cascade_probability_gt(g, p_dict, casdade_edges, g_nx):
+def cascade_probability_gt(g, p_dict, cascade_edges, g_nx, using_log=True):
     """g and g_nx are not used
     """
-    return np.product([p_dict[(u, v)] for u, v in casdade_edges])
+    if using_log:
+        # to prevent floating point underflow
+        return np.log([p_dict[(u, v)] for u, v in cascade_edges]).sum()
+    else:
+        return np.product([p_dict[(u, v)] for u, v in cascade_edges])
 
 
-def ic_cascade_probability_gt(g, p_dict, cascade_edges, nbr_dict):
+def ic_cascade_probability_gt(g, p_dict, cascade_edges, nbr_dict, using_log=True):
     infected_nodes = extract_nodes_from_tuples(cascade_edges)
-    
-    probas_from_active_edges = np.product([p_dict[(u, v)] for u, v in cascade_edges])
-    if probas_from_active_edges == 0:
-        for u, v in cascade_edges:
-            if p_dict[(u, v)] == 0:
-                print('(active) p({}, {})=0'.format(u, v))
+
+    if using_log:
+        # to prevent floating point underflow
+        log_probas_from_active_edges = np.log([p_dict[(u, v)] for u, v in cascade_edges]).sum()
+    else:
+        probas_from_active_edges = np.product([p_dict[(u, v)] for u, v in cascade_edges])
             
     inactive_edges = {(u, int(w))
                       for u, v in cascade_edges
@@ -35,15 +44,12 @@ def ic_cascade_probability_gt(g, p_dict, cascade_edges, nbr_dict):
 
     inactive_edges -= set(cascade_edges)
 
-    probas_from_inactive_edges = np.product([p_dict[(u, v)] for u, v in inactive_edges])
-
-    # if probas_from_inactive_edges == 0:
-    #     for u, v in inactive_edges:
-    #         if p_dict[(u, v)] == 0:
-    #             print('(inactive) p({}, {})=0'.format(u, v))
-
-    # print(probas_from_active_edges, probas_from_inactive_edges)
-    return probas_from_active_edges * probas_from_inactive_edges
+    if using_log:
+        log_probas_from_inactive_edges = np.log([p_dict[(u, v)] for u, v in inactive_edges]).sum()
+        return log_probas_from_active_edges + log_probas_from_inactive_edges
+    else:
+        probas_from_inactive_edges = np.product([p_dict[(u, v)] for u, v in inactive_edges])
+        return probas_from_active_edges * probas_from_inactive_edges
 
 
 def tree_probability_nx(g, edges):
@@ -52,8 +58,8 @@ def tree_probability_nx(g, edges):
     return numer / denum
 
 
-def casccade_probability_nx(g, casdade_edges):
-    return np.product([g[u][v]['weight'] for u, v in casdade_edges])
+def casccade_probability_nx(g, cascade_edges):
+    return np.product([g[u][v]['weight'] for u, v in cascade_edges])
 
 
 def sampled_tree_freqs(gi, X, root, sampling_method, N):
