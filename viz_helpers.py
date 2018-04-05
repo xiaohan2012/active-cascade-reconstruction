@@ -1,11 +1,14 @@
 import numpy as np
-import matplotlib
+import matplotlib as mpl
+
+from collections import OrderedDict
 
 from inference import infection_probability
 from graph_tool.draw import graph_draw
 from graph_helpers import (extract_nodes,
                            observe_uninfected_node,
                            remove_filters)
+from helpers import infected_nodes, cascade_source
 
 
 def lattice_node_pos(g, shape):
@@ -28,6 +31,114 @@ SHAPE_PENTAGON = 'pentagon'
 SHAPE_HEXAGON = 'hexagon'
 SHAPE_SQUARE = 'square'
 SHAPE_TRIANGLE = 'triangle'
+SHAPE_PENTAGON = 'pentagon'
+
+
+def visualize(g, pos,
+              node_color_info={},
+              node_shape_info={},
+              node_size_info={},
+              edge_color_info={},
+              edge_pen_width_info={},
+              output=None):
+
+    def populate_property(dtype, info, on_edge=False):
+        if on_edge:
+            prop = g.new_edge_property(dtype)
+        else:
+            prop = g.new_vertex_property(dtype)
+            
+        prop.set_value(info['default'])
+        del info['default']
+        
+        for entries, v in info.items():
+            if on_edge:
+                for n in entries:
+                    prop[g.edge(*n)] = v
+            else:
+                if dtype not in {'int', 'float'}:
+                    for n in entries:
+                        prop[n] = v
+                else:
+                    prop.a[list(entries)] = v
+
+        return prop
+    
+    if isinstance(node_color_info, np.ndarray):
+        # in this case, use heatmap as infection probability
+        vertex_fill_color = g.new_vertex_property('float')
+        vertex_fill_color.a = node_color_info
+    else:
+        vertex_fill_color = populate_property('float', node_color_info)
+    vertex_size = populate_property('int', node_size_info)
+    vertex_shape = populate_property('string', node_shape_info)
+    
+    edge_color = populate_property('string', edge_color_info, True)
+    edge_pen_width = populate_property('float', edge_pen_width_info, True)
+    
+    graph_draw(g, pos=pos,
+               vertex_fill_color=vertex_fill_color,
+               vertex_size=vertex_size,
+               vertex_shape=vertex_shape,
+               edge_color=edge_color,
+               edge_pen_width=edge_pen_width,
+               vcmap=mpl.cm.Reds,
+               output=output)
+
+
+def default_plot_setting(g, c, X):
+    source = cascade_source(c)
+    inf_nodes = infected_nodes(c)
+    hidden_infs = set(inf_nodes) - set(X)
+
+    node_color_info = OrderedDict()
+    node_color_info[tuple(X)] = 1.0
+    node_color_info[tuple(hidden_infs)] = 0.5
+    node_color_info['default'] = 0
+
+    node_shape_info = OrderedDict()
+    node_shape_info[tuple(X)] = SHAPE_SQUARE
+    node_shape_info['default'] = SHAPE_CIRCLE
+    node_shape_info[(source, )] = SHAPE_PENTAGON
+
+    node_size_info = OrderedDict()
+
+    node_size_info[tuple(X)] = 10
+    node_size_info[tuple(hidden_infs)] = 12.5
+    node_size_info['default'] = 5
+
+    edge_color_info = {
+        'default': 'white'
+    }
+    edge_pen_width_info = {
+        'default': 2.0
+    }
+    return {
+        'node_color_info': node_color_info,
+        'node_shape_info': node_shape_info,
+        'node_size_info': node_size_info,
+        'edge_color_info': edge_color_info,
+        'edge_pen_width_info': edge_pen_width_info
+    }
+
+
+def tree_plot_setting(g, c, X, tree_edges, color='red'):
+    s = default_plot_setting(g, c, X)
+    s['edge_color_info'][tree_edges] = color
+    return s
+
+
+def heatmap_plot_setting(g, c, X, weight):
+    inf_nodes = infected_nodes(c)
+    hidden_infs = set(inf_nodes) - set(X)
+    
+    s = default_plot_setting(g, c, X)
+    s['node_size_info'][tuple(X)] = 15
+    s['node_size_info'][tuple(hidden_infs)] = 15
+    s['node_size_info']['default'] = 7.5
+    
+    s['node_color_info'] = weight
+    return s
 
 
 class QueryIllustrator():
@@ -37,7 +148,7 @@ class QueryIllustrator():
                  pos,
                  output_size=(300, 300),
                  vertex_size=20,
-                 vcmap=matplotlib.cm.Reds):
+                 vcmap=mpl.cm.Reds):
         self.g_bak = g
         self.g = remove_filters(g)  # refresh
         self.obs = obs
@@ -116,37 +227,18 @@ class QueryIllustrator():
         return color
 
 
-class InfectionProbability():
+class InfectionProbabilityViz():
     def __init__(self, g,
                  pos,
                  output_size=(300, 300),
-                 vertex_size=20,
-                 vcmap=matplotlib.cm.Reds):
+                 vcmap=mpl.cm.Reds):
         self.g = g
         self.pos = pos
         self.output_size = output_size
-        self.vertex_size = vertex_size
         self.vcmap = vcmap
 
-    def plot(self, obs, ax=None, **kwargs):
-        """kwargs: refer to `inference.infection_probability`"""
-        inf_probas = infection_probability(self.g, obs, **kwargs)
-        vcolor = self.g.new_vertex_property('float')
-        vcolor.set_value(0)
-        vcolor.a = inf_probas
-
-        vshape = self.g.new_vertex_property('string')
-        vshape.set_value('circle')
-
-        for o in obs:
-            vcolor[o] = 0
-            vshape[o] = 'square'
-
-        graph_draw(self.g,
-                   pos=self.pos,
-                   vcmap=self.vcmap,
-                   output_size=self.output_size,
-                   vertex_size=self.vertex_size,
-                   vertex_fill_color=vcolor,
-                   vertex_shape=vshape,
-                   mplfig=ax)
+    def plot(self, c, X, probas, ax=None, **kwargs):
+        setting = heatmap_plot_setting(self.g, c, X, probas)
+        visualize(self.g, self.pos,
+                  **setting)
+        

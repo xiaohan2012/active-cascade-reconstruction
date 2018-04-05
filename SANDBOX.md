@@ -209,3 +209,47 @@ Minkowsky-1 distance
        75%       0.065110      0.065218     0.003523
        max       0.177557      0.177177     0.004375
 ```
+
+# Apr 3
+
+SIR on lattice and grqc does not give accurate result. The reason might be:
+
+- `p(T) / pi(T)` is unbounded. It can be up to product of out degrees in the tree, leading the large variance
+- [more details](https://stats.stackexchange.com/questions/76798/in-importance-sampling-why-should-the-importance-density-have-heavier-tails)
+- for example, the `f/g` (product of out degrees) can be as large as `3.352242973555864e+20`
+
+
+Another question is: why the result is good on complete graphs (even though small)?
+
+- First of all, the graphs are small
+- It might be each node have similar out degrees (in expectation, because they have the same number of edges and edge weights are drawn from the same distribution)
+
+## objective function: considers inactive edges as well
+
+the motivation: the counter-effect the effect of out degree product
+
+- gives promising reasult: 0.99 cosine and 0.12 l1 (using only 10000 samples)
+- a more reasonable approach
+
+## practical issues
+
+- float point underflow (in `proba_helpers.ic_cascade_probability_gt`)
+  - [X] use log
+
+# Apr 4
+
+check AP scores comparing three different sampling objective:
+
+- `P`
+- `P'`
+- `P_new`
+
+- on lattice: `P_new > P' > P`
+- on GRQC: `P' > P_new > P`
+
+## meeting
+
+why P gives low AP score:
+
+- P encourages large trees because of `P / P'` is `Prod p(u)`, where `p(u)` tends to be larger than 1
+
