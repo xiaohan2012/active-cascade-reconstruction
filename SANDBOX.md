@@ -253,3 +253,36 @@ why P gives low AP score:
 
 - P encourages large trees because of `P / P'` is `Prod p(u)`, where `p(u)` tends to be larger than 1
 
+# Apr 5
+
+fixed a bug in calculating P_new, replaced `p` by `(1-p)` when considering inactive edges.
+
+however, also observed that in `GRQC`, large trees are sampled.
+
+The reason is, in those trees
+
+- node out-degree tends to be large (>1)
+- `Prod (1-p(u, v))` is not small because p is small (<= 0.15)
+- so finally, `Prod p(u)` out-weights `Prod 1-p(u, v)`
+
+for lattice, the result is even better for `P_new`
+
+
+## population importance resampling
+
+checked some papers:
+
+- https://arxiv.org/pdf/0708.0711.pdf
+  - works for mixture models, doesn't apply to our case
+- https://www.tandfonline.com/doi/pdf/10.1198/106186004X12803?needAccess=true
+  - why this `q_it`?
+- [a survey](https://pdfs.semanticscholar.org/7538/2c4ac316e8326052c2baf4bd5b53016f2406.pdf)
+  - do not understand why using random walker
+
+
+## adaptive importance sampling
+
+- [past, present and future](http://ieeexplore.ieee.org/document/7974876/)
+  - involves updating the proposal parameters. in our case, what are the proposal parameters is not very clear.
+  - I guess it's not very relevant
+- http://statweb.stanford.edu/~owen/pubtalks/AdaptiveISweb.pdf
