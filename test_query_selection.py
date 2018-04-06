@@ -14,7 +14,7 @@ from test_helpers import check_tree_samples, check_error_esitmator
 
 @pytest.mark.parametrize("query_method", ['random', 'pagerank', 'entropy', 'error'])
 @pytest.mark.parametrize("sampling_method", ['cut', 'loop_erased'])
-@pytest.mark.parametrize("with_inc_sampling", [True, False])
+@pytest.mark.parametrize("with_inc_sampling", [True])
 @pytest.mark.parametrize("root_sampler", ['random', 'pagerank'])
 def test_query_method(g, query_method, sampling_method, root_sampler, with_inc_sampling):
     print('query_method: ', query_method)
@@ -34,7 +34,7 @@ def test_query_method(g, query_method, sampling_method, root_sampler, with_inc_s
                           n_samples=20,
                           method=sampling_method,
                           gi=gi,
-                          return_tree_nodes=True,  # using tree nodes
+                          return_type='nodes',  # using tree nodes
                           with_inc_sampling=with_inc_sampling
     )
 
@@ -88,7 +88,7 @@ def build_simulator_using_prediction_error_query_selector(g, **kwargs):
                           n_samples=1000,
                           method='loop_erased',
                           gi=gi,
-                          return_tree_nodes=True  # using tree nodes
+                          return_type='nodes'  # using tree nodes
     )
 
     q_gen = PredictionErrorQueryGenerator(gv, pool,

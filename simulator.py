@@ -21,7 +21,7 @@ class Simulator():
         """return the list of query nodes
         """
         if obs is None or c is None:
-            obs, c = gen_input(self.g, **gen_input_kwargs)
+            obs, c = gen_input(self.g, **gen_input_kwargs)[:2]
 
         self.q_gen.receive_observation(obs, c)
 

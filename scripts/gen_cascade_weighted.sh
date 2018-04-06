@@ -1,12 +1,13 @@
 #! /bin/zsh
 
-graph="grqc"
+graph="nethept"
 cascade_model="ic"
-n_cascades=96
+n_cascades=12
+n_observation_rounds=8
 cascade_fraction=0.02
-obs_fraction=0.5
-min_size=40
-max_size=120
+obs_fraction=0.2
+min_size=20
+max_size=9999999
 
 
 dataset_id="${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}"
@@ -19,9 +20,11 @@ python3 simulate_cascades.py \
 	-g ${graph} \
 	-n ${n_cascades} \
 	-o ${obs_fraction} \
+	--n_observation_rounds ${n_observation_rounds} \
 	--use_edge_weights \
 	-m ${cascade_model} \
 	-d ${ourput_dir} \
 	-s ${cascade_fraction} \
 	--min_size ${min_size} \
-	--max_size ${max_size}
+	--max_size ${max_size} \
+	--observation_method uniform
