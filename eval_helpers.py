@@ -84,7 +84,8 @@ def aggregate_scores_over_cascades_by_methods(cascades,
         scores_by_method[l] = []
     
     c_paths = []  # track the order
-    for c_path, (obs, c) in tqdm(cascades):
+    for c_path, tpl in tqdm(cascades):
+        obs, c = tpl[:2]
         
         obs = set(obs)
         c_paths.append(c_path)

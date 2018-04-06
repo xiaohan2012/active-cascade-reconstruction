@@ -43,7 +43,8 @@ def infer_probas_from_queries(g, obs, c, queries,
                              method=sampling_method,
                              gi=gi,
                              with_inc_sampling=with_inc_sampling,
-                             return_tree_nodes=True)
+                             with_resampling=False,
+                             return_type='nodes')
     estimator = TreeBasedStatistics(g)
     sampler.fill(obs,
                  root_sampler=root_sampler)
@@ -99,7 +100,7 @@ def one_round(g, obs, c, c_path,
               with_inc_sampling=False,
               debug=False,
               verbose=False):
-    print('\nprocessing {} started, query_method={}, root_sampler={}, \n'.format(
+    print('\ninference {} started, query_method={}, root_sampler={}, \n'.format(
         c_path, query_method, root_sampler))
     stime = time.time()
     
@@ -149,6 +150,11 @@ if __name__ == '__main__':
                         default='inf_probas',
                         choices=('inf_probas'),
                         help='method used for infer hidden infections')
+    parser.add_argument('--sampling_method',
+                        default='loop_erased',
+                        choices=('loop_erased', 'cut'),
+                        help='')
+
     parser.add_argument('-i', '--with_inc_sampling',
                         action='store_true',
                         help='whether with incremental sampling or not')
@@ -195,20 +201,22 @@ if __name__ == '__main__':
 
     if not args.debug:
         openmp_set_num_threads(1)  # prevent jobjib from hanging
-        Parallel(n_jobs=-1)(delayed(one_round)(g, obs, c, path, args.query_method,
+        Parallel(n_jobs=-1)(delayed(one_round)(g, tpl[0], tpl[1], path, args.query_method,
                                                args.inference_method,
                                                query_dirname,
                                                inf_proba_dirname, n_samples=n_samples,
                                                root_sampler=args.root_sampler,
                                                with_inc_sampling=args.with_inc_sampling,
+                                               sampling_method=args.sampling_method,
                                                verbose=args.verbose)
-                            for path, (obs, c) in tqdm(cascades))
+                            for path, tpl in tqdm(cascades))
     else:
-        for path, (obs, c) in tqdm(cascades):
-            one_round(g, obs, c, path, args.query_method,
+        for path, tpl in tqdm(cascades):
+            one_round(g, tpl[0], tpl[1], path, args.query_method,
                       args.inference_method,
                       query_dirname,
                       inf_proba_dirname, n_samples=n_samples,
                       root_sampler=args.root_sampler,
                       with_inc_sampling=args.with_inc_sampling,
+                      sampling_method=args.sampling_method,
                       verbose=args.verbose)

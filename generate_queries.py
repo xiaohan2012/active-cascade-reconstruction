@@ -129,7 +129,7 @@ def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir,
         print("{} processed already, skip".format(c_path))
         return
 
-    print('\nprocessing {} started\n'.format(c_path))
+    print('\nquerying {} started, using {}\n'.format(c_path, q_gen_name))
 
     gv = remove_filters(g)
     args = []  # sampling based method need a sampler to initialize
@@ -143,7 +143,8 @@ def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir,
             n_samples=n_samples,
             method=sampling_method,
             gi=gi,
-            return_tree_nodes=True,
+            return_type='nodes',
+            with_resampling=False,
             with_inc_sampling=incremental_cascade)
         args.append(sampler)
         param['error_estimator'] = TreeBasedStatistics(gv)
@@ -157,7 +158,7 @@ def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir,
 
     if not os.path.exists(d):
         os.makedirs(d)
-    print('\nprocessing {} done: taking {:.4f} secs\n'.format(c_path, time_cost))
+    print('\ninference {} done: taking {:.4f} secs\n'.format(c_path, time_cost))
     pkl.dump(qs, open(outpath, 'wb'))
 
     meta_data = {'time_elapsed': time_cost}
@@ -172,8 +173,8 @@ if args.debug:
     print('DEBUG MODE')
     print('====================')
     cls, param = strategy
-    for path, (obs, c) in tqdm(cascade_generator):
-        one_round(g, obs, c, path, cls, param, query_strategy, output_dir, sampling_method,
+    for path, tpl in tqdm(cascade_generator):
+        one_round(g, tpl[0], tpl[1], path, cls, param, query_strategy, output_dir, sampling_method,
                   incremental_cascade,
                   n_samples,
                   args.verbose)
@@ -181,9 +182,9 @@ else:
     # prevent Parallel from hanging
     openmp_set_num_threads(1)
     
-    Parallel(n_jobs=-1)(delayed(one_round)(g, obs, c, path, strategy[0], strategy[1],
+    Parallel(n_jobs=-1)(delayed(one_round)(g, tpl[0], tpl[1], path, strategy[0], strategy[1],
                                            query_strategy, output_dir, sampling_method,
                                            incremental_cascade,
                                            n_samples,
                                            args.verbose)
-                        for path, (obs, c) in tqdm(cascade_generator))
+                        for path, tpl in tqdm(cascade_generator))
