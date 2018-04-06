@@ -88,8 +88,8 @@ def one_run(num_vertices, num_terminals, n_samples, sampling_method, low, high):
     ans = OrderedDict()
     ans['cos_sim_without_resampling'] = cos_sim_rev_only
     ans['l1_dist_without_resampling'] = l1_dist_rev_only
-    ans['cos_sim_with_sampling'] = cos_sim_together
-    ans['l1_dist_with_sampling'] = l1_dist_together
+    ans['cos_sim_with_resampling'] = cos_sim_together
+    ans['l1_dist_with_resampling'] = l1_dist_together
 
     return ans
 

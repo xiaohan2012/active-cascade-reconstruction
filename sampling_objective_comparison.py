@@ -16,11 +16,11 @@ from graph_helpers import load_graph_by_name, get_edge_weights
 from proba_helpers import cascade_probability_gt, ic_cascade_probability_gt
 from random_steiner_tree.util import from_gt
 from sample_pool import TreeSamplePool
+from eval_helpers import precision_at_cascade_size
 
 
 def run_with_or_without_resampling(g, cid, c, X, n_samples, sampling_method):
     gi = from_gt(g, get_edge_weights(g))
-    ans = {}
     infected = infected_nodes(c)
     y_true = np.zeros((len(c), ))
     y_true[infected] = 1
@@ -34,10 +34,11 @@ def run_with_or_without_resampling(g, cid, c, X, n_samples, sampling_method):
         'P_new': {'with_resampling': True, 'true_casacde_proba_func': ic_cascade_probability_gt},
         'no resampling': {'with_resampling': False}
     }
-        
+
+    ap_ans, p_ans = {}, {}
     for name, opt in options.items():
         sampler = TreeSamplePool(g, n_samples, sampling_method,
-                                 gi=gi,                                  
+                                 gi=gi,
                                  return_type='nodes',
                                  **opt)
         sampler.fill(X, root_sampler=root_sampler)
@@ -46,12 +47,15 @@ def run_with_or_without_resampling(g, cid, c, X, n_samples, sampling_method):
 
         probas = infection_probability(g, X, sampler, estimator)
 
-        score = average_precision_score(y_true[mask], probas[mask])
+        ap_score = average_precision_score(y_true[mask], probas[mask])
+        p_score = precision_at_cascade_size(y_true[mask], probas[mask])
         # print('with_resampling={}, AP score={}'.format(opt, score))
-        ans[name] = score
-    ans['cid'] = cid
+        ap_ans[name] = ap_score
+        p_ans[name] = p_score
+    ap_ans['cid'] = cid
+    p_ans['cid'] = cid
     # print(ans)
-    return ans
+    return ap_ans, p_ans
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='')
@@ -76,14 +80,25 @@ if __name__ == '__main__':
     
     cs = load_cascades('cascade-weighted/{}-mic-s0.02-oleaves/'.format(graph_name))
         
-    records = Parallel(n_jobs=args.n_jobs)(
+    tuples_of_records = Parallel(n_jobs=args.n_jobs)(
         delayed(run_with_or_without_resampling)(g_rev, cid, c, X, n_samples, sampling_method)
         for cid, (X, c) in tqdm(cs, total=96))
 
-    df = pd.DataFrame.from_records(records)
-    df.describe()
+    ap_records, p_records = zip(*tuples_of_records)
+    ap_df = pd.DataFrame.from_records(ap_records)
+    print('ap score:')
+    print(ap_df.describe())
 
-    df.to_pickle('outputs/sampling-objective-comparison/ap-g{}-s{}-n{}.pkl'.format(
-            graph_name, sampling_method, n_samples))
-    df.describe().to_pickle('outputs/sampling-objective-comparison/ap-g{}-s{}-n{}.summary.pkl'.format(
+    pk_df = pd.DataFrame.from_records(p_records)
+    print('precision@k score:')
+    print(pk_df.describe())
+
+    ap_df.to_pickle('outputs/sampling-objective-comparison/ap-g{}-s{}-n{}.pkl'.format(
+        graph_name, sampling_method, n_samples))
+    ap_df.describe().to_pickle('outputs/sampling-objective-comparison/ap-g{}-s{}-n{}.summary.pkl'.format(
+        graph_name, sampling_method, n_samples))
+
+    pk_df.to_pickle('outputs/sampling-objective-comparison/pk-g{}-s{}-n{}.pkl'.format(
+        graph_name, sampling_method, n_samples))
+    pk_df.describe().to_pickle('outputs/sampling-objective-comparison/pk-g{}-s{}-n{}.summary.pkl'.format(
         graph_name, sampling_method, n_samples))

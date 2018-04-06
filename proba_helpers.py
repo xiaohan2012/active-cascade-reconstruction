@@ -38,7 +38,7 @@ def ic_cascade_probability_gt(g, p_dict, cascade_edges, nbr_dict, using_log=True
         probas_from_active_edges = np.product([p_dict[(u, v)] for u, v in cascade_edges])
             
     inactive_edges = {(w, u)  # here it should (w, u) because of graph transpose
-                      for u, v in cascade_edges
+                      for u, _ in cascade_edges
                       for w in nbr_dict[u]
                       if w not in infected_nodes}
 

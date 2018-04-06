@@ -132,10 +132,18 @@ class SamplingBasedGenerator(BaseQueryGenerator):
         # earliet node might be updated, or uninfected nodes get removed
         # print('update observation, self.root_sampler', self.root_sampler)
         self._update_root_sampler(inf_nodes, c)
-        new_samples = self.sampler.update_samples(inf_nodes, node, label,
-                                                  root_sampler=self.root_sampler)
-        self.error_estimator.update_trees(new_samples, node, label)
 
+        new_samples = self.sampler.update_samples(
+            inf_nodes, node, label,
+            root_sampler=self.root_sampler)
+        
+        if not self.sampler.with_resampling:
+            # should be deprecated because trees are re-sampled
+            self.error_estimator.update_trees(new_samples, node, label)
+        else:
+            # re-build the matrix because trees are re-sampled
+            self.error_estimator.build_matrix(self.sampler._samples)
+            
 
 class EntropyQueryGenerator(SamplingBasedGenerator):
     def __init__(self, g, *args,

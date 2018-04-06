@@ -21,3 +21,9 @@ def l1_dist(probas1, probas2):
     return cdist([probas1],
                  [probas2],
                  'minkowski', p=1.0)[0, 0]
+
+
+def cascade_info(obs, c):
+    print('source: {}'.format(cascade_source(c)))
+    print('|casdade|: {}'.format(len(infected_nodes(c))))
+    print('|observed nodes|: {}'.format(len(obs)))

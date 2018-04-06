@@ -93,7 +93,7 @@ def gen_inputs_varying_obs(
                     # print('source', s)
                     # print('tree.edges()', extract_edges(tree))
                     break
-                # print('{} not in range ({}, {})'.format(size, min_size, max_size))
+                print('{} not in range ({}, {})'.format(size, min_size, max_size))
         else:
             raise ValueError('unknown cascade model')
     else:

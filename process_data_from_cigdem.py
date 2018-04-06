@@ -1,30 +1,15 @@
-
 # coding: utf-8
-
-# In[1]:
-
-
-get_ipython().run_line_magic('matplotlib', 'inline')
-
-
-# In[2]:
-
 
 import pandas as pd
 from graph_tool import Graph
 from tqdm import tqdm
 
+EPS = 1e-13
 
-# In[22]:
+graph = 'flixster'
+sep = '\t'
 
-
-graph = 'nethept'
-
-
-# In[23]:
-
-
-df = pd.read_csv('data/{}/{}.txt'.format(graph, graph), sep=' ', header=None, names=['u', 'v', 'w'])
+df = pd.read_csv('data/{}/{}.txt'.format(graph, graph), sep=sep, header=None, names=['u', 'v', 'w'])
 
 
 # In[24]:
@@ -71,14 +56,14 @@ edges_iter = list(g.edges())
 for e in tqdm(edges_iter):
     u, v  = int(e.source()), int(e.target())
     if g.edge(v, u) is None:
-        g.add_edge(v, u)        
+        g.add_edge(v, u)
 
 
 # In[31]:
 
 
 weight = g.new_edge_property('float')
-weight.set_value(0)
+weight.set_value(EPS)
 
 
 # In[32]:
@@ -102,7 +87,7 @@ deg_out = g.degree_property_map('out', weight=weight)
 r = deg_out.a
 r = r[r < 2]
 s = pd.Series(r)
-s.hist(bins=30)
+# s.hist(bins=30)
 
 
 # In[35]:

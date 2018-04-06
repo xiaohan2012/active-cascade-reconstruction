@@ -66,7 +66,8 @@ else:
 print('p=', p)
 print('p.a=', p.a)
 
-root_sampler = build_out_degree_root_sampler(g)
+# root_sampler = build_out_degree_root_sampler(g)
+root_sampler = lambda: None
 
 d = args.output_dir
 if not os.path.exists(d):
