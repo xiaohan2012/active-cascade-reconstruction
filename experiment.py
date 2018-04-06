@@ -50,7 +50,6 @@ def gen_input(g, source=None, cascade_path=None, stop_fraction=0.25, p=0.5, q=0.
         print('load from cache')
         c = pkl.load(open(cascade_path, 'rb'))
         s = np.nonzero([c == 0])[1][0]
-        tree = None
         
     obs = observe_cascade(c, s, q, observation_method, tree=tree)
     # print(obs)
@@ -98,9 +97,8 @@ def gen_inputs_varying_obs(
             raise ValueError('unknown cascade model')
     else:
         print('load from cache')
-        c = pkl.load(open(cascade_path, 'rb'))
+        _, c, tree = pkl.load(open(cascade_path, 'rb'))
         s = np.nonzero([c == 0])[1][0]
-        tree = None
     
     for i in range(n_times):
         obs = observe_cascade(c, s, q, observation_method, tree=tree)
