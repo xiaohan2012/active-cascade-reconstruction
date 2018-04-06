@@ -5,7 +5,9 @@ from copy import copy
 from tqdm import tqdm
 
 from graph_helpers import extract_nodes
+from helpers import infected_nodes
 from sklearn.metrics import precision_score
+from sklearn.metrics import average_precision_score
 
 
 class TooSmallCascadeError(Exception):
@@ -155,3 +157,15 @@ def aggregate_scores_over_cascades_by_methods(cascades,
             scores_by_method[method_label].append(scores)
         # print('---'*10)
     return scores_by_method
+
+
+def eval_probas(c, X, probas):
+    infected = infected_nodes(c)
+    y_true = np.zeros((len(c), ))
+    y_true[infected] = 1
+    X_set = set(X)
+    mask = np.array([(i not in X_set) for i in range(len(c))])
+    
+    ap_score = average_precision_score(y_true[mask], probas[mask])
+    p_score = precision_at_cascade_size(y_true[mask], probas[mask])
+    return {'ap': ap_score, 'pk': p_score}
