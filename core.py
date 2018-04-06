@@ -81,7 +81,8 @@ def sample_steiner_trees(g, obs,
                          gi=None,
                          root=None,
                          root_sampler=None,
-                         return_type=False):
+                         return_type=False,
+                         log=False):
     """sample `n_samples` steiner trees that span `obs` in `g`
 
     `method`: the method for sampling steiner tree
@@ -94,7 +95,12 @@ def sample_steiner_trees(g, obs,
 
     steiner_tree_samples = []
     # for i in tqdm(range(n_samples), total=n_samples):
-    for i in range(n_samples):
+    if log:
+        iters = tqdm(range(n_samples), total=n_samples)
+    else:
+        iters = range(n_samples)
+        
+    for i in iters:
         if root is None:
             # if root not give, sample it using some sampler
             if root_sampler is None:
