@@ -1,14 +1,14 @@
 #! /bin/zsh
 
-graph="grqc"
+graph="lattice-1024"
 graph_suffix="_reversed"
 cascade_fraction=0.02
-n_samples=2500
+n_tree_samples=2500
 sample_method=loop_erased
 cascade_model="ic"
 root_sampler='true_root'
-query_methods=(random pagerank entropy prediction_error)
-n_queries=20
+query_methods=(random pagerank entropy prediction_error weighted_prediction_error)
+n_queries=10
 obs_fractions=(0.1 0.2 0.3 0.4 0.5)
 
 inf_method="inf_probas"
@@ -28,7 +28,7 @@ for obs_fraction in ${obs_fractions}; do
 		--weighted \
 		-q ${query_method} \
 		-n ${n_queries} \
-		-s ${n_samples} \
+		-s ${n_tree_samples} \
 		-p ${min_proba} \
 		-m ${sample_method} \
 		-c ${cascade_dir} \
@@ -38,7 +38,7 @@ for obs_fraction in ${obs_fractions}; do
 		-g ${graph} \
 		-f ${graph_suffix} \
 		--weighted \
-		-s ${n_samples} \
+		-s ${n_tree_samples} \
 		--sampling_method ${sample_method} \
 		-m ${inf_method} \
 		-c ${cascade_dir} \
