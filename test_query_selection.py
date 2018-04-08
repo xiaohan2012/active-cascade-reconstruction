@@ -1,6 +1,7 @@
 import pytest
 from query_selection import (RandomQueryGenerator, EntropyQueryGenerator,
                              PRQueryGenerator, PredictionErrorQueryGenerator,
+                             WeightedPredictionErrorQueryGenerator,
                              NoMoreQuery)
 from simulator import Simulator
 from graph_helpers import remove_filters, get_edge_weights
@@ -12,10 +13,10 @@ from tree_stat import TreeBasedStatistics
 from test_helpers import check_tree_samples, check_error_esitmator
 
 
-@pytest.mark.parametrize("query_method", ['random', 'pagerank', 'entropy', 'error'])
+@pytest.mark.parametrize("query_method", ['random', 'pagerank', 'entropy', 'error', 'weighted-prederror'])
 @pytest.mark.parametrize("sampling_method", ['cut', 'loop_erased'])
-@pytest.mark.parametrize("with_inc_sampling", [True])
-@pytest.mark.parametrize("root_sampler", ['random', 'pagerank'])
+@pytest.mark.parametrize("with_inc_sampling", [False])
+@pytest.mark.parametrize("root_sampler", ['true_root', 'random'])
 def test_query_method(g, query_method, sampling_method, root_sampler, with_inc_sampling):
     print('query_method: ', query_method)
     print('sampling_method: ', sampling_method)
@@ -25,7 +26,7 @@ def test_query_method(g, query_method, sampling_method, root_sampler, with_inc_s
     print(gv.num_edges())
     edge_weights = get_edge_weights(gv)
     
-    if query_method in {'entropy', 'error'}:
+    if query_method in {'entropy', 'error', 'weighted-prederror'}:
         gi = from_gt(g, edge_weights)
     else:
         gi = None
@@ -38,35 +39,42 @@ def test_query_method(g, query_method, sampling_method, root_sampler, with_inc_s
                           with_inc_sampling=with_inc_sampling
     )
 
+    error_estimator = TreeBasedStatistics(gv)
+
     if query_method == 'random':
         q_gen = RandomQueryGenerator(gv)
     elif query_method == 'pagerank':
         q_gen = PRQueryGenerator(gv)
     elif query_method == 'entropy':
-        error_estimator = TreeBasedStatistics(gv)
         q_gen = EntropyQueryGenerator(gv, pool,
                                       error_estimator=error_estimator,
                                       root_sampler=root_sampler)
     elif query_method == 'error':
-        error_estimator = TreeBasedStatistics(gv)
         q_gen = PredictionErrorQueryGenerator(gv, pool,
                                               error_estimator=error_estimator,
                                               prune_nodes=True,
-                                              n_node_samples=10,
+                                              n_node_samples=None,
                                               root_sampler=root_sampler)
-
+    elif query_method == 'weighted-prederror':
+        q_gen = WeightedPredictionErrorQueryGenerator(
+            gv, pool,
+            error_estimator=error_estimator,
+            prune_nodes=True,
+            n_node_samples=None,
+            root_sampler=root_sampler)
     sim = Simulator(gv, q_gen, gi=gi, print_log=True)
     print('simulator created')
-    n_queries = 10
+    n_queries = 5
     qs, aux = sim.run(n_queries, gen_input_kwargs={'min_size': 20})
     print('sim.run finished')
     
     assert len(qs) == n_queries
     assert set(qs).intersection(set(aux['obs'])) == set()
 
-    if query_method in {'entropy', 'error'}:
+    if query_method in {'entropy', 'error', 'weighted-prederror'}:
         check_tree_samples(qs, aux['c'], q_gen.sampler.samples)
-    if query_method == 'error':
+
+    if query_method in {'error', 'weighted-prederror'}:
         # ensure that error estimator updates its tree samples
         check_error_esitmator(qs, aux['c'], error_estimator)
 
