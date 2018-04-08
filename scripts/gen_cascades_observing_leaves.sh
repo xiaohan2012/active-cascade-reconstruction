@@ -1,6 +1,6 @@
 #! /bin/zsh
 
-graph="lattice-1024"
+graph="lattice-100"
 cascade_model="ic"
 n_cascades=96
 cascade_fraction=0.02

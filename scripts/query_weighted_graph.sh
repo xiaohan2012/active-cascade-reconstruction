@@ -5,7 +5,7 @@ graph_suffix="_preprocessed"
 obs_fraction="leaves"
 cascade_fraction=0.02
 
-sample_method=cut
+sample_method=loop_erased
 cascade_model="ic"
 root_sampler='true_root'
 query_methods=(random pagerank entropy prediction_error)

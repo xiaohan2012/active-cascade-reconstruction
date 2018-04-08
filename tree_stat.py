@@ -1,6 +1,7 @@
 import numpy as np
 
 EPS = 1e-10
+# EPS = 0.0
 
 
 class TreeBasedStatistics:
@@ -87,15 +88,16 @@ class TreeBasedStatistics:
         v[(v == 0) | (v == 1)] = EPS
         return v
 
-    def _sum_entropy(self, p):
-        return -(p * np.log2(p) + (1-p) * np.log2(1-p)).sum()
+    def _sum_entropy(self, p, weights):
+        ents_arr = -(p * np.log(p) + (1-p) * np.log(1-p))
+        return (ents_arr * weights).sum()
 
     def prediction_error(self, query, condition, targets):
         p = self.proba(query, condition, targets)
         p = self._smooth_extreme_vals(p)
-        return self._sum_entropy(p)
+        return self._sum_entropy(p, np.ones(len(targets)))
 
-    def query_score(self, query, targets, return_verbose=False):
+    def query_score(self, query, targets, node_weights=None, return_verbose=False):
         num0, denum0 = self.count(query, 0, targets, return_denum=True)
         num1, denum1 = self.count(query, 1, targets, return_denum=True)
 
@@ -104,9 +106,19 @@ class TreeBasedStatistics:
         p0, p1 = (self._smooth_extreme_vals(num0 / denum0),
                   self._smooth_extreme_vals(num1 / denum1))
 
-        weights = np.array([denum0, denum1]) / self.n_col
-        errors = np.array([self._sum_entropy(p0), self._sum_entropy(p1)])
+        if node_weights is None:
+            node_weights = np.ones(p0.shape)  # equal weight
+        elif node_weights == 'uncond_proba':
+            # can be cached for each query selection
+            node_weights = self.unconditional_proba(targets)
 
+        assert node_weights.shape == p0.shape, 'shape unmatch: {}, {}'.format(
+            node_weights.shape,
+            p0.shape)
+        
+        weights = np.array([denum0, denum1]) / self.n_col
+        errors = np.array([self._sum_entropy(p0, node_weights), self._sum_entropy(p1, node_weights)])
+        
         if False:
             print("query: ", query)
             print("p(uninfected)={}, p(infected)={}".format(weights[0], weights[1]))

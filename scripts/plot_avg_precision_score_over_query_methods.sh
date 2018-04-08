@@ -1,7 +1,7 @@
 #! /bin/zsh
 
-graph="lattice-1024"
-sample_method=cut
+graph="grqc"
+sample_method=loop_erased
 
 inf_method="inf_probas"
 
@@ -10,15 +10,18 @@ cascade_dirname='cascade-weighted'
 inf_dirname='inf_probas-weighted'
 
 cascade_model="ic"
+cascade_fraction=0.02
 # cascade_fractions=(0.01 0.02 0.04 0.08 0.16 0.32)
 # cascade_fractions=(0.04 0.08 0.16 0.32 0.64)
 # cascade_fractions=(0.02 0.04 0.08 0.16 0.32)
-cascade_fractions=(0.02)
-obs_fraction="leaves"
+obs_fractions=(0.1)
 
-# eval_method="ap"
-eval_method="precision_at_cascade_size"
-eval_with_mask=False
+
+eval_method="ap"
+eval_with_mask=True
+
+# eval_method="precision_at_cascade_size"
+# eval_with_mask=False
 
 # query_dir_ids="random, pagerank, entropy, entropy-inc, prediction_error, prediction_error-inc"
 # inf_dir_ids="random, pagerank, entropy, entropy-inc, prediction_error, prediction_error-inc"
@@ -30,7 +33,7 @@ labels="random, pagerank, entropy, prediction_error"
 
 n_queries=10
 
-for cascade_fraction in ${cascade_fractions}; do
+for obs_fraction in ${obs_fractions}; do
     dataset_id="${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}"
     # print "${data_id}"
 

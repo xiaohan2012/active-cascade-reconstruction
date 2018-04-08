@@ -1,11 +1,11 @@
 #! /bin/zsh
 
-graph="nethept"
+graph=""
 cascade_model="ic"
 n_cascades=12
 n_observation_rounds=8
 cascade_fraction=0.02
-obs_fraction=0.2
+obs_fraction=0.1
 min_size=20
 max_size=9999999
 

@@ -1,6 +1,6 @@
 #! /bin/zsh
 
-graph="grqc"
+graph="p2p"
 graph_suffix="_preprocessed"
 obs_fraction="leaves"
 cascade_fraction=0.02

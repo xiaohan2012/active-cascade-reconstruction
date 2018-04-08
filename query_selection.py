@@ -201,16 +201,15 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
 
         return np.random.choice(cand_node_samples, self.n_node_samples,
                                 p=sampling_weight)
-        
-    # @profile
-    def _select_query(self, g, inf_nodes):
+
+    def _prepare_for_selection(self, inf_nodes):
         if self.prune_nodes:
             # pruning nods that are sure to be infected/uninfected
             # also, we can set a real-valued threshold
             if self.verbose:
                 prev_n = len(self._cand_pool)
                 
-            self.prune_candidates()  #  _cand_pool updated
+            self.prune_candidates()
 
             if self.verbose:
                 print('pruning candidates from {} to {}'.format(
@@ -223,15 +222,19 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
             if self.verbose:
                 print('no estimation node sampling')
 
-            node_samples = self._cand_pool
+            self.node_samples = self._cand_pool
         else:
-            node_samples = self._sample_nodes_for_estimation()
+            self.node_samples = self._sample_nodes_for_estimation()
 
             if self.verbose:
-                print('number of estimation nodes'.format(len(node_samples)))
+                print('number of estimation nodes'.format(len(self.node_samples)))
+        
+    # @profile
+    def _select_query(self, g, inf_nodes):
+        self._prepare_for_selection(inf_nodes)
 
         def score(q):
-            nodes = set(node_samples) - {q}
+            nodes = set(self.node_samples) - {q}
             if len(nodes) == 0:
                 return float('inf')  # throw this node away
             else:
@@ -244,31 +247,41 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
         for q in self._cand_pool:
             q2score[q], other_stuff = score(q)
             self.aux[q] = other_stuff
-            # print(q, q2score[q])
         
-        # import pickle as pkl
-        # import tempfile
-        # with tempfile.NamedTemporaryFile(dir='./tmp', delete=False) as f:
-        #     probas = {n: p for n, p in zip(
-        #         list(self._cand_pool),
-        #         self.error_estimator.unconditional_proba(list(self._cand_pool)))}
-        #     pkl.dump((q2score, probas), f)
-        #     f.flush()
-        #     print('flushed')
-            
-        # top = 10
-        # top_qs = list(sorted(q2score, key=q2score.__getitem__))[:top]
-
-        # print('top score queries:')
-        # for q in top_qs:
-        #     print('{}({:.2f})'.format(q, q2score[q]))
-
-        # changed to max
-        # best_q = max(self._cand_pool, key=q2score.__getitem__)
         if len(self._cand_pool) == 0:
             raise NoMoreQuery
 
         best_q = min(self._cand_pool, key=q2score.__getitem__)
         self.query_scores = q2score
         # print('best_q', best_q)
+        return best_q
+
+
+class WeightedPredictionErrorQueryGenerator(PredictionErrorQueryGenerator):
+    def _select_query(self, g, inf_nodes):
+        self._prepare_for_selection(inf_nodes)
+
+        def score(q):
+            nodes = set(self.node_samples) - {q}
+            if len(nodes) == 0:
+                return float('inf')  # throw this node away
+            else:
+                return self.error_estimator.query_score(
+                    q, nodes,
+                    node_weights='uncond_proba',
+                    return_verbose=True)
+
+        q2score = {}
+        self.aux = {}
+        # for q in tqdm(self._cand_pool)
+        for q in self._cand_pool:
+            q2score[q], other_stuff = score(q)
+            self.aux[q] = other_stuff
+        
+        if len(self._cand_pool) == 0:
+            raise NoMoreQuery
+
+        best_q = min(self._cand_pool, key=q2score.__getitem__)
+        self.query_scores = q2score
+
         return best_q
