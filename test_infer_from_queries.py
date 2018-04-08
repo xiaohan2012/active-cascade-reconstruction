@@ -10,12 +10,12 @@ from test_helpers import check_tree_samples, check_error_esitmator
 @pytest.mark.parametrize("cid", range(2))
 @pytest.mark.parametrize("sampling_method", ['cut', 'loop_erased'])
 @pytest.mark.parametrize("root_sampler_name", ['random', 'pagerank', 'true_root'])
-@pytest.mark.parametrize("with_inc_sampling", [False, True])
+@pytest.mark.parametrize("with_inc_sampling", [False])
 def test_infer_probas_for_queries_sampling_approach(g, cid, sampling_method, root_sampler_name,
                                                     with_inc_sampling):
     n_queries = 10
     p = get_edge_weights(g)
-    obs, c = gen_input(g, model='ic', p=p, min_size=10, max_size=99999)
+    obs, c, _ = gen_input(g, model='ic', p=p, min_size=10, max_size=99999)
     remaining_nodes = list(set(np.arange(g.num_vertices())) - set(obs))
     queries = np.random.permutation(remaining_nodes)[:n_queries]
 
