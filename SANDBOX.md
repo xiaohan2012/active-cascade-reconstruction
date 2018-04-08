@@ -288,6 +288,14 @@ checked some papers:
 - http://statweb.stanford.edu/~owen/pubtalks/AdaptiveISweb.pdf
 
 
-# Apri 7
+# Apr 7
 
 - found a [plotly](https://plot.ly/python/network-graphs/) to plot networks interactively
+
+
+# Apr 8
+
+- figured out why prederror selects queries far away. one sentence, it considers other uninfected nodes as well
+- proposed weighted prederror, for entropy term on node, multiply by its infection probability as weight
+  - intuition: as we are more interested in the infected nodes
+  

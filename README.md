@@ -72,4 +72,3 @@ note on the directories:
 - `scripts/infer_{dataset}.sh`: make inference on infections for `${dataset}`
 - `compare_running_time.py`: script to compare running time for different query methods
 - `print_cascade_sizes.py`: print simulated cascade statistics
-
