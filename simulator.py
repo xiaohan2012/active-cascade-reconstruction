@@ -46,6 +46,10 @@ class Simulator():
 
             # print('query:', q)
             qs.append(q)
+
+            if len(qs) == n_queries:
+                print('num. queries reached')
+                break
             
             if c[q] == -1:  # not infected
                 if self.print_log:

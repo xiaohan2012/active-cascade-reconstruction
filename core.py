@@ -124,6 +124,7 @@ def sample_steiner_trees(g, obs,
             #     st = set(map(int, st.vertices()))
         elif method in {'cut', 'loop_erased'}:
             assert gi is not None
+            # print('der')
             edges = random_steiner_tree(gi, obs, r, method)
             if return_type == 'nodes':
                 st = set(u for e in edges for u in e)

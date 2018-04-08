@@ -17,6 +17,10 @@ def infection_probability(g, obs, sampler, error_estimator):
     # return inf_probas
 
 
+##################
+## DEPRECATED
+## Ignore it
+##################
 def infer_infected_nodes(g, obs, estimator=None, use_proba=True,
                          method="min_steiner_tree", min_inf_proba=0.5):
     """besides observed infections, infer other infected nodes

@@ -236,12 +236,15 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
                 return float('inf')  # throw this node away
             else:
                 return self.error_estimator.query_score(
-                    q, nodes)
+                    q, nodes, return_verbose=True)
 
         q2score = {}
+        self.aux = {}
         # for q in tqdm(self._cand_pool)
         for q in self._cand_pool:
-            q2score[q] = score(q)
+            q2score[q], other_stuff = score(q)
+            self.aux[q] = other_stuff
+            # print(q, q2score[q])
         
         # import pickle as pkl
         # import tempfile
@@ -266,5 +269,6 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
             raise NoMoreQuery
 
         best_q = min(self._cand_pool, key=q2score.__getitem__)
+        self.query_scores = q2score
         # print('best_q', best_q)
         return best_q

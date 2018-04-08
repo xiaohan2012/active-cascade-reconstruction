@@ -1,6 +1,15 @@
 # sampling-steiner-tree
 
-# main python scripts
+# algorithm files:
+
+- query selection algorithms
+  - `query_selection.py`: random, pagerank, entropy, prediction\_error
+  - `tree_stat.py`: query score calculation for entropy and prediction\_error,
+  - `sample_pool.py`: steiner tree sampling part (including incrementally sample update upon queries)
+- estimating infection probability
+  - `inference.py`: also calls functions in `tree_stat.py`
+
+# main experiment scripts
 
 - `make_graph_weighted.py`: dump  graph with edge weights
 - `simulate_cascades.py`: simulate cascades and dump to files

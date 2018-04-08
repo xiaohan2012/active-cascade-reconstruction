@@ -40,6 +40,8 @@ def visualize(g, pos,
               node_size_info={},
               edge_color_info={},
               edge_pen_width_info={},
+              color_map=mpl.cm.Reds,
+              ax=None,
               output=None):
 
     def populate_property(dtype, info, on_edge=False):
@@ -82,7 +84,8 @@ def visualize(g, pos,
                vertex_shape=vertex_shape,
                edge_color=edge_color,
                edge_pen_width=edge_pen_width,
-               vcmap=mpl.cm.Reds,
+               mplfig=ax,
+               vcmap=color_map,
                output=output)
 
 
@@ -128,14 +131,31 @@ def tree_plot_setting(g, c, X, tree_edges, color='red'):
     return s
 
 
+def query_plot_setting(g, c, X, qs,
+                       node_size=20,
+                       node_shape=SHAPE_TRIANGLE,
+                       color=1.0):
+    s = default_plot_setting(g, c, X)
+    s['node_shape_info'][tuple(qs)] = node_shape
+    s['node_size_info'][tuple(qs)] = node_size
+    s['node_color_info'][tuple(qs)] = color
+    # s['edge_color_info'][tree_edges] = color
+    return s
+
+
 def heatmap_plot_setting(g, c, X, weight):
     inf_nodes = infected_nodes(c)
     hidden_infs = set(inf_nodes) - set(X)
     
     s = default_plot_setting(g, c, X)
-    s['node_size_info'][tuple(X)] = 15
-    s['node_size_info'][tuple(hidden_infs)] = 15
-    s['node_size_info']['default'] = 7.5
+    if False:
+        s['node_size_info'][tuple(X)] = 15
+        s['node_size_info'][tuple(hidden_infs)] = 15
+        s['node_size_info']['default'] = 7.5
+    else:
+        s['node_size_info'][tuple(X)] = 10
+        s['node_size_info'][tuple(hidden_infs)] = 10
+        s['node_size_info']['default'] = 10
     
     s['node_color_info'] = weight
     return s
@@ -237,8 +257,9 @@ class InfectionProbabilityViz():
         self.output_size = output_size
         self.vcmap = vcmap
 
-    def plot(self, c, X, probas, ax=None, **kwargs):
+    def plot(self, c, X, probas, **kwargs):
         setting = heatmap_plot_setting(self.g, c, X, probas)
         visualize(self.g, self.pos,
-                  **setting)
+                  **setting,
+                  **kwargs)
         

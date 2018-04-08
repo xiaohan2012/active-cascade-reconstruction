@@ -286,3 +286,8 @@ checked some papers:
   - involves updating the proposal parameters. in our case, what are the proposal parameters is not very clear.
   - I guess it's not very relevant
 - http://statweb.stanford.edu/~owen/pubtalks/AdaptiveISweb.pdf
+
+
+# Apri 7
+
+- found a [plotly](https://plot.ly/python/network-graphs/) to plot networks interactively

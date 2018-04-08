@@ -82,34 +82,44 @@ class TreeBasedStatistics:
         num, denum = self.count(*args, **kwargs, return_denum=True)
         return num / denum
 
-    def _remove_extreme_vals(self, v):
+    def _smooth_extreme_vals(self, v):
         # remove zero and one
-        return v[(v != 0) & (v != 1)]
+        v[(v == 0) | (v == 1)] = EPS
+        return v
 
     def _sum_entropy(self, p):
         return -(p * np.log2(p) + (1-p) * np.log2(1-p)).sum()
 
     def prediction_error(self, query, condition, targets):
         p = self.proba(query, condition, targets)
-        p = self._remove_extreme_vals(p)
+        p = self._smooth_extreme_vals(p)
         return self._sum_entropy(p)
 
-    def query_score(self, query, targets):
+    def query_score(self, query, targets, return_verbose=False):
         num0, denum0 = self.count(query, 0, targets, return_denum=True)
         num1, denum1 = self.count(query, 1, targets, return_denum=True)
 
         assert len(targets) == len(num0)
 
-        p0, p1 = (self._remove_extreme_vals(num0 / denum0),
-                  self._remove_extreme_vals(num1 / denum1))
+        p0, p1 = (self._smooth_extreme_vals(num0 / denum0),
+                  self._smooth_extreme_vals(num1 / denum1))
 
         weights = np.array([denum0, denum1]) / self.n_col
         errors = np.array([self._sum_entropy(p0), self._sum_entropy(p1)])
 
         if False:
+            print("query: ", query)
             print("p(uninfected)={}, p(infected)={}".format(weights[0], weights[1]))
             print('p(infected | q uninfected)={}'.format(p0))
             print('p(infected | q infected)={}'.format(p1))
-            print('errors={}', errors)
-        
-        return (weights * errors).sum()
+            print('errors={}'.format(errors))
+
+        if not return_verbose:
+            return (weights * errors).sum()
+        else:
+            return (weights * errors).sum(), {
+                'weights': (weights[0], weights[1]),
+                'p0': p0,
+                'p1': p1,
+                'errors': errors
+            }
