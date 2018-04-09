@@ -230,23 +230,26 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
                 print('number of estimation nodes'.format(len(self.node_samples)))
         
     # @profile
-    def _select_query(self, g, inf_nodes):
+    def _select_query(self, g, inf_nodes, return_verbose=False):
         self._prepare_for_selection(inf_nodes)
-
+        
         def score(q):
             nodes = set(self.node_samples) - {q}
             if len(nodes) == 0:
                 return float('inf')  # throw this node away
             else:
                 return self.error_estimator.query_score(
-                    q, nodes, return_verbose=True)
+                    q, nodes, return_verbose=return_verbose)
 
         q2score = {}
         self.aux = {}
         # for q in tqdm(self._cand_pool)
         for q in self._cand_pool:
-            q2score[q], other_stuff = score(q)
-            self.aux[q] = other_stuff
+            if return_verbose:
+                q2score[q], other_stuff = score(q)
+                self.aux[q] = other_stuff
+            else:
+                q2score[q] = score(q)
         
         if len(self._cand_pool) == 0:
             raise NoMoreQuery
