@@ -103,7 +103,7 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
         inf_result_dirname,
         query_dirname,
         eval_func,
-        args.eval_with_mask)
+        (args.eval_with_mask == 'True'))
 
     plt.clf()
 
@@ -114,16 +114,16 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
 
     # print('scores_by_method:', scores_by_method)
     for method in labels:
-        assert len(scores_by_method[method]) > 0, 'no scores available'
+        assert len(scores_by_method[method]) > 0, 'no scores available for {}'.format(method)
         for r in scores_by_method[method]:
             for i in range(n_queries - len(r)):
                 r.append(np.nan)
             assert len(r) == n_queries, "len(r)={}, r={}".format(len(r), r)
         scores = np.array(scores_by_method[method], dtype=np.float32)
-        median_scores = np.nanmedian(scores, axis=0)
-        # median_scores = np.median(scores, axis=0)
+        mean_scores = np.nanmean(scores, axis=0)
+        # mean_scores = np.mean(scores, axis=0)
         # print(np.std(scores,axis=0))
-        ax.plot(median_scores)
+        ax.plot(mean_scores)
         # ax.hold(True)
     ax.legend(labels, loc='best')
     fig.tight_layout()
