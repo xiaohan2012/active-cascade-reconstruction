@@ -299,3 +299,11 @@ checked some papers:
 - proposed weighted prederror, for entropy term on node, multiply by its infection probability as weight
   - intuition: as we are more interested in the infected nodes
   
+# Apr 9
+
+- found a bug in evaluation (`with_mask` does not take effect)
+- evaluated using precision@cascade size
+  - for lattice, larger obs fraction makes prederror worse
+  - for grqc, the trend is not very obvious
+- for AUC, prederror is quite consistent on both lattice and grqc
+
