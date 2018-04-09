@@ -307,3 +307,17 @@ checked some papers:
   - for grqc, the trend is not very obvious
 - for AUC, prederror is quite consistent on both lattice and grqc
 
+some plots
+
+- [precision@k](http://193.166.24.212/active-network-reconstruction/figs/precision_at_cascade_size/)
+- [ap](http://193.166.24.212/active-network-reconstruction/figs/ap/)
+- [auc](http://193.166.24.212/active-network-reconstruction/figs/auc/)
+
+observation:
+
+- for as more nodes are observed, entropy performs better, even better than prederror
+
+
+todo
+
+- [ ] given some cascade, print the queries and ap scores, visualize all the relevant stuffs
