@@ -167,7 +167,7 @@ def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir,
 
     if not os.path.exists(d):
         os.makedirs(d)
-    print('\ninference {} done: taking {:.4f} secs\n'.format(c_path, time_cost))
+    print('\nquerying {} done: taking {:.4f} secs\n'.format(c_path, time_cost))
     pkl.dump(qs, open(outpath, 'wb'))
 
     meta_data = {'time_elapsed': time_cost}

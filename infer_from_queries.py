@@ -129,7 +129,7 @@ def one_round(g, obs, c, c_path,
     else:
         raise ValueError('unknown inference method "{}"'.format(inference_method))
 
-    print('\nprocessing {} done (query_method={}, inference_method={}): taking {:.4f} secs\n'.format(
+    print('\ninference {} done (query_method={}, inference_method={}): taking {:.4f} secs\n'.format(
         c_path,
         query_method, inference_method,
         time.time() - stime))
