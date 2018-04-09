@@ -1,7 +1,7 @@
 import pytest
 from query_selection import (RandomQueryGenerator, EntropyQueryGenerator,
                              PRQueryGenerator, PredictionErrorQueryGenerator,
-                             WeightedPredictionErrorQueryGenerator,
+                             MutualInformationQueryGenerator,
                              NoMoreQuery)
 from simulator import Simulator
 from graph_helpers import remove_filters, get_edge_weights
@@ -13,7 +13,7 @@ from tree_stat import TreeBasedStatistics
 from test_helpers import check_tree_samples, check_error_esitmator
 
 
-@pytest.mark.parametrize("query_method", ['random', 'pagerank', 'entropy', 'error', 'weighted-prederror'])
+@pytest.mark.parametrize("query_method", ['random', 'pagerank', 'entropy', 'error', 'mutual-info'])
 @pytest.mark.parametrize("sampling_method", ['cut', 'loop_erased'])
 @pytest.mark.parametrize("with_inc_sampling", [False])
 @pytest.mark.parametrize("root_sampler", ['true_root', 'random'])
@@ -26,7 +26,7 @@ def test_query_method(g, query_method, sampling_method, root_sampler, with_inc_s
     print(gv.num_edges())
     edge_weights = get_edge_weights(gv)
     
-    if query_method in {'entropy', 'error', 'weighted-prederror'}:
+    if query_method in {'entropy', 'error', 'mutual-info'}:
         gi = from_gt(g, edge_weights)
     else:
         gi = None
@@ -55,8 +55,8 @@ def test_query_method(g, query_method, sampling_method, root_sampler, with_inc_s
                                               prune_nodes=True,
                                               n_node_samples=None,
                                               root_sampler=root_sampler)
-    elif query_method == 'weighted-prederror':
-        q_gen = WeightedPredictionErrorQueryGenerator(
+    elif query_method == 'mutual-info':
+        q_gen = MutualInformationQueryGenerator(
             gv, pool,
             error_estimator=error_estimator,
             prune_nodes=True,

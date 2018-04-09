@@ -228,7 +228,7 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
 
             if self.verbose:
                 print('number of estimation nodes'.format(len(self.node_samples)))
-        
+
     # @profile
     def _select_query(self, g, inf_nodes, return_verbose=False):
         self._prepare_for_selection(inf_nodes)
@@ -281,6 +281,41 @@ class WeightedPredictionErrorQueryGenerator(PredictionErrorQueryGenerator):
             q2score[q], other_stuff = score(q)
             self.aux[q] = other_stuff
         
+        if len(self._cand_pool) == 0:
+            raise NoMoreQuery
+
+        best_q = min(self._cand_pool, key=q2score.__getitem__)
+        self.query_scores = q2score
+
+        return best_q
+
+
+class MutualInformationQueryGenerator(PredictionErrorQueryGenerator):
+    def _select_query(self, g, inf_nodes):
+        self._prepare_for_selection(inf_nodes)
+
+        def score(q):
+            nodes = set(self.node_samples) - {q}
+            if len(nodes) == 0:
+                return float('inf')  # throw this node away
+            else:
+                return self.error_estimator.query_score(
+                    q, nodes,
+                    node_weights='uncond_proba',
+                    return_verbose=False)
+
+        q2score = {}
+
+        # entropy scores
+        entropy_scores = uncertainty_scores(
+            g, inf_nodes,
+            self.sampler,
+            self.error_estimator)
+
+        # conditional entropy scores
+        for q in self._cand_pool:
+            q2score[q] = score(q) + entropy_scores[q]
+
         if len(self._cand_pool) == 0:
             raise NoMoreQuery
 

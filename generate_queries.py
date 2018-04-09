@@ -10,7 +10,7 @@ from graph_tool import openmp_set_num_threads
 
 from query_selection import (RandomQueryGenerator, EntropyQueryGenerator,
                              PRQueryGenerator, PredictionErrorQueryGenerator,
-                             SamplingBasedGenerator, WeightedPredictionErrorQueryGenerator)
+                             SamplingBasedGenerator, MutualInformationQueryGenerator)
 from simulator import Simulator
 from joblib import Parallel, delayed
 from graph_helpers import remove_filters, load_graph_by_name, get_edge_weights
@@ -30,7 +30,7 @@ parser.add_argument('-w', '--weighted',
 
 parser.add_argument('-q', '--query_strategy',
                     choices={'random', 'pagerank', 'entropy', 'prediction_error',
-                             'weighted_prediction_error'},
+                             'mutual-info'},
                     help='query strategy')
 parser.add_argument('-c', '--cascade_dir',
                     help='directory of generated cascades')
@@ -109,8 +109,8 @@ elif query_strategy == 'prediction_error':
                                                 'root_sampler_eps': args.root_pagerank_noise,
                                                 'min_proba': min_proba,
                                                 'n_node_samples': num_estimation_nodes})
-elif query_strategy == 'weighted_prediction_error':
-    strategy = (WeightedPredictionErrorQueryGenerator,
+elif query_strategy == 'mutual-info':
+    strategy = (MutualInformationQueryGenerator,
                 {'n_node_samples': None,
                  'prune_nodes': True,
                  'root_sampler': root_sampler,
