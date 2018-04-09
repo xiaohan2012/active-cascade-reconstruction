@@ -40,6 +40,7 @@ def visualize(g, pos,
               node_size_info={},
               edge_color_info={},
               edge_pen_width_info={},
+              node_text_info={},
               color_map=mpl.cm.Reds,
               ax=None,
               output=None):
@@ -74,6 +75,7 @@ def visualize(g, pos,
         vertex_fill_color = populate_property('float', node_color_info)
     vertex_size = populate_property('int', node_size_info)
     vertex_shape = populate_property('string', node_shape_info)
+    vertex_text = populate_property('string', node_text_info)
     
     edge_color = populate_property('string', edge_color_info, True)
     edge_pen_width = populate_property('float', edge_pen_width_info, True)
@@ -84,6 +86,7 @@ def visualize(g, pos,
                vertex_shape=vertex_shape,
                edge_color=edge_color,
                edge_pen_width=edge_pen_width,
+               vertex_text=vertex_text,
                mplfig=ax,
                vcmap=color_map,
                output=output)
@@ -110,6 +113,8 @@ def default_plot_setting(g, c, X):
     node_size_info[tuple(hidden_infs)] = 12.5
     node_size_info['default'] = 5
 
+    node_text_info = {'default': ''}
+    
     edge_color_info = {
         'default': 'white'
     }
@@ -121,7 +126,8 @@ def default_plot_setting(g, c, X):
         'node_shape_info': node_shape_info,
         'node_size_info': node_size_info,
         'edge_color_info': edge_color_info,
-        'edge_pen_width_info': edge_pen_width_info
+        'edge_pen_width_info': edge_pen_width_info,
+        'node_text_info': node_text_info
     }
 
 
@@ -134,11 +140,15 @@ def tree_plot_setting(g, c, X, tree_edges, color='red'):
 def query_plot_setting(g, c, X, qs,
                        node_size=20,
                        node_shape=SHAPE_TRIANGLE,
+                       with_labels=False,
                        color=1.0):
     s = default_plot_setting(g, c, X)
     s['node_shape_info'][tuple(qs)] = node_shape
     s['node_size_info'][tuple(qs)] = node_size
     s['node_color_info'][tuple(qs)] = color
+    if with_labels:
+        for i, q in enumerate(qs):
+            s['node_text_info'][tuple([q])] = str(i)
     # s['edge_color_info'][tree_edges] = color
     return s
 
