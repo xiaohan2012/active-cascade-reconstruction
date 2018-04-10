@@ -320,4 +320,11 @@ observation:
 
 todo
 
-- [ ] given some cascade, print the queries and ap scores, visualize all the relevant stuffs
+- [X] given some cascade, print the queries and ap scores, visualize all the relevant stuffs
+
+# Apr 10
+
+- understood query methods lattice works
+  - plot entropy is meaningful
+- to try on more graphs
+

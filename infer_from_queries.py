@@ -77,7 +77,7 @@ def infer_probas_from_queries(g, obs, c, queries,
                 break
 
         if i_iter % every == 0:
-            print('i_iter', i_iter)
+            # print('i_iter', i_iter)
             if i_iter == 0:
                 node_update_info = {q: label}
             else:
@@ -112,6 +112,7 @@ def one_round(g, obs, c, c_path,
               inference_method,
               query_dirname, inf_proba_dirname,
               n_samples=250,
+              every=1,
               root_sampler=None,
               sampling_method='loop_erased',
               with_inc_sampling=False,
@@ -141,6 +142,7 @@ def one_round(g, obs, c, c_path,
                                                       root_sampler,
                                                       n_samples,
                                                       with_inc_sampling=with_inc_sampling,
+                                                      every=every,
                                                       verbose=verbose)
         pkl.dump(probas_list, open(path, 'wb'))
     else:
@@ -190,6 +192,10 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--inf_proba_dirname',
                         required=True,
                         help='directory to store the inferred probabilities')
+    parser.add_argument('--eval_every',
+                        default=1,
+                        type=int,
+                        help='evaluate every ?')
     parser.add_argument('--debug',
                         action='store_true',
                         help='')
@@ -225,6 +231,7 @@ if __name__ == '__main__':
                                                root_sampler=args.root_sampler,
                                                with_inc_sampling=args.with_inc_sampling,
                                                sampling_method=args.sampling_method,
+                                               every=args.eval_every,
                                                verbose=args.verbose)
                             for path, tpl in tqdm(cascades))
     else:
@@ -235,5 +242,6 @@ if __name__ == '__main__':
                       inf_proba_dirname, n_samples=n_samples,
                       root_sampler=args.root_sampler,
                       with_inc_sampling=args.with_inc_sampling,
+                      every=args.eval_every,
                       sampling_method=args.sampling_method,
                       verbose=args.verbose)

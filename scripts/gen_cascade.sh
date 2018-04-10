@@ -1,13 +1,13 @@
 #! /bin/zsh
 
-graph="lattice-1024"
+graph="grqc"
 n_cascades=12
 n_observation_rounds=8
 cascade_model="si"
 graph_suffix="_0.5"
 
 obs_fraction=0.2
-cascade_fraction=0.5
+cascade_fraction=0.02
 
 dataset_id="${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}"
 

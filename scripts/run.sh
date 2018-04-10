@@ -1,16 +1,17 @@
 #! /bin/zsh
 
-graph="grqc"
-graph_suffix="_reversed"
+graphs=("fb" "grqc" "p2p")
+graph_suffix="_0.5"
 cascade_fraction="0.02"
-n_tree_samples=2500
+n_tree_samples=1000
 sample_method=loop_erased
 cascade_model="si"
 root_sampler='true_root'
 query_methods=(random pagerank entropy prediction_error mutual-info)
 # query_methods=(prediction_error)
-n_queries=250
-obs_fractions=(0.2)
+n_queries=500
+obs_fraction=0.2
+eval_every_k=5
  # 0.2 0.3 0.4 0.5
 # obs_fractions=(0.1)
 
@@ -18,7 +19,7 @@ inf_method="inf_probas"
 
 min_proba=0.05
 
-for obs_fraction in ${obs_fractions}; do
+for graph in ${graphs}; do
     dataset_id="${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}"
 
     cascade_dir="cascade-weighted/${dataset_id}"
@@ -48,6 +49,7 @@ for obs_fraction in ${obs_fractions}; do
 		--query_method ${query_method} \
 		--root_sampler ${root_sampler} \
 		-q outputs/queries-weighted/${dataset_id}/${sample_method}/${query_method} \
-		-p outputs/${inf_method}-weighted/${dataset_id}/${sample_method}/${query_method}	
+		-p outputs/${inf_method}-weighted/${dataset_id}/${sample_method}/${query_method} \
+		--eval_every ${eval_every_k}
     done
 done
