@@ -8,6 +8,7 @@ from graph_helpers import extract_nodes
 from helpers import infected_nodes
 from sklearn.metrics import precision_score
 from sklearn.metrics import average_precision_score
+from copy import copy
 
 
 class TooSmallCascadeError(Exception):
@@ -114,6 +115,7 @@ def aggregate_scores_over_cascades_by_methods(cascades,
 
             # print('query_path', query_path)
             queries = pkl.load(open(query_path, 'rb'))[0]
+
             scores = []
             obs_inc = copy(obs)
             for inf_probas, query, _ in zip(inf_probas_list, queries, range(n_queries)):
@@ -173,3 +175,23 @@ def eval_probas(c, X, probas):
     ap_score = average_precision_score(y_true[mask], probas[mask])
     p_score = precision_at_cascade_size(y_true[mask], probas[mask])
     return {'ap': ap_score, 'pk': p_score}
+
+
+def get_ap_scores_by_queries(qs, probas, c, obs):
+    y_true = np.zeros((len(c), ))
+    y_true[infected_nodes(c)] = 1
+    obs_inc = copy(set(obs))
+    ap_scores = []
+    for inf_probas, query, _ in zip(probas[1:], qs, range(len(qs))):
+        if True:
+            obs_inc.add(query)
+
+        # use precision score
+        mask = np.array([(i not in obs_inc) for i in range(len(c))])
+
+        score = average_precision_score(y_true[mask], inf_probas[mask])
+        
+        if np.isnan(score):
+            score = 0
+        ap_scores.append(score)
+    return ap_scores
