@@ -114,6 +114,7 @@ class SamplingBasedGenerator(BaseQueryGenerator):
         elif self.root_sampler_name == 'random':
             self.root_sampler = None  # equivalent to 'random'
 
+    # @profile            
     def receive_observation(self, obs, c, **kwargs):
         self._update_root_sampler(obs, c, **kwargs)
 
@@ -125,6 +126,7 @@ class SamplingBasedGenerator(BaseQueryGenerator):
         # print('DONE: sampler.fill')
         super(SamplingBasedGenerator, self).receive_observation(obs, c)
 
+    # @profile
     def update_observation(self, g, inf_nodes, node, label, c):
         """update the tree samples"""
         # rigorously speaking,
@@ -156,6 +158,7 @@ class EntropyQueryGenerator(SamplingBasedGenerator):
                  **kwargs):
         super(EntropyQueryGenerator, self).__init__(g, *args, **kwargs)
 
+    # @profile
     def _select_query(self, g, inf_nodes):
         # need to resample the spanning trees
         # because in theory, uninfected nodes can be removed from the graph
