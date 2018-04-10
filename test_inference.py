@@ -16,7 +16,7 @@ def test_inf_probas_shape(g, gi, obs, with_inc_sampling):
     """
     error_estimator = TreeBasedStatistics(g)
     sampler = TreeSamplePool(g, 25, 'cut', gi=gi,
-                             return_tree_nodes=True,
+                             return_type='nodes',
                              with_inc_sampling=with_inc_sampling)
     sampler.fill(obs)
     error_estimator.build_matrix(sampler.samples)
@@ -35,7 +35,7 @@ def test_inf_probas_shape(g, gi, obs, with_inc_sampling):
         isolate_vertex(gi, r)
 
         # update samples
-        new_samples = sampler.update_samples(obs, r, 0)
+        new_samples = sampler.update_samples(obs, {r: 0})
         error_estimator.update_trees(new_samples, r, 0)
 
         # check probas
@@ -51,10 +51,10 @@ def test_inf_probas_shape(g, gi, obs, with_inc_sampling):
 def test_infer_infected_nodes_sampling_approach(g, gi, obs):
     error_estimator = TreeBasedStatistics(g)
     sampler = TreeSamplePool(g, 100, 'cut', gi=gi,
-                             return_tree_nodes=True)
+                             return_type='nodes')
     sampler.fill(obs)
     error_estimator.build_matrix(sampler.samples)
-    
+
     g = remove_filters(g)
 
     # with min steiner trees
@@ -71,4 +71,3 @@ def test_infer_infected_nodes_sampling_approach(g, gi, obs):
 
     assert isinstance(probas, np.ndarray)
     assert probas.dtype == np.float
-    

@@ -40,7 +40,7 @@ class TreeSamplePool():
             self.p_dict = None
         else:
             self._internal_return_type = return_type
-            
+
         # print('DEBUG: TreeSamplePool.with_inc_sampling=', self.with_inc_sampling)
 
     def fill(self, obs, **kwargs):
@@ -76,27 +76,35 @@ class TreeSamplePool():
                                        return_new_edges=False)
 
         return set(infected_nodes(new_c))
-        
+
     # @profile
-    def update_samples(self, inf_nodes, node, label, **kwargs):
+    def update_samples(self, inf_nodes, node_update_info, **kwargs):
         """if label=1, assuming `inf_nodes` includes `node` already
         if label=0, assuming `self.g` removes `node` already
-        
+
         Return:
         new_samples
         """
-        assert label in {0, 1}  # 0: uninfected, 1: infected
+        for n, label in node_update_info.items():
+            assert label in {0, 1}  # 0: uninfected, 1: infected
+
         if self._internal_return_type == 'tuples':
-            valid_samples = []
-            for t in self._samples:
+            def valid(t):
                 nodes = extract_nodes_from_tuples(t)
-                if label == 1 and node in nodes:
-                    valid_samples.append(t)
-                elif label == 0 and node not in nodes:
-                    valid_samples.append(t)
+                for n, label in node_update_info.items():
+                    if label == 1:
+                        if n not in nodes:
+                            return False
+                    else:
+                        if n in nodes:
+                            return False
+                return True
+
+            valid_samples = [t for t in self._samples if valid(t)]
         elif self.return_type == 'nodes':
-            valid_samples = matching_trees(self._samples, node, label)
-            
+            valid_samples = matching_trees(self._samples, node_update_info)
+
+        # print('num. valid_samples: {}'.format(len(valid_samples)))
         new_samples = sample_steiner_trees(
             self.g, inf_nodes,
             method=self.method,
@@ -109,8 +117,10 @@ class TreeSamplePool():
             # print('With incremental sampling')
             new_samples = [self.add_incremental_edges(t)
                            for t in new_samples]
-            
+
         self._samples = valid_samples + new_samples
+
+        assert len(self._samples) == self.n_samples
 
         if self.with_resampling:
             self._old_samples = self._samples
@@ -140,19 +150,19 @@ class TreeSamplePool():
         possible_trees = list(set(trees))
 
         self.p = get_edge_weights(self.g)
-        
+
         # this is required for speed
         # graph_tool's out_neighbours is slow
         self.g_nx = nx.DiGraph()
         for e in self.g.edges():
             self.g_nx.add_edge(int(e.source()), int(e.target()))
-            
+
         self.p_dict = {tuple(map(int, [e.source(), e.target()])): self.p[e]
                        for e in self.g.edges()}
-        
+
         out_degree = self.g.degree_property_map('out', weight=self.p)
         out_degree_dict = {int(v): out_degree[v] for v in self.g.vertices()}
-        
+
         # caching table
         # and we work in the log domain
         log_p_tbl = {t: self.true_casacde_proba_func(self.g, self.p_dict, t, self.g_nx, using_log=True)
@@ -162,7 +172,7 @@ class TreeSamplePool():
 
         log_p_T = np.array([log_p_tbl[t] for t in trees])
         log_pi_T = np.array([log_pi_tbl[t] for t in trees])
-        
+
         sampling_weights = np.exp(log_p_T - log_pi_T)  # back to probabiliy
 
         weight_sum = sampling_weights.sum()

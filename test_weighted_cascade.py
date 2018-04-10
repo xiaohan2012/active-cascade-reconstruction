@@ -15,7 +15,7 @@ def g():
 
 @pytest.mark.parametrize("cascade_model", ['si', 'ic'])
 @pytest.mark.parametrize("weighted", [True, False])
-@pytest.mark.parametrize("source", [np.random.choice(1000) for i in range(5)])
+@pytest.mark.parametrize("source", [np.random.choice(1000) for i in range(1)])
 def test_gen_input(g, cascade_model, weighted, source):
     if weighted:
         p = g.edge_properties['weights']
@@ -30,8 +30,8 @@ def test_gen_input(g, cascade_model, weighted, source):
     # make sure no two cascades are the same
     # with low probability, this fails
     for r1, r2 in combinations(rows, 2):
-        obs1, c1 = r1
-        obs2, c2 = r2
+        obs1, c1 = r1[:2]
+        obs2, c2 = r2[:2]
         assert set(obs1) != set(obs2)
 
     # check for cascade size
@@ -49,10 +49,11 @@ def test_gen_input_with_leaves_observed():
     g.add_edge_list([(0, 1), (1, 2), (2, 3)])
     p = g.new_edge_property('float')
     p.set_value(1.0)
-    
-    obs, c = gen_input(g, source=0, model='ic',
-                       p=p,
-                       observation_method='leaves',
-                       min_size=0, max_size=100)
+
+    obs, c, tree = gen_input(g, source=0, model='ic',
+                             p=p,
+                             return_tree=True,
+                             observation_method='leaves',
+                             min_size=0, max_size=100)
     assert list(obs) == [3]
     assert list(c) == list(range(4))

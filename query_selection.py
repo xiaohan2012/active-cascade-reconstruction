@@ -30,7 +30,7 @@ class BaseQueryGenerator():
     def select_query(self, *args, **kwargs):
         if len(self._cand_pool) == 0:
             raise NoMoreQuery()
-        
+
         q = self._select_query(*args, **kwargs)
         self._cand_pool.remove(q)
         return q
@@ -70,7 +70,7 @@ class PRQueryGenerator(BaseQueryGenerator):
 
         for o in obs:
             self.pr[int(o)] = 0
-            
+
     def receive_observation(self, obs, c):
         # personalized vector for pagerank
         # print('START: pagerank')
@@ -121,7 +121,7 @@ class SamplingBasedGenerator(BaseQueryGenerator):
                           root_sampler=self.root_sampler)
         # add samples to error estimator
         self.error_estimator.build_matrix(self.sampler.samples)
-        
+
         # print('DONE: sampler.fill')
         super(SamplingBasedGenerator, self).receive_observation(obs, c)
 
@@ -134,9 +134,9 @@ class SamplingBasedGenerator(BaseQueryGenerator):
         self._update_root_sampler(inf_nodes, c)
 
         new_samples = self.sampler.update_samples(
-            inf_nodes, node, label,
+            inf_nodes, {node: label},
             root_sampler=self.root_sampler)
-        
+
         if not self.sampler.with_resampling:
             # should be deprecated because trees are re-sampled
             self.error_estimator.update_trees(new_samples, node, label)
@@ -149,7 +149,7 @@ class SamplingBasedGenerator(BaseQueryGenerator):
             self.error_estimator.filter_out_extreme_targets(
                 self._cand_pool,
                 min_value=self.min_proba))
-            
+
 
 class EntropyQueryGenerator(SamplingBasedGenerator):
     def __init__(self, g, *args,
@@ -208,7 +208,7 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
             # also, we can set a real-valued threshold
             if self.verbose:
                 prev_n = len(self._cand_pool)
-                
+
             self.prune_candidates()
 
             if self.verbose:
@@ -216,7 +216,7 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
                     prev_n, len(self._cand_pool)))
         elif self.verbose:
             print('there is no candidate pruning: #candidates={}'.format(len(self._cand_pool)))
-                            
+
         if ((self.n_node_samples is None) or self.n_node_samples >= len(self._cand_pool)):
 
             if self.verbose:
@@ -232,7 +232,7 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
     # @profile
     def _select_query(self, g, inf_nodes, return_verbose=False):
         self._prepare_for_selection(inf_nodes)
-        
+
         def score(q):
             nodes = set(self.node_samples) - {q}
             if len(nodes) == 0:
@@ -250,7 +250,7 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
                 self.aux[q] = other_stuff
             else:
                 q2score[q] = score(q)
-        
+
         if len(self._cand_pool) == 0:
             raise NoMoreQuery
 
@@ -280,7 +280,7 @@ class WeightedPredictionErrorQueryGenerator(PredictionErrorQueryGenerator):
         for q in self._cand_pool:
             q2score[q], other_stuff = score(q)
             self.aux[q] = other_stuff
-        
+
         if len(self._cand_pool) == 0:
             raise NoMoreQuery
 

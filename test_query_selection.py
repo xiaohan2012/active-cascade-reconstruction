@@ -25,7 +25,7 @@ def test_query_method(g, query_method, sampling_method, root_sampler, with_inc_s
     gv = remove_filters(g)
     print(gv.num_edges())
     edge_weights = get_edge_weights(gv)
-    
+
     if query_method in {'entropy', 'error', 'mutual-info'}:
         gi = from_gt(g, edge_weights)
     else:
@@ -64,10 +64,10 @@ def test_query_method(g, query_method, sampling_method, root_sampler, with_inc_s
             root_sampler=root_sampler)
     sim = Simulator(gv, q_gen, gi=gi, print_log=True)
     print('simulator created')
-    n_queries = 5
+    n_queries = 10
     qs, aux = sim.run(n_queries, gen_input_kwargs={'min_size': 20})
     print('sim.run finished')
-    
+
     assert len(qs) == n_queries
     assert set(qs).intersection(set(aux['obs'])) == set()
 
@@ -114,7 +114,7 @@ def test_prediction_error_with_candidate_pruning(g, repeat_id):
     for min_proba in min_probas:
         sim, q_gen = build_simulator_using_prediction_error_query_selector(
             g, prune_nodes=True, min_proba=min_proba)
-        
+
         sim.run(0)  # just get the candidates
         q_gen.prune_candidates()  # and prune the candidates
 
@@ -134,4 +134,3 @@ def test_prediction_error_sample_nodes_for_estimation(g):
 
         samples = q_gen._sample_nodes_for_estimation()
         assert len(samples) == n_node_samples
-    

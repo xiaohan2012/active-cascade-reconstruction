@@ -22,16 +22,27 @@ cpdef matching_trees_cython(T, int node, int value):
     else:  # uninfected
         return [t for t in T if (node not in t)]
 
-def matching_trees(T, node, value):
+def matching_trees(T, node_values):
     """
     T: list of set of ints, list of trees represented by nodes
     node: node to filter
     value: value to filter
     """
-    if value == 1:  # infected
-        return [t for t in T if node in t]
-    else:  # uninfected
-        return [t for t in T if node not in t]
+    def predicate(t):
+        for n, v in node_values.items():
+            if v == 1:
+                if n not in t:
+                    return False
+            else:
+                if n in t:
+                    return False
+        return True
+    return [t for t in T if predicate(t)]
+
+    # if value == 1:  # infected
+    #     return [t for t in T if node in t]
+    # else:  # uninfected
+    #     return [t for t in T if node not in t]
 
 # @profile
 cpdef prediction_error(int q, int y_hat, T, hidden_nodes):

@@ -17,19 +17,19 @@ from fixture import g, gi, obs
 def test_uncertainty_scores(g, gi, obs, normalize_p, sampling_method):
     estimator = TreeBasedStatistics(g)
     sampler = TreeSamplePool(g, 25, sampling_method, gi=gi,
-                             return_type=True)
+                             return_type='nodes')
     sampler.fill(obs)
 
     scores = uncertainty_scores(g, obs, sampler, estimator,
                                 normalize_p=normalize_p)
-    
+
     with pytest.raises(KeyError):
         for o in obs:
             scores[o]
     remain_nodes = set(np.arange(g.num_vertices())) - set(obs)
     for u in remain_nodes:
         assert scores[u] >= 0
-        
+
 
 @pytest.mark.parametrize("return_type", ['nodes', 'tuples', 'tree'])
 @pytest.mark.parametrize("method", ['cut', 'loop_erased'])
@@ -57,7 +57,7 @@ def test_TreeSamplePool_with_incremental_sampling(g, gi, obs, method, edge_weigh
     edge_weights = g.new_edge_property("float")
     edge_weights.set_value(edge_weight)  # if edge =1.0, for sure to include all nodes
     g.edge_properties['weights'] = edge_weights
-    
+
     n_samples = 100
     sampler = TreeSamplePool(g, n_samples, method,
                              gi=gi,
@@ -85,7 +85,7 @@ def test_TreeSamplePool_with_incremental_sampling(g, gi, obs, method, edge_weigh
     print('n_rm.out_edges()', list(g.vertex(n_rm).out_edges()))
     print('n_rm.in_edges()', list(g.vertex(n_rm).in_edges()))
     edges = {e for e in gi_edges(gi) if n_rm in set(e)}
-    print('gi.vertex(n_rem).edges()', edges)
+    print('gi.vertex(n_rm).edges()', edges)
 
     num_invalid_trees = sum(1 for t in sampler.samples if n_rm in t)
     valid_trees = [t
@@ -93,13 +93,12 @@ def test_TreeSamplePool_with_incremental_sampling(g, gi, obs, method, edge_weigh
                    if n_rm not in t]  # this tree cannot be changed even after .update
     valid_trees_old = copy(valid_trees)
 
-    sampler.update_samples(obs, n_rm, 0)
-    new_samples = sampler.samples
-    
+    new_samples = sampler.update_samples(obs, {n_rm: 0})
+
     assert len(sampler.samples) == n_samples
 
     assert len(new_samples) == num_invalid_trees
-    
+
     for t in new_samples:
         # new samples are also incremented
         assert isinstance(t, set)
@@ -111,7 +110,7 @@ def test_TreeSamplePool_with_incremental_sampling(g, gi, obs, method, edge_weigh
 
     for t in sampler.samples:
         assert n_rm not in t  # because n_rm is removed
-        
+
     # make sure valid trees before and after update remaint the same
     for t1, t2 in zip(valid_trees, valid_trees_old):
         assert t1 == t2

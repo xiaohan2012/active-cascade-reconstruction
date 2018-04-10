@@ -153,14 +153,11 @@ def mean_reciprical_rank(y_true, p_pred):
     idx = np.argsort(p_pred)[::-1]
     # p = p_pred[idx]
     y = y_true[idx]
+    k = y_true.sum()
 
-    rr_list = []
-    for i in y.nonzero()[0]:
-        l = y[:i+1]
-        scores = 1 / np.arange(1, i+2)
-        rr = (l * scores).sum() / scores.sum()
-        rr_list.append(rr)
-    return np.mean(rr_list)
+    scores = 1 / (1 + (y == 1).nonzero()[0])
+    M = 1 / np.arange(1, k+1)
+    return scores.sum() / M.sum()
 
 
 def get_scores_by_queries(qs, probas, c, obs,

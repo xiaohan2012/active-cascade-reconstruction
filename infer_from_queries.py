@@ -21,6 +21,7 @@ from root_sampler import build_root_sampler_by_pagerank_score, build_true_root_s
 def infer_probas_from_queries(g, obs, c, queries,
                               sampling_method, root_sampler_name, n_samples,
                               with_inc_sampling=False,
+                              every=1,
                               verbose=False):
     n_nodes = g.num_vertices()
 
@@ -53,12 +54,12 @@ def infer_probas_from_queries(g, obs, c, queries,
     # initial step (without any queries)
     probas = infection_probability(g, obs_inf, sampler, error_estimator=estimator)
     probas_list.append(probas)
-        
+
     if verbose:
         qs_iter = tqdm(queries)
     else:
         qs_iter = queries
-    for q in qs_iter:
+    for i_iter, q in enumerate(qs_iter):
         if c[q] >= 0:  # infected
             obs_inf |= {q}
         else:
@@ -74,8 +75,10 @@ def infer_probas_from_queries(g, obs, c, queries,
             except ValueError:
                 print('pagerank score for root_sampler all zero, break')
                 break
-            
-        new_samples = sampler.update_samples(obs_inf, q, label, root_sampler=root_sampler)
+
+        new_samples = sampler.update_samples(obs_inf,
+                                             {q: label},
+                                             root_sampler=root_sampler)
         estimator.update_trees(new_samples, q, label)
 
         # new probas
@@ -103,7 +106,7 @@ def one_round(g, obs, c, c_path,
     print('\ninference {} started, query_method={}, root_sampler={}, \n'.format(
         c_path, query_method, root_sampler))
     stime = time.time()
-    
+
     cid = os.path.basename(c_path).split('.')[0]
     probas_dir = inf_proba_dirname
     if not os.path.exists(probas_dir):
@@ -113,7 +116,7 @@ def one_round(g, obs, c, c_path,
     if os.path.exists(path):
         print('{} computed'.format(path))
         return
-    
+
     query_log_path = os.path.join(query_dirname, '{}.pkl'.format(cid))
     queries, _ = pkl.load(open(query_log_path, 'rb'))
 
@@ -179,7 +182,7 @@ if __name__ == '__main__':
     parser.add_argument('--verbose',
                         action='store_true',
                         help='')
-    
+
     args = parser.parse_args()
 
     print("Args:")
