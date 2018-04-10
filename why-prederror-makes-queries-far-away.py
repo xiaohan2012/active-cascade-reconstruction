@@ -15,7 +15,6 @@ import numpy as np
 import pandas as pd
 import pickle as pkl
 import matplotlib as mpl
-mpl.use('cairo')
 import seaborn as sns
 from graph_tool import GraphView
 from graph_tool.draw import sfdp_layout, graph_draw
@@ -72,9 +71,9 @@ else:
 
 
 if False:
-    obs, c, tree = gen_input(g, source=18, p=get_edge_weights(g), model='ic', observation_method='leaves', 
+    obs, c, tree = gen_input(g, source=18, p=get_edge_weights(g), model='ic', observation_method='leaves',
                              min_size=15, max_size=80, return_tree=True)
-    pkl.dump((obs, c, tree), open('cascade-weighted/{}-example.pkl'.format(graph), 'wb'))    
+    pkl.dump((obs, c, tree), open('cascade-weighted/{}-example.pkl'.format(graph), 'wb'))
 else:
     obs, c, tree = pkl.load(open('cascade-weighted/{}-example.pkl'.format(graph), 'rb'))
 inf_nodes = infected_nodes(c)
