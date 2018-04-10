@@ -126,9 +126,12 @@ def aggregate_scores_over_cascades_by_methods(cascades,
                 # use precision score
                 mask = np.array([(i not in obs_inc) for i in range(len(c))])
                 try:
+                    # print(eval_with_mask, type(eval_with_mask))
                     if eval_with_mask:
+                        # print('with mask')
                         score = eval_func(y_true[mask], inf_probas[mask])
                     else:
+                        # print('without mask')
                         score = eval_func(y_true, inf_probas)
                     # y_pred = np.asarray((inf_probas >= 0.5), dtype=np.bool)
                     # score = f1_score(y_true[mask], y_pred[mask])
@@ -142,7 +145,7 @@ def aggregate_scores_over_cascades_by_methods(cascades,
                     # print("score = nan")
                     # raise TooSmallCascadeError('thrown by average_precision_score, use `nan` instead') \
                     #     from FloatingPointError
-                    score = np.nan
+                    score = 0
 
                 scores.append(score)
             # print('method', method_label)

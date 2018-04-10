@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import os
+import pickle as pkl
 import numpy as np
 import matplotlib
 import argparse
@@ -21,12 +22,15 @@ if __name__ == '__main__':
     parser.add_argument('-g', '--graph_name', help='graph name')
     parser.add_argument('-d', '--data_id', help='data id (e.g, "grqc-mic-o0.1")')
 
+    parser.add_argument('--use_cache', action='store_true',
+                        help='use evaluation result from cache or not')
+    
     # eval method
     parser.add_argument('-e', '--eval_method',
                         choices=('ap', 'auc', 'precision_at_cascade_size'),
                         help='evalulation method')
     parser.add_argument('--eval_with_mask',
-                        type=bool,
+                        action="store_true",
                         help='whether evaluate with masks or not. If True, queries and obs are excluded')
     
     # root directory names
@@ -68,7 +72,7 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
     n_queries = args.n_queries
 
     g = load_graph_by_name(args.graph_name)
-    
+
     query_dir_ids = list(map(lambda s: s.strip(), args.query_dir_ids.split(',')))
     if args.legend_labels is not None:
         labels = list(map(lambda s: s.strip(), args.legend_labels.split(',')))
@@ -76,35 +80,57 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
         labels = query_dir_ids
     print('query_dir_ids:', query_dir_ids)
 
-    inf_dir_ids = list(map(lambda s: s.strip(), args.inf_dir_ids.split(',')))
-    print('inf_dir_ids:', inf_dir_ids)
-    print('labels:', labels)
-    
-    cascades = load_cascades('{}/{}'.format(args.cascade_dirname, args.data_id))
+    pkl_dir = 'eval_result/{}'.format(args.eval_method)
 
-    assert n_queries > 0, 'non-positive num of queries'
+    if not args.use_cache:
 
-    if args.eval_method == 'ap':
-        eval_func = average_precision_score
-    elif args.eval_method == 'auc':
-        eval_func = roc_auc_score
-    elif args.eval_method == 'precision_at_cascade_size':
-        print('precision_at_cascade_size')
-        eval_func = precision_at_cascade_size
-    else:
-        raise NotImplementedError(args.eval_method)
+        inf_dir_ids = list(map(lambda s: s.strip(), args.inf_dir_ids.split(',')))
+        print('inf_dir_ids:', inf_dir_ids)
+        print('labels:', labels)
         
-    scores_by_method = aggregate_scores_over_cascades_by_methods(
-        cascades,
-        labels,
-        query_dir_ids,
-        inf_dir_ids,
-        n_queries,
-        inf_result_dirname,
-        query_dirname,
-        eval_func,
-        (args.eval_with_mask == 'True'))
+        cascades = load_cascades('{}/{}'.format(args.cascade_dirname, args.data_id))
 
+        assert n_queries > 0, 'non-positive num of queries'
+
+        if args.eval_method == 'ap':
+            eval_func = average_precision_score
+        elif args.eval_method == 'auc':
+            eval_func = roc_auc_score
+        elif args.eval_method == 'precision_at_cascade_size':
+            print('precision_at_cascade_size')
+            eval_func = precision_at_cascade_size
+        else:
+            raise NotImplementedError(args.eval_method)
+        
+        scores_by_method = aggregate_scores_over_cascades_by_methods(
+            cascades,
+            labels,
+            query_dir_ids,
+            inf_dir_ids,
+            n_queries,
+            inf_result_dirname,
+            query_dirname,
+            eval_func,
+            args.eval_with_mask)
+
+        # make shape match
+        for method in labels:
+            assert len(scores_by_method[method]) > 0, 'no scores available for {}'.format(method)
+            for r in scores_by_method[method]:
+                for i in range(n_queries - len(r)):
+                    r.append(np.nan)
+                assert len(r) == n_queries, "len(r)={}, r={}".format(len(r), r)
+
+        if not os.path.exists(pkl_dir):
+            os.makedirs(pkl_dir)
+        print('dumping eval result to ', pkl_dir + '/'+args.fig_name + '.pkl')
+        pkl.dump(scores_by_method,
+                 open('{}/{}.pkl'.format(pkl_dir, args.fig_name), 'wb'))
+    else:
+        print('load from cache')
+        scores_by_method = pkl.load(open('{}/{}.pkl'.format(pkl_dir, args.fig_name), 'rb'))
+            
+    # plotting
     plt.clf()
 
     fig, ax = plt.subplots(figsize=(5, 4))
@@ -113,28 +139,30 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
     #                   cycler('lw', [4, 4, 4, 4]))
 
     # print('scores_by_method:', scores_by_method)
+    min_y, max_y = 1, 0
+
     for method in labels:
-        assert len(scores_by_method[method]) > 0, 'no scores available for {}'.format(method)
-        for r in scores_by_method[method]:
-            for i in range(n_queries - len(r)):
-                r.append(np.nan)
-            assert len(r) == n_queries, "len(r)={}, r={}".format(len(r), r)
+        print('method', method)
         scores = np.array(scores_by_method[method], dtype=np.float32)
-        mean_scores = np.nanmean(scores, axis=0)
-        # mean_scores = np.mean(scores, axis=0)
-        # print(np.std(scores,axis=0))
+
+        scores[np.isnan(scores)] = 0
+
+        mean_scores = np.mean(scores, axis=0)
         ax.plot(mean_scores)
+        min_y = min([min_y, mean_scores.min()])
+        max_y = max([max_y, mean_scores.max()])
         # ax.hold(True)
-    ax.legend(labels, loc='best')
+    ax.legend(labels, loc='lower right', ncol=1)
     fig.tight_layout()
 
     ax.xaxis.label.set_fontsize(20)
     ax.yaxis.label.set_fontsize(20)
-
+    ax.set_ylim(min_y - 0.05, max_y + 0.05)
+    
     # plt.ylim(0.2, 0.8)
-    dirname = 'figs/{}'.format(args.eval_method)
+    dir_suffix = ''
+    dirname = 'figs/{}'.format(args.eval_method + dir_suffix)
     if not os.path.exists(dirname):
         os.makedirs(dirname)
 
-    fig.savefig('figs/{}/{}.pdf'.format(args.eval_method, args.fig_name))
-
+    fig.savefig('figs/{}/{}.pdf'.format(args.eval_method + dir_suffix, args.fig_name))
