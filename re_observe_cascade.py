@@ -4,15 +4,16 @@ from cascade_generator import observe_cascade
 from helpers import cascade_source
 from glob import glob
 
-graph = 'nethept'
-from_obs = 0.2
-from_dir = 'cascade-weighted/{}-mic-s0.02-o{}/'.format(graph, from_obs)
+graph = 'grqc'
+from_obs = 0.1
+model = 'si'
+from_dir = 'cascade-weighted/{}-m{}-s0.02-o{}/'.format(graph, model, from_obs)
 
-target_obs_list = [0.1, 0.3, 0.4, 0.5]
+target_obs_list = [0.2, 0.3, 0.4, 0.5]
 
 for target_obs in target_obs_list:
     print('target_obs', target_obs)
-    to_dir = 'cascade-weighted/{}-mic-s0.02-o{}/'.format(graph, target_obs)
+    to_dir = 'cascade-weighted/{}-m{}-s0.02-o{}/'.format(graph, model, target_obs)
 
     if not os.path.exists(to_dir):
         os.makedirs(to_dir)

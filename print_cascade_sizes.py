@@ -6,15 +6,18 @@ from graph_helpers import load_graph_by_name
 from helpers import infected_nodes, cascade_source
 from collections import Counter
 
-graph = 'nethept'
-model = 'ic'
+graph = 'grqc'
+model = 'si'
 # suffix = '_tmp'
 # cascade_fraction = 0
 # suffix = '_s0.01'
 cascade_fraction = 0.02
 obs_frac = "0.2"
+cascade_dir = 'cascade-weighted'
 
-dirname = 'cascade-weighted/{}-m{}-s{}-o{}/*'.format(graph, model, cascade_fraction, obs_frac)
+dirname = '{}/{}-m{}-s{}-o{}/*'.format(
+    cascade_dir,
+    graph, model, cascade_fraction, obs_frac)
 
 g = load_graph_by_name(graph, weighted=True)
 
