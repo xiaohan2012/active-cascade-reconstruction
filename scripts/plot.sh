@@ -18,9 +18,14 @@ cascade_fraction="0.1"
 # 0.2 0.3 0.4 0.5
 obs_fractions=(0.2)
 
+eval_methods=(p_at_hidden entropy mrr ap)
 
+# eval_method="ap"
+# eval_method="p_at_hidden"
+# eval_method="entropy"
+# eval_method="map"
+# eval_method='mrr'
 
-eval_method="ap"
 other_params="--eval_with_mask"
 
 # eval_method="precision_at_cascade_size"
@@ -40,10 +45,11 @@ labels="random, pagerank, entropy, prederror, mutual-info"
 
 n_queries=500
 
-for obs_fraction in ${obs_fractions}; do
-    dataset_id="${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}"
+for eval_method in ${eval_methods}; do
+    for obs_fraction in ${obs_fractions}; do
+	dataset_id="${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}"
 
-    print "
+	print "
 python3 plot_average_precision_score.py \
 	-g ${graph} \
 	-d ${dataset_id} \
@@ -61,4 +67,6 @@ python3 plot_average_precision_score.py \
         --use_cache
 "
 
+
+    done
 done
