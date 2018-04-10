@@ -27,7 +27,7 @@ if __name__ == '__main__':
     
     # eval method
     parser.add_argument('-e', '--eval_method',
-                        choices=('ap', 'auc', 'p_at_hidden', 'entropy'),
+                        choices=('ap', 'auc', 'p_at_hidden', 'entropy', 'map', 'mrr'),
                         help='evalulation method')
     parser.add_argument('--eval_with_mask',
                         action="store_true",
@@ -146,13 +146,13 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
         scores = np.array(scores_by_method[method], dtype=np.float32)
 
         scores[np.isnan(scores)] = 0
-
-        mean_scores = np.mean(scores, axis=0)
+        mean_scores = np.nanmean(scores, axis=0)
+        
         ax.plot(mean_scores)
-        min_y = min([min_y, mean_scores.min()])
-        max_y = max([max_y, mean_scores.max()])
+        min_y = min([min_y, np.nanmin(mean_scores)])
+        max_y = max([max_y, np.nanmax(mean_scores)])
         # ax.hold(True)
-    ax.legend(labels, loc='lower right', ncol=1)
+    ax.legend(labels, loc='best', ncol=1)
     fig.tight_layout()
 
     ax.xaxis.label.set_fontsize(20)
