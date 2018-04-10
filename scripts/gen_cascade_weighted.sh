@@ -1,7 +1,7 @@
 #! /bin/zsh
 
-graph=""
-cascade_model="ic"
+graph="grqc"
+cascade_model="si"
 n_cascades=12
 n_observation_rounds=8
 cascade_fraction=0.02

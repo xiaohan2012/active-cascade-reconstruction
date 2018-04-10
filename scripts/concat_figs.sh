@@ -5,7 +5,8 @@ graphs=("lattice-1024" "grqc")
 cascade_models=("ic" "si")
 cascade_frac="0.02"
 
-eval_methods=("precision_at_cascade_size" "ap")
+# eval_methods=("precision_at_cascade_size" "ap")
+eval_methods=("ap")
 
 obs_fraction="0.*"
 

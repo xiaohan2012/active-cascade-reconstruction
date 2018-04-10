@@ -1,15 +1,18 @@
 #! /bin/zsh
 
-graph="lattice-1024"
+graph="grqc"
 graph_suffix="_reversed"
-cascade_fraction=0.02
+cascade_fraction="0.02"
 n_tree_samples=2500
 sample_method=loop_erased
-cascade_model="ic"
+cascade_model="si"
 root_sampler='true_root'
-query_methods=(random pagerank entropy prediction_error weighted_prediction_error)
-n_queries=10
-obs_fractions=(0.1 0.2 0.3 0.4 0.5)
+query_methods=(random pagerank entropy prediction_error mutual-info)
+# query_methods=(prediction_error)
+n_queries=250
+obs_fractions=(0.2)
+ # 0.2 0.3 0.4 0.5
+# obs_fractions=(0.1)
 
 inf_method="inf_probas"
 
@@ -23,7 +26,7 @@ for obs_fraction in ${obs_fractions}; do
 	print "${query_method} on ${cascade_dir}"
 	python3 generate_queries.py \
 		-g ${graph} \
-		-f ${graph_suffix} \
+		-f "${graph_suffix}" \
 		--root_sampler ${root_sampler} \
 		--weighted \
 		-q ${query_method} \
@@ -36,7 +39,7 @@ for obs_fraction in ${obs_fractions}; do
 
 	python3 infer_from_queries.py \
 		-g ${graph} \
-		-f ${graph_suffix} \
+		-f "${graph_suffix}" \
 		--weighted \
 		-s ${n_tree_samples} \
 		--sampling_method ${sample_method} \
