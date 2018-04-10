@@ -10,6 +10,8 @@ def main():
                         help='lower bound for edge weight')
     parser.add_argument('--p_max', default=1.0, type=float,
                         help='upper bound for edge weight')
+    parser.add_argument('-o', '--output')
+    
     args = parser.parse_args()
     g = load_graph_by_name(args.graph)
 
@@ -29,7 +31,7 @@ def main():
     print(g.graph_properties['p_max'], args.p_max)
     print('g.num_edges()', g.num_edges())
 
-    output_path = 'data/{}/graph_weighted.gt'.format(args.graph)
+    output_path = args.output  # 'data/{}/graph_weighted.gt'.format(args.graph)
     g.save(output_path)
     
     print('dumped to {}'.format(output_path))
