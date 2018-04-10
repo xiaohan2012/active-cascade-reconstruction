@@ -40,10 +40,14 @@ def infection_precision_recall(preds, c, obs):
     return precision, recall
 
 
-def precision_at_cascade_size(y, probas):
-    k = (y > 0).sum()
+def precision_at_k(y, probas, k):
     pred_idx = np.argsort(probas)[::-1][:k]
     return precision_score(y[pred_idx], np.ones(k))
+
+
+def precision_at_cascade_size(y, probas):
+    k = (y > 0).sum()
+    return precision_at_k(y, probas, k)
 
 
 def top_k_infection_precision_recall(g, inf_probas, c, obs, k):
@@ -71,7 +75,7 @@ def aggregate_scores_over_cascades_by_methods(cascades,
                                               n_queries,
                                               inf_result_dirname,
                                               query_dirname,
-                                              eval_func,
+                                              eval_method,
                                               eval_with_mask):
     """
     each element in `method_labels` uniquely identifies one experiment
@@ -116,50 +120,10 @@ def aggregate_scores_over_cascades_by_methods(cascades,
             # print('query_path', query_path)
             queries = pkl.load(open(query_path, 'rb'))[0]
 
-            scores = []
-            obs_inc = copy(obs)
-            for inf_probas, query, _ in zip(inf_probas_list, queries, range(n_queries)):
-                # mask out the non-infected observations
-                # as infected queries are valuable
-                # if c[query] < 0:
-                if True:
-                    obs_inc.add(query)
+            scores = get_scores_by_queries(queries, inf_probas_list,
+                                           c, obs,
+                                           eval_method)
 
-                # use precision score
-                mask = np.array([(i not in obs_inc) for i in range(len(c))])
-                try:
-                    # print(eval_with_mask, type(eval_with_mask))
-                    if eval_with_mask:
-                        # print('with mask')
-                        score = eval_func(y_true[mask], inf_probas[mask])
-                    else:
-                        # print('without mask')
-                        score = eval_func(y_true, inf_probas)
-                    # y_pred = np.asarray((inf_probas >= 0.5), dtype=np.bool)
-                    # score = f1_score(y_true[mask], y_pred[mask])
-                    
-                except FloatingPointError:
-                    # in this case, there is no positive data points left in y_true[mask]
-                    # therefore, precision is always zero
-                    # ignore this cascade because it's too small
-                    print("WARNING: average_precision_score throws FloatingPointError")
-                    # print("because there is no positive data points left in y_true[mask]")
-                    # print("score = nan")
-                    # raise TooSmallCascadeError('thrown by average_precision_score, use `nan` instead') \
-                    #     from FloatingPointError
-                    score = 0
-
-                scores.append(score)
-            # print('method', method_label)
-            # print('len(obs)', len(obs))
-            # print('len(infected)', len(infected))
-            # print(scores)
-            # assert len(obs_inc) == (len(obs) + n_queries), '{} != {}'.format(
-            #     len(obs_inc),
-            #     len(obs) + n_queries
-            # )
-
-            # print(inf_dir, scores[:15])
             scores_by_method[method_label].append(scores)
         # print('---'*10)
     return scores_by_method
@@ -177,7 +141,9 @@ def eval_probas(c, X, probas):
     return {'ap': ap_score, 'pk': p_score}
 
 
-def get_ap_scores_by_queries(qs, probas, c, obs):
+def get_scores_by_queries(qs, probas, c, obs,
+                          eval_method, **kwargs):
+    inf_nodes = set(infected_nodes(c))
     y_true = np.zeros((len(c), ))
     y_true[infected_nodes(c)] = 1
     obs_inc = copy(set(obs))
@@ -189,7 +155,23 @@ def get_ap_scores_by_queries(qs, probas, c, obs):
         # use precision score
         mask = np.array([(i not in obs_inc) for i in range(len(c))])
 
-        score = average_precision_score(y_true[mask], inf_probas[mask])
+        try:
+            if eval_method == 'ap':
+                score = average_precision_score(y_true[mask], inf_probas[mask])
+            elif eval_method == 'p_at_k':
+                k = kwargs['k']
+                score = precision_at_k(y_true[mask], inf_probas[mask], k)
+            elif eval_method == 'p_at_hidden':
+                k = len(inf_nodes - set(obs_inc))
+                score = precision_at_k(y_true[mask], inf_probas[mask], k)
+            elif eval_method == 'entropy':
+                p = inf_probas[mask]
+                p = p[(p != 0) & (p != 1)]
+                score = (-(p * np.log(p) + (1-p) * np.log(1-p))).sum()
+            else:
+                raise ValueError('not valid eval method {}'.format(eval_method))
+        except FloatingPointError:
+            score = 0
         
         if np.isnan(score):
             score = 0

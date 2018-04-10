@@ -27,7 +27,7 @@ if __name__ == '__main__':
     
     # eval method
     parser.add_argument('-e', '--eval_method',
-                        choices=('ap', 'auc', 'precision_at_cascade_size'),
+                        choices=('ap', 'auc', 'p_at_hidden', 'entropy'),
                         help='evalulation method')
     parser.add_argument('--eval_with_mask',
                         action="store_true",
@@ -92,15 +92,15 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
 
         assert n_queries > 0, 'non-positive num of queries'
 
-        if args.eval_method == 'ap':
-            eval_func = average_precision_score
-        elif args.eval_method == 'auc':
-            eval_func = roc_auc_score
-        elif args.eval_method == 'precision_at_cascade_size':
-            print('precision_at_cascade_size')
-            eval_func = precision_at_cascade_size
-        else:
-            raise NotImplementedError(args.eval_method)
+        # if args.eval_method == 'ap':
+        #     eval_func = average_precision_score
+        # elif args.eval_method == 'auc':
+        #     eval_func = roc_auc_score
+        # elif args.eval_method == 'precision_at_hidden_inf':
+        #     print('precision_at_cascade_size')
+        #     eval_func = precision_at_cascade_size
+        # else:
+        #     raise NotImplementedError(args.eval_method)
         
         scores_by_method = aggregate_scores_over_cascades_by_methods(
             cascades,
@@ -110,7 +110,7 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
             n_queries,
             inf_result_dirname,
             query_dirname,
-            eval_func,
+            args.eval_method,
             args.eval_with_mask)
 
         # make shape match

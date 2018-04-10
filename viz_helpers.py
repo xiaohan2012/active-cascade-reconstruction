@@ -89,6 +89,7 @@ def visualize(g, pos,
                vertex_text=vertex_text,
                mplfig=ax,
                vcmap=color_map,
+               bg_color=[256, 256, 256, 256],
                output=output)
 
 
