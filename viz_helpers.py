@@ -140,16 +140,35 @@ def tree_plot_setting(g, c, X, tree_edges, color='red'):
 def query_plot_setting(g, c, X, qs,
                        node_size=20,
                        node_shape=SHAPE_TRIANGLE,
-                       with_labels=False,
+                       indicator_type='text',
                        color=1.0):
     s = default_plot_setting(g, c, X)
     s['node_shape_info'][tuple(qs)] = node_shape
     s['node_size_info'][tuple(qs)] = node_size
     s['node_color_info'][tuple(qs)] = color
-    if with_labels:
+
+    if isinstance(indicator_type, str):
+        indicator_types = {indicator_type}
+    else:
+        indicator_types = set(indicator_type)
+        
+    if 'text' in indicator_types:
         for i, q in enumerate(qs):
             s['node_text_info'][tuple([q])] = str(i)
-    # s['edge_color_info'][tree_edges] = color
+        
+    if 'color' in indicator_types:
+        color_depth = np.zeros(g.num_vertices())
+
+        for n in infected_nodes(c):
+            color_depth[n] = 0.1
+        for n in X:
+            color_depth[n] = 1.0
+
+        for i, q in enumerate(qs):
+            color_depth[q] = i / len(qs)
+
+        s['node_color_info'] = color_depth
+
     return s
 
 
@@ -267,8 +286,10 @@ class InfectionProbabilityViz():
         self.output_size = output_size
         self.vcmap = vcmap
 
-    def plot(self, c, X, probas, **kwargs):
+    def plot(self, c, X, probas, interception_func=None, **kwargs):
         setting = heatmap_plot_setting(self.g, c, X, probas)
+        if interception_func is not None:
+            interception_func(setting)
         visualize(self.g, self.pos,
                   **setting,
                   **kwargs)
