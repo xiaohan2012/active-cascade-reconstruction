@@ -143,6 +143,12 @@ class SamplingBasedGenerator(BaseQueryGenerator):
         else:
             # re-build the matrix because trees are re-sampled
             self.error_estimator.build_matrix(self.sampler._samples)
+
+    def prune_candidates(self):
+        self._cand_pool = set(
+            self.error_estimator.filter_out_extreme_targets(
+                self._cand_pool,
+                min_value=self.min_proba))
             
 
 class EntropyQueryGenerator(SamplingBasedGenerator):
@@ -176,12 +182,6 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
         self.prune_nodes = prune_nodes
 
         super(PredictionErrorQueryGenerator, self).__init__(*args, **kwargs)
-
-    def prune_candidates(self):
-        self._cand_pool = set(
-            self.error_estimator.filter_out_extreme_targets(
-                self._cand_pool,
-                min_value=self.min_proba))
 
     def _sample_nodes_for_estimation(self):
         # use node samples to estimate prediction error
