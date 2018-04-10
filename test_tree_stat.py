@@ -16,7 +16,7 @@ def trees():
     0 0 0 1 1 1
     1 0 1 1 0 0
 
-sum 3 0 2 4 2 2       
+sum 3 0 2 4 2 2
     """
     return [
         {2, 5},
@@ -90,7 +90,7 @@ def test_count_and_proba(stat, trees):
                  arr_c0 / 2)
     assert_eq_np(stat.proba(query, condition=1, targets=targets),
                  arr_c1 / 3)
-    
+
 
 def test_update_trees(stat, new_trees):
     """
@@ -102,7 +102,7 @@ def test_update_trees(stat, new_trees):
 
 sum 5 1 1 3 2 0
     """
-    stat.update_trees(new_trees, query=0, state=1)
+    stat.update_trees(new_trees, {0: 1})
 
     query = 1
     targets = [2, 3, 4, 5]
@@ -115,10 +115,35 @@ sum 5 1 1 3 2 0
                  arr_c1)
 
 
+def test_update_trees_multiple_nodes_update(stat, new_trees):
+    """
+    1 1 0 0 0 0 (new*)
+    1 0 0 1 0 0
+    1 0 0 0 0 0 (new*)
+    1 0 0 0 1 0 (new*)
+    1 0 1 1 0 0
+
+sum 5 1 1 3 2 0
+    """
+
+    new_trees.append({1})
+    stat.update_trees(new_trees, {0: 1, 4: 0})
+
+    query = 1
+    targets = [2, 3, 5]
+    arr_c0 = [1, 2, 0]
+    arr_c1 = [0, 0, 0]
+
+    assert_eq_np(stat.count(query, condition=0, targets=targets),
+                 arr_c0)
+    assert_eq_np(stat.count(query, condition=1, targets=targets),
+                 arr_c1)
+
+
 def test_update_trees_insufficient_trees(stat, new_trees):
     with pytest.raises(AssertionError):
         # insufficient length
-        stat.update_trees(new_trees[:1], query=0, state=1)
+        stat.update_trees(new_trees[:1], {0: 1})
 
 
 @pytest.fixture

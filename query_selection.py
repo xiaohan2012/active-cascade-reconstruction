@@ -139,7 +139,7 @@ class SamplingBasedGenerator(BaseQueryGenerator):
 
         if not self.sampler.with_resampling:
             # should be deprecated because trees are re-sampled
-            self.error_estimator.update_trees(new_samples, node, label)
+            self.error_estimator.update_trees(new_samples, {node: label})
         else:
             # re-build the matrix because trees are re-sampled
             self.error_estimator.build_matrix(self.sampler._samples)

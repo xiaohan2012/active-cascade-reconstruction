@@ -24,8 +24,11 @@ class TreeBasedStatistics:
             for v in t:
                 self._m[v, i] = True
 
-    def update_trees(self, trees, query, state):
-        invalid_tree_indices = (self._m[query, :] != state).nonzero()[0]
+    def update_trees(self, trees, node_info):
+        invalid_tree_indices = set()
+        for n, v in node_info.items():
+            invalid_tree_indices |= set((self._m[n, :] != v).nonzero()[0])
+
         assert len(invalid_tree_indices) <= len(trees), \
             "need enough trees to update ({} vs {})".format(len(invalid_tree_indices), len(trees))
         # print('invalid_tree_indices', invalid_tree_indices)
@@ -50,7 +53,7 @@ class TreeBasedStatistics:
             sub_m = self._m[np.asarray(list(targets))[:, None], mask]
         except IndexError as exc:
             raise IndexError("targets have value: {}".format(list(targets))) from exc
-        
+
         if not return_denum:
             return sub_m.sum(axis=1)
         else:
@@ -115,10 +118,10 @@ class TreeBasedStatistics:
         assert node_weights.shape == p0.shape, 'shape unmatch: {}, {}'.format(
             node_weights.shape,
             p0.shape)
-        
+
         weights = np.array([denum0, denum1]) / self.n_col
         errors = np.array([self._sum_entropy(p0, node_weights), self._sum_entropy(p1, node_weights)])
-        
+
         if False:
             print("query: ", query)
             print("p(uninfected)={}, p(infected)={}".format(weights[0], weights[1]))

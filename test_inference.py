@@ -36,7 +36,7 @@ def test_inf_probas_shape(g, gi, obs, with_inc_sampling):
 
         # update samples
         new_samples = sampler.update_samples(obs, {r: 0})
-        error_estimator.update_trees(new_samples, r, 0)
+        error_estimator.update_trees(new_samples, {r: 0})
 
         # check probas
         probas = error_estimator.unconditional_proba()

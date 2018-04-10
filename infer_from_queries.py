@@ -76,19 +76,33 @@ def infer_probas_from_queries(g, obs, c, queries,
                 print('pagerank score for root_sampler all zero, break')
                 break
 
-        new_samples = sampler.update_samples(obs_inf,
-                                             {q: label},
-                                             root_sampler=root_sampler)
-        estimator.update_trees(new_samples, q, label)
+        if i_iter % every == 0:
+            print('i_iter', i_iter)
+            if i_iter == 0:
+                node_update_info = {q: label}
+            else:
+                node_update_info[q] = label
 
-        # new probas
-        probas = infection_probability(g, obs_inf, sampler, error_estimator=estimator)
+            # evaluate every `every` iteration
+            new_samples = sampler.update_samples(obs_inf,
+                                                 node_update_info,
+                                                 root_sampler=root_sampler)
+            estimator.update_trees(new_samples, node_update_info)
 
-        # make sure data dimension does not change
-        assert len(probas) == n_nodes
-        assert g.num_vertices() == n_nodes, '{} != {}'.format(g.num_vertices(), n_nodes)
+            # new probas
+            probas = infection_probability(g, obs_inf, sampler, error_estimator=estimator)
 
-        probas_list.append(probas)
+            # make sure data dimension does not change
+            assert len(probas) == n_nodes
+            assert g.num_vertices() == n_nodes, '{} != {}'.format(g.num_vertices(), n_nodes)
+
+            probas_list.append(probas)
+
+            # refresh it
+            node_update_info = {}
+        else:
+            # accumulate info
+            node_update_info[q] = label
 
     return probas_list, sampler, estimator
 
