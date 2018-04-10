@@ -8,6 +8,7 @@ from graph_helpers import extract_nodes
 from helpers import infected_nodes
 from sklearn.metrics import precision_score
 from sklearn.metrics import average_precision_score
+
 from copy import copy
 
 
@@ -141,6 +142,27 @@ def eval_probas(c, X, probas):
     return {'ap': ap_score, 'pk': p_score}
 
 
+def mean_average_precision(y_true, p_pred):
+    idx = np.argsort(p_pred)[::-1]
+    y = y_true[idx]
+    map_score = np.mean([y[:i+1].sum() / (i+1) for i in y.nonzero()[0]])
+    return map_score
+
+
+def mean_reciprical_rank(y_true, p_pred):
+    idx = np.argsort(p_pred)[::-1]
+    # p = p_pred[idx]
+    y = y_true[idx]
+
+    rr_list = []
+    for i in y.nonzero()[0]:
+        l = y[:i+1]
+        scores = 1 / np.arange(1, i+2)
+        rr = (l * scores).sum() / scores.sum()
+        rr_list.append(rr)
+    return np.mean(rr_list)
+
+
 def get_scores_by_queries(qs, probas, c, obs,
                           eval_method, **kwargs):
     inf_nodes = set(infected_nodes(c))
@@ -168,6 +190,10 @@ def get_scores_by_queries(qs, probas, c, obs,
                 p = inf_probas[mask]
                 p = p[(p != 0) & (p != 1)]
                 score = (-(p * np.log(p) + (1-p) * np.log(1-p))).sum()
+            elif eval_method == 'map':
+                score = mean_average_precision(y_true[mask], inf_probas[mask])
+            elif eval_method == 'mrr':
+                score = mean_reciprical_rank(y_true[mask], inf_probas[mask])
             else:
                 raise ValueError('not valid eval method {}'.format(eval_method))
         except FloatingPointError:
