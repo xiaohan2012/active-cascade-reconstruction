@@ -47,6 +47,7 @@ list of infection probas directory ids separated by ","
 why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
     
     parser.add_argument('-n', '--n_queries', type=int, help='number of queries to show')
+    parser.add_argument('--every', type=int, help='plot every `every` iterations')
     parser.add_argument('-s', '--sampling_method', help='')
     parser.add_argument('-l', '--legend_labels',
                         help='list of labels to show in legend separated  by ","')
@@ -111,15 +112,17 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
             inf_result_dirname,
             query_dirname,
             args.eval_method,
-            args.eval_with_mask)
+            args.eval_with_mask,
+            args.every)
 
         # make shape match
+        max_len = max(len(r) for method in labels for r in scores_by_method[method])
         for method in labels:
             assert len(scores_by_method[method]) > 0, 'no scores available for {}'.format(method)
             for r in scores_by_method[method]:
-                for i in range(n_queries - len(r)):
+                for i in range(max_len - len(r)):
                     r.append(np.nan)
-                assert len(r) == n_queries, "len(r)={}, r={}".format(len(r), r)
+                assert len(r) == max_len, "len(r)={}, r={}".format(len(r), r)
 
         if not os.path.exists(pkl_dir):
             os.makedirs(pkl_dir)
@@ -141,6 +144,7 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
     # print('scores_by_method:', scores_by_method)
     min_y, max_y = 1, 0
 
+    x = np.arange(0, n_queries, args.every)
     for method in labels:
         print('method', method)
         scores = np.array(scores_by_method[method], dtype=np.float32)
@@ -148,7 +152,8 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
         scores[np.isnan(scores)] = 0
         mean_scores = np.nanmean(scores, axis=0)
         
-        ax.plot(mean_scores)
+        ax.plot(x, mean_scores)
+
         min_y = min([min_y, np.nanmin(mean_scores)])
         max_y = max([max_y, np.nanmax(mean_scores)])
         # ax.hold(True)

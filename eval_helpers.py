@@ -1,4 +1,5 @@
 import numpy as np
+import math
 import os
 import pickle as pkl
 from copy import copy
@@ -77,7 +78,8 @@ def aggregate_scores_over_cascades_by_methods(cascades,
                                               inf_result_dirname,
                                               query_dirname,
                                               eval_method,
-                                              eval_with_mask):
+                                              eval_with_mask,
+                                              every=1):
     """
     each element in `method_labels` uniquely identifies one experiment
 
@@ -123,7 +125,8 @@ def aggregate_scores_over_cascades_by_methods(cascades,
 
             scores = get_scores_by_queries(queries, inf_probas_list,
                                            c, obs,
-                                           eval_method)
+                                           eval_method,
+                                           every=every)
 
             scores_by_method[method_label].append(scores)
         # print('---'*10)
@@ -161,42 +164,48 @@ def mean_reciprical_rank(y_true, p_pred):
 
 
 def get_scores_by_queries(qs, probas, c, obs,
-                          eval_method, **kwargs):
+                          eval_method,
+                          every=1,
+                          **kwargs):
     inf_nodes = set(infected_nodes(c))
     y_true = np.zeros((len(c), ))
     y_true[infected_nodes(c)] = 1
     obs_inc = copy(set(obs))
-    ap_scores = []
-    for inf_probas, query, _ in zip(probas[1:], qs, range(len(qs))):
-        if True:
-            obs_inc.add(query)
+    scores = []
 
-        # use precision score
-        mask = np.array([(i not in obs_inc) for i in range(len(c))])
-
-        try:
-            if eval_method == 'ap':
-                score = average_precision_score(y_true[mask], inf_probas[mask])
-            elif eval_method == 'p_at_k':
-                k = kwargs['k']
-                score = precision_at_k(y_true[mask], inf_probas[mask], k)
-            elif eval_method == 'p_at_hidden':
-                k = len(inf_nodes - set(obs_inc))
-                score = precision_at_k(y_true[mask], inf_probas[mask], k)
-            elif eval_method == 'entropy':
-                p = inf_probas[mask]
-                p = p[(p != 0) & (p != 1)]
-                score = (-(p * np.log(p) + (1-p) * np.log(1-p))).sum()
-            elif eval_method == 'map':
-                score = mean_average_precision(y_true[mask], inf_probas[mask])
-            elif eval_method == 'mrr':
-                score = mean_reciprical_rank(y_true[mask], inf_probas[mask])
-            else:
-                raise ValueError('not valid eval method {}'.format(eval_method))
-        except FloatingPointError:
-            score = 0
+    for i_iter, query in enumerate(qs):
+        obs_inc.add(query)
         
-        if np.isnan(score):
-            score = 0
-        ap_scores.append(score)
-    return ap_scores
+        if i_iter % every == 0:
+            # print(i_iter)
+            inf_probas = probas[int(i_iter / every) + 1]
+            mask = np.array([(i not in obs_inc) for i in range(len(c))])
+
+            try:
+                if eval_method == 'ap':
+                    score = average_precision_score(y_true[mask], inf_probas[mask])
+                elif eval_method == 'p_at_k':
+                    k = kwargs['k']
+                    score = precision_at_k(y_true[mask], inf_probas[mask], k)
+                elif eval_method == 'p_at_hidden':
+                    k = len(inf_nodes - set(obs_inc))
+                    score = precision_at_k(y_true[mask], inf_probas[mask], k)
+                elif eval_method == 'entropy':
+                    p = inf_probas[mask]
+                    p = p[(p != 0) & (p != 1)]
+                    score = (-(p * np.log(p) + (1-p) * np.log(1-p))).sum()
+                elif eval_method == 'map':
+                    score = mean_average_precision(y_true[mask], inf_probas[mask])
+                elif eval_method == 'mrr':
+                    score = mean_reciprical_rank(y_true[mask], inf_probas[mask])
+                else:
+                    raise ValueError('not valid eval method {}'.format(eval_method))
+            except FloatingPointError:
+                score = 0
+            
+            if np.isnan(score):
+                score = 0
+            scores.append(score)
+    assert len(scores) == math.ceil(len(qs) / every), \
+        '{} != {}'.format(len(scores), math.ceil(len(qs) / every),)
+    return scores
