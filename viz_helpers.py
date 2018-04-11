@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib as mpl
+import matplotlib.cm as cm
 
 from collections import OrderedDict
 
@@ -25,6 +26,10 @@ SIZE_ZERO = 0
 SIZE_SMALL = 10
 SIZE_MEDIUM = 20
 SIZE_LARGE = 30
+
+COLOR_BLUE = (31/255, 120/255, 180/255, 1.0)
+COLOR_YELLOW = (255/255, 217/255, 47/255, 1.0)
+COLOR_WHITE = (255/255, 255/255, 255/255, 1.0)
 
 SHAPE_CIRCLE = 'circle'
 SHAPE_PENTAGON = 'pentagon'
@@ -66,13 +71,28 @@ def visualize(g, pos,
                     prop.a[list(entries)] = v
 
         return prop
-    
-    if isinstance(node_color_info, np.ndarray):
-        # in this case, use heatmap as infection probability
-        vertex_fill_color = g.new_vertex_property('float')
-        vertex_fill_color.a = node_color_info
-    else:
-        vertex_fill_color = populate_property('float', node_color_info)
+
+    # vertex color is a bit special
+    # can pass both ndarray and RGB
+    # for ndarray, it converted to cm.Reds
+    vertex_fill_color = g.new_vertex_property('vector<float>')
+    # vertex_fill_color.set_value(node_color_info['default'])
+    del node_color_info['default']
+
+    # colormap to convert to rgb
+    norm = mpl.colors.Normalize(vmin=0.0, vmax=1.0)
+    m = cm.ScalarMappable(norm=norm, cmap=color_map)
+
+    for entries, v in node_color_info.items():
+        if isinstance(v, np.ndarray):
+            assert len(entries) == len(v)
+            for e, vv in zip(entries, v):
+                # convert to RGB
+                vertex_fill_color[e] = m.to_rgba(vv)
+        else:
+            for e in entries:
+                vertex_fill_color[e] = v
+
     vertex_size = populate_property('int', node_size_info)
     vertex_shape = populate_property('string', node_shape_info)
     vertex_text = populate_property('string', node_text_info)
@@ -88,7 +108,7 @@ def visualize(g, pos,
                edge_pen_width=edge_pen_width,
                vertex_text=vertex_text,
                mplfig=ax,
-               vcmap=color_map,
+               
                bg_color=[256, 256, 256, 256],
                output=output)
 
@@ -99,9 +119,9 @@ def default_plot_setting(g, c, X):
     hidden_infs = set(inf_nodes) - set(X)
 
     node_color_info = OrderedDict()
-    node_color_info[tuple(X)] = 1.0
-    node_color_info[tuple(hidden_infs)] = 0.5
-    node_color_info['default'] = 0
+    node_color_info[tuple(X)] = COLOR_BLUE
+    node_color_info[tuple(hidden_infs)] = COLOR_YELLOW
+    node_color_info['default'] = COLOR_WHITE
 
     node_shape_info = OrderedDict()
     node_shape_info[tuple(X)] = SHAPE_SQUARE
@@ -110,7 +130,7 @@ def default_plot_setting(g, c, X):
 
     node_size_info = OrderedDict()
 
-    node_size_info[tuple(X)] = 10
+    node_size_info[tuple(X)] = 15
     node_size_info[tuple(hidden_infs)] = 12.5
     node_size_info['default'] = 5
 
@@ -146,7 +166,7 @@ def query_plot_setting(g, c, X, qs,
     s = default_plot_setting(g, c, X)
     s['node_shape_info'][tuple(qs)] = node_shape
     s['node_size_info'][tuple(qs)] = node_size
-    s['node_color_info'][tuple(qs)] = color
+    # s['node_color_info'][tuple(qs)] = color
 
     if isinstance(indicator_type, str):
         indicator_types = {indicator_type}
@@ -158,17 +178,12 @@ def query_plot_setting(g, c, X, qs,
             s['node_text_info'][tuple([q])] = str(i)
         
     if 'color' in indicator_types:
-        color_depth = np.zeros(g.num_vertices())
-
-        for n in infected_nodes(c):
-            color_depth[n] = 0.1
-        for n in X:
-            color_depth[n] = 1.0
+        color_depth = np.zeros(len(qs), dtype=np.float)
 
         for i, q in enumerate(qs):
-            color_depth[q] = i / len(qs)
+            color_depth[i] = i / len(qs)
 
-        s['node_color_info'] = color_depth
+        s['node_color_info'][tuple(qs)] = color_depth
 
     return s
 
