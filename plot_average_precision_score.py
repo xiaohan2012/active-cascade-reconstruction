@@ -144,6 +144,12 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
     # print('scores_by_method:', scores_by_method)
     min_y, max_y = 1, 0
 
+    print('max_len', max_len)
+    print('every', args.every)
+    print('product', max_len * args.every)
+    print('n_queries', n_queries)
+    n_queries = min(n_queries, max_len * args.every)
+    print('n_queries (after)', n_queries)
     x = np.arange(0, n_queries, args.every)
     for method in labels:
         print('method', method)
@@ -151,7 +157,9 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
 
         scores[np.isnan(scores)] = 0
         mean_scores = np.nanmean(scores, axis=0)
-        
+
+        print(x.shape)
+        print(mean_scores.shape)
         ax.plot(x, mean_scores)
 
         min_y = min([min_y, np.nanmin(mean_scores)])
