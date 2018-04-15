@@ -68,6 +68,7 @@ print('p.a=', p.a)
 
 # root_sampler = build_out_degree_root_sampler(g)
 root_sampler = lambda: None
+# root_sampler = lambda: 45
 
 d = args.output_dir
 if not os.path.exists(d):

@@ -127,7 +127,8 @@ def aggregate_scores_over_cascades_by_methods(cascades,
                                            c, obs,
                                            eval_method,
                                            every=every)
-
+            if method_label == 'prederror':
+                print(scores)
             scores_by_method[method_label].append(scores)
         # print('---'*10)
     return scores_by_method
@@ -187,7 +188,7 @@ def get_scores_by_queries(qs, probas, c, obs,
                 elif eval_method == 'p_at_k':
                     k = kwargs['k']
                     score = precision_at_k(y_true[mask], inf_probas[mask], k)
-                elif eval_method == 'p_at_hidden':
+                elif eval_method == 'p@k':
                     k = len(inf_nodes - set(obs_inc))
                     score = precision_at_k(y_true[mask], inf_probas[mask], k)
                 elif eval_method == 'entropy':
@@ -198,6 +199,10 @@ def get_scores_by_queries(qs, probas, c, obs,
                     score = mean_average_precision(y_true[mask], inf_probas[mask])
                 elif eval_method == 'mrr':
                     score = mean_reciprical_rank(y_true[mask], inf_probas[mask])
+                elif eval_method == 'ratio_discovered_inf':
+                    # print('len(obs_inc)', len(obs_inc))
+                    # print('num. discovered', sum(1 for o in obs_inc if c[o] >= 0))
+                    score = sum(1 for o in obs_inc if c[o] >= 0) / len(inf_nodes)
                 else:
                     raise ValueError('not valid eval method {}'.format(eval_method))
             except FloatingPointError:

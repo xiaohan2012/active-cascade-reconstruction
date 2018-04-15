@@ -3,11 +3,11 @@ from tqdm import tqdm
 
 # for dataset in tqdm(('p2p-gnutella08', 'arxiv-hep-th',
 #                      'enron-email', 'dblp-collab')):
-for dataset in tqdm(('hepth', 'astro')):
+for dataset in tqdm(('auto-sys', )):
     with open('data/{}/graph.txt'.format(dataset)) as f:
         g = nx.Graph()
         for l in f:
-            u, v = map(int, l.split())
+            u, v = map(int, l.split()[:2])
             g.add_edge(u, v)
 
         ccs = nx.connected_components(g)

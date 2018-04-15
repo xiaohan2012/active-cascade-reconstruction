@@ -28,9 +28,12 @@ SIZE_MEDIUM = 20
 SIZE_LARGE = 30
 
 COLOR_BLUE = (31/255, 120/255, 180/255, 1.0)
+COLOR_RED = (1.0, 0, 0, 1.0)
 COLOR_YELLOW = (255/255, 217/255, 47/255, 1.0)
 COLOR_WHITE = (255/255, 255/255, 255/255, 1.0)
 COLOR_ORANGE = (252/255, 120/255, 88/255, 1.0)
+COLOR_PINK = (1.0, 20/255, 147/255, 1.0)
+COLOR_GREEN = (50/255, 205/255, 50/255, 1.0)
 
 SHAPE_CIRCLE = 'circle'
 SHAPE_PENTAGON = 'pentagon'
@@ -76,23 +79,30 @@ def visualize(g, pos,
     # vertex color is a bit special
     # can pass both ndarray and RGB
     # for ndarray, it converted to cm.Reds
-    vertex_fill_color = g.new_vertex_property('vector<float>')
+
     # vertex_fill_color.set_value(node_color_info['default'])
-    del node_color_info['default']
+    if 'default' in node_color_info:
+        del node_color_info['default']
 
     # colormap to convert to rgb
     norm = mpl.colors.Normalize(vmin=0.0, vmax=1.0)
     m = cm.ScalarMappable(norm=norm, cmap=color_map)
 
-    for entries, v in node_color_info.items():
-        if isinstance(v, np.ndarray):
-            assert len(entries) == len(v)
-            for e, vv in zip(entries, v):
-                # convert to RGB
-                vertex_fill_color[e] = m.to_rgba(vv)
-        else:
-            for e in entries:
-                vertex_fill_color[e] = v
+    if not isinstance(node_color_info, np.ndarray):
+        assert isinstance(node_color_info, dict)
+        vertex_fill_color = g.new_vertex_property('vector<float>')
+        for entries, v in node_color_info.items():
+            if isinstance(v, np.ndarray):
+                assert len(entries) == len(v)
+                for e, vv in zip(entries, v):
+                    # convert to RGB
+                    vertex_fill_color[e] = m.to_rgba(vv)
+            else:
+                for e in entries:
+                    vertex_fill_color[e] = v
+    else:
+        vertex_fill_color = g.new_vertex_property('float')
+        vertex_fill_color.a = node_color_info
 
     vertex_size = populate_property('int', node_size_info)
     vertex_shape = populate_property('string', node_shape_info)
@@ -109,19 +119,23 @@ def visualize(g, pos,
                edge_pen_width=edge_pen_width,
                vertex_text=vertex_text,
                mplfig=ax,
-               
+               vcmap=color_map,
                bg_color=[256, 256, 256, 256],
                output=output)
 
 
-def default_plot_setting(g, c, X):
+def default_plot_setting(g, c, X,
+                         size_multiplier=1.0, edge_width_multiplier=1.0,
+                         deemphasize_hidden_infs=False):
     source = cascade_source(c)
     inf_nodes = infected_nodes(c)
     hidden_infs = set(inf_nodes) - set(X)
 
     node_color_info = OrderedDict()
     node_color_info[tuple(X)] = COLOR_BLUE
-    node_color_info[tuple(hidden_infs)] = COLOR_YELLOW
+    if not deemphasize_hidden_infs:
+        node_color_info[tuple(hidden_infs)] = COLOR_YELLOW
+    node_color_info[(source, )] = COLOR_GREEN
     node_color_info['default'] = COLOR_WHITE
 
     node_shape_info = OrderedDict()
@@ -131,9 +145,11 @@ def default_plot_setting(g, c, X):
 
     node_size_info = OrderedDict()
 
-    node_size_info[tuple(X)] = 15
-    node_size_info[tuple(hidden_infs)] = 12.5
-    node_size_info['default'] = 5
+    node_size_info[tuple(X)] = 15 * size_multiplier
+    node_size_info[(source, )] = 20 * size_multiplier
+    if not deemphasize_hidden_infs:
+        node_size_info[tuple(hidden_infs)] = 12.5 * size_multiplier
+    node_size_info['default'] = 5 * size_multiplier
 
     node_text_info = {'default': ''}
     
@@ -141,7 +157,7 @@ def default_plot_setting(g, c, X):
         'default': 'white'
     }
     edge_pen_width_info = {
-        'default': 2.0
+        'default': 2.0 * edge_width_multiplier
     }
     return {
         'node_color_info': node_color_info,
@@ -153,8 +169,8 @@ def default_plot_setting(g, c, X):
     }
 
 
-def tree_plot_setting(g, c, X, tree_edges, color='red'):
-    s = default_plot_setting(g, c, X)
+def tree_plot_setting(g, c, X, tree_edges, color='red', **kwargs):
+    s = default_plot_setting(g, c, X, **kwargs)
     s['edge_color_info'][tree_edges] = color
     return s
 
@@ -163,8 +179,8 @@ def query_plot_setting(g, c, X, qs,
                        node_size=20,
                        node_shape=SHAPE_TRIANGLE,
                        indicator_type='text',
-                       color=1.0):
-    s = default_plot_setting(g, c, X)
+                       color=1.0, **kwargs):
+    s = default_plot_setting(g, c, X, **kwargs)
     s['node_shape_info'][tuple(qs)] = node_shape
     s['node_size_info'][tuple(qs)] = node_size
     # s['node_color_info'][tuple(qs)] = color
@@ -189,19 +205,20 @@ def query_plot_setting(g, c, X, qs,
     return s
 
 
-def heatmap_plot_setting(g, c, X, weight):
+def heatmap_plot_setting(g, c, X, weight, **kwargs):
     inf_nodes = infected_nodes(c)
     hidden_infs = set(inf_nodes) - set(X)
-    
-    s = default_plot_setting(g, c, X)
+
+    multipler = kwargs.get('size_multiplier', 1.0)
+    s = default_plot_setting(g, c, X, **kwargs)
     if False:
         s['node_size_info'][tuple(X)] = 15
         s['node_size_info'][tuple(hidden_infs)] = 15
         s['node_size_info']['default'] = 7.5
     else:
-        s['node_size_info'][tuple(X)] = 10
-        s['node_size_info'][tuple(hidden_infs)] = 10
-        s['node_size_info']['default'] = 10
+        s['node_size_info'][tuple(X)] = 10 * multipler
+        s['node_size_info'][tuple(hidden_infs)] = 10 * multipler
+        s['node_size_info']['default'] = 10 * multipler
     
     s['node_color_info'] = weight
     return s
@@ -303,8 +320,10 @@ class InfectionProbabilityViz():
         self.output_size = output_size
         self.vcmap = vcmap
 
-    def plot(self, c, X, probas, interception_func=None, **kwargs):
-        setting = heatmap_plot_setting(self.g, c, X, probas)
+    def plot(self, c, X, probas, interception_func=None, setting_kwargs={},
+             **kwargs):
+        setting = heatmap_plot_setting(self.g, c, X, probas,
+                                       **setting_kwargs)
         if interception_func is not None:
             interception_func(setting)
         visualize(self.g, self.pos,

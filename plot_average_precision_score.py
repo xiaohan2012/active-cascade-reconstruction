@@ -15,6 +15,10 @@ from helpers import load_cascades
 from graph_helpers import load_graph_by_name
 from eval_helpers import aggregate_scores_over_cascades_by_methods, precision_at_cascade_size
 
+from viz_helpers import COLOR_BLUE, COLOR_WHITE, COLOR_YELLOW, COLOR_ORANGE, COLOR_GREEN, COLOR_PINK
+
+
+plt.style.use('paper')
 np.seterr(divide='raise', invalid='raise')
 
 if __name__ == '__main__':
@@ -27,7 +31,8 @@ if __name__ == '__main__':
     
     # eval method
     parser.add_argument('-e', '--eval_method',
-                        choices=('ap', 'auc', 'p_at_hidden', 'entropy', 'map', 'mrr'),
+                        choices=('ap', 'auc', 'p@k', 'entropy', 'map', 'mrr',
+                                 'ratio_discovered_inf'),
                         help='evalulation method')
     parser.add_argument('--eval_with_mask',
                         action="store_true",
@@ -48,6 +53,7 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
     
     parser.add_argument('-n', '--n_queries', type=int, help='number of queries to show')
     parser.add_argument('--every', type=int, help='plot every `every` iterations')
+    parser.add_argument('--plot_step', type=int, help='plot every `plot_step` step')
     parser.add_argument('-s', '--sampling_method', help='')
     parser.add_argument('-l', '--legend_labels',
                         help='list of labels to show in legend separated  by ","')
@@ -132,22 +138,24 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
     else:
         print('load from cache')
         scores_by_method = pkl.load(open('{}/{}.pkl'.format(pkl_dir, args.fig_name), 'rb'))
+        max_len = max(len(r) for method in labels for r in scores_by_method[method])
             
     # plotting
     plt.clf()
 
     fig, ax = plt.subplots(figsize=(5, 4))
-    # ax.set_prop_cycle(cycler('color', ['r', 'g', 'b', 'y']) +
-    #                   cycler('linestyle', ['-', '--', ':', '-.']) +
-    #                   cycler('lw', [4, 4, 4, 4]))
+    ax.set_prop_cycle(cycler('color', [COLOR_ORANGE, COLOR_PINK, COLOR_BLUE, COLOR_GREEN, COLOR_YELLOW]) +
+                      cycler('linestyle', ['-', ':', '--', '-.', '-']) +
+                      cycler('marker', ['o', '*', '^', 'v', 's']) +
+                      cycler('lw', [2, 2, 2, 2, 2]))
 
     # print('scores_by_method:', scores_by_method)
     min_y, max_y = 1, 0
 
-    print('max_len', max_len)
-    print('every', args.every)
-    print('product', max_len * args.every)
-    print('n_queries', n_queries)
+    # print('max_len', max_len)
+    # print('every', args.every)
+    # print('product', max_len * args.every)
+    # print('n_queries', n_queries)
     n_queries = min(n_queries, max_len * args.every)
     print('n_queries (after)', n_queries)
     x = np.arange(0, n_queries, args.every)
@@ -155,23 +163,25 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
         print('method', method)
         scores = np.array(scores_by_method[method], dtype=np.float32)
 
-        scores[np.isnan(scores)] = 0
+        # scores[np.isnan(scores)] = 0
         mean_scores = np.nanmean(scores, axis=0)
 
         print(x.shape)
         print(mean_scores.shape)
-        ax.plot(x, mean_scores)
+        ax.plot(x[::args.plot_step], mean_scores[::args.plot_step])
 
         min_y = min([min_y, np.nanmin(mean_scores)])
         max_y = max([max_y, np.nanmax(mean_scores)])
         # ax.hold(True)
-    ax.legend(labels, loc='best', ncol=1)
+    # ax.legend(labels, loc='best', ncol=1)
+    # ax.xaxis.label.set_fontsize(20)
+    # ax.yaxis.label.set_fontsize(20)
+    # ax.set_ylim(min_y - 0.01, max_y + 0.01)
+    ax.set_xlabel('num. of queries')
+    ax.set_ylabel(args.eval_method)
+    
     fig.tight_layout()
 
-    ax.xaxis.label.set_fontsize(20)
-    ax.yaxis.label.set_fontsize(20)
-    ax.set_ylim(min_y - 0.05, max_y + 0.05)
-    
     # plt.ylim(0.2, 0.8)
     dir_suffix = ''
     dirname = 'figs/{}'.format(args.eval_method + dir_suffix)

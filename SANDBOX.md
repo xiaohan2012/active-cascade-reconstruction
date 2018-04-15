@@ -328,3 +328,11 @@ todo
   - plot entropy is meaningful
 - to try on more graphs
 
+# Apr 12
+
+possible dataset:
+
+- http://konect.uni-koblenz.de/networks/contact 274/2899 
+- http://konect.uni-koblenz.de/networks/sociopatterns-infectious 410/2765
+- [autonomous system](http://konect.uni-koblenz.de/networks/as20000102)
+  - sparse, 6474 /13895
