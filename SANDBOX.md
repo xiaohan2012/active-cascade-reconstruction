@@ -336,3 +336,13 @@ possible dataset:
 - http://konect.uni-koblenz.de/networks/sociopatterns-infectious 410/2765
 - [autonomous system](http://konect.uni-koblenz.de/networks/as20000102)
   - sparse, 6474 /13895
+
+# Apr 19
+
+1. l1, l2 and cross entropy gives similar result
+2. however, the performance with masks is worse than without masks. Which I would expect to be equal.
+   - http://193.166.24.212/active-network-reconstruction/figs/l1-no-mask/lattice-1024-msi-s0.1-o0.2.pdf
+   - http://193.166.24.212/active-network-reconstruction/figs/l1/lattice-1024-msi-s0.1-o0.2.pdf
+3. [ ] check if the trees are respecting the updated queries (caused by `every`)?
+
+

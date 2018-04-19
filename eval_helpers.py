@@ -7,10 +7,9 @@ from tqdm import tqdm
 
 from graph_helpers import extract_nodes
 from helpers import infected_nodes
-from sklearn.metrics import precision_score
-from sklearn.metrics import average_precision_score
+from tree_stat import EPS
+from sklearn.metrics import precision_score, average_precision_score, log_loss
 
-from copy import copy
 
 
 class TooSmallCascadeError(Exception):
@@ -126,7 +125,8 @@ def aggregate_scores_over_cascades_by_methods(cascades,
             scores = get_scores_by_queries(queries, inf_probas_list,
                                            c, obs,
                                            eval_method,
-                                           every=every)
+                                           every=every,
+                                           eval_with_mask=eval_with_mask)
             if method_label == 'prederror':
                 print(scores)
             scores_by_method[method_label].append(scores)
@@ -167,6 +167,7 @@ def mean_reciprical_rank(y_true, p_pred):
 def get_scores_by_queries(qs, probas, c, obs,
                           eval_method,
                           every=1,
+                          eval_with_mask=True,
                           **kwargs):
     inf_nodes = set(infected_nodes(c))
     y_true = np.zeros((len(c), ))
@@ -180,7 +181,10 @@ def get_scores_by_queries(qs, probas, c, obs,
         if i_iter % every == 0:
             # print(i_iter)
             inf_probas = probas[int(i_iter / every) + 1]
-            mask = np.array([(i not in obs_inc) for i in range(len(c))])
+            if eval_with_mask:
+                mask = np.array([(i not in obs_inc) for i in range(len(c))])
+            else:
+                mask = np.ones(len(c), dtype=np.bool)
 
             try:
                 if eval_method == 'ap':
@@ -203,6 +207,19 @@ def get_scores_by_queries(qs, probas, c, obs,
                     # print('len(obs_inc)', len(obs_inc))
                     # print('num. discovered', sum(1 for o in obs_inc if c[o] >= 0))
                     score = sum(1 for o in obs_inc if c[o] >= 0) / len(inf_nodes)
+                elif eval_method == 'l1':
+                    score = np.abs(y_true[mask] - inf_probas[mask]).mean()
+                elif eval_method == 'l2':
+                    score = np.power(y_true[mask] - inf_probas[mask], 2).mean()
+                elif eval_method == 'cross_entropy':
+                    y = y_true[mask]; y[y == 0] += EPS
+                    p = inf_probas[mask]; p[p == 0] += EPS
+
+                    y_inv = 1 - y_true[mask]; y_inv[y_inv == 0] += EPS
+                    p_inv = 1 - inf_probas[mask]; p_inv[p_inv == 0] += EPS
+
+                    score = (- y * np.log(p)).mean()
+                    score -= (y_inv * np.log(p_inv)).mean()
                 else:
                     raise ValueError('not valid eval method {}'.format(eval_method))
             except FloatingPointError:
