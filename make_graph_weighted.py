@@ -1,6 +1,7 @@
 import argparse
 import numpy as np
 from graph_helpers import load_graph_by_name
+from graph_tool.stats import remove_self_loops
 
 
 def main():
@@ -14,12 +15,13 @@ def main():
     
     args = parser.parse_args()
     g = load_graph_by_name(args.graph)
+    remove_self_loops(g)
 
     g.set_directed(True)
     edges_iter = list(g.edges())
     for e in edges_iter:
         g.add_edge(e.target(), e.source())
-    
+
     weights = g.new_edge_property('float')
     weights.a = np.random.random(g.num_edges()) * (args.p_max - args.p_min) + args.p_min
 
