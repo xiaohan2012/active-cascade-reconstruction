@@ -48,3 +48,11 @@ def check_samples_so_far(g, sampler, estimator, obs_inf, obs_uninf):
             assert v not in t, 'should be in sample'
             assert estimator._m[v, :].sum() == 0
         
+
+def check_probas_so_far(probas, inf, uninf):
+    # print(inf)
+    # print(uninf)
+    for v in inf:
+        assert probas[v] == 1.0
+    for v in uninf:
+        assert probas[v] == 0.0

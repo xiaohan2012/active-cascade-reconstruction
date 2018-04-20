@@ -14,6 +14,7 @@ from sklearn.metrics import average_precision_score, f1_score, roc_auc_score
 from helpers import load_cascades
 from graph_helpers import load_graph_by_name
 from eval_helpers import aggregate_scores_over_cascades_by_methods, precision_at_cascade_size
+from test_helpers import check_probas_so_far
 
 from viz_helpers import COLOR_BLUE, COLOR_WHITE, COLOR_YELLOW, COLOR_ORANGE, COLOR_GREEN, COLOR_PINK
 
@@ -54,6 +55,9 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
     parser.add_argument('-n', '--n_queries', type=int, help='number of queries to show')
     parser.add_argument('--every', type=int, help='evaluate every `every` iterations')
     parser.add_argument('--plot_step', type=int, help='plot every `plot_step` step')
+
+    parser.add_argument('--check', action='store_true', help='if checking samples at each eval iteration')
+    
     parser.add_argument('-s', '--sampling_method', help='')
     parser.add_argument('-l', '--legend_labels',
                         help='list of labels to show in legend separated  by ","')
@@ -125,7 +129,8 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
             query_dirname,
             args.eval_method,
             args.eval_with_mask,
-            args.every)
+            every=args.every,
+            iter_callback=(check_probas_so_far if args.check else None))
 
         # make shape match
         max_len = max(len(r) for method in labels for r in scores_by_method[method])
@@ -172,8 +177,8 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
         # scores[np.isnan(scores)] = 0
         mean_scores = np.nanmean(scores, axis=0)
 
-        print(x.shape)
-        print(mean_scores.shape)
+        # print(x.shape)
+        # print(mean_scores.shape)
         ax.plot(x[::args.plot_step], mean_scores[::args.plot_step])
 
         min_y = min([min_y, np.nanmin(mean_scores)])
@@ -183,6 +188,7 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
     # ax.xaxis.label.set_fontsize(20)
     # ax.yaxis.label.set_fontsize(20)
     # ax.set_ylim(min_y - 0.01, max_y + 0.01)
+    ax.set_ylim(0.01, 0.1)
     ax.set_xlabel('num. of queries')
     ax.set_ylabel(args.eval_method)
     

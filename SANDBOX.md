@@ -343,6 +343,11 @@ possible dataset:
 2. however, the performance with masks is worse than without masks. Which I would expect to be equal.
    - http://193.166.24.212/active-network-reconstruction/figs/l1-no-mask/lattice-1024-msi-s0.1-o0.2.pdf
    - http://193.166.24.212/active-network-reconstruction/figs/l1/lattice-1024-msi-s0.1-o0.2.pdf
-3. [ ] check if the trees are respecting the updated queries (caused by `every`)?
+3. [X] check if the trees are respecting the updated queries (caused by `every`)?
 
+
+# Apr 20
+
+- checked tree sample correctness for both query , inference and plot
+- for lattice, the samples are not correct (due to `every=1`). re-run inference
 
