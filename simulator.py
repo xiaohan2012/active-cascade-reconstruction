@@ -16,8 +16,8 @@ class Simulator():
         self.q_gen = query_generator
         self.print_log = print_log
 
-    # @profile
-    def run(self, n_queries, obs=None, c=None, gen_input_kwargs={}):
+    def run(self, n_queries, obs=None, c=None, gen_input_kwargs={},
+            iter_callback=None):
         """return the list of query nodes
         """
         if obs is None or c is None:
@@ -30,7 +30,8 @@ class Simulator():
                'c': c}
         qs = []
         inf_nodes = list(obs)
-
+        uninf_nodes = []
+        
         if self.print_log:
             iters = tqdm(range(n_queries), total=n_queries)
         else:
@@ -66,6 +67,7 @@ class Simulator():
 
                 self.q_gen.update_pool(self.g)
                 aux['graph_changed'] = True
+                uninf_nodes.append(q)
             else:
                 inf_nodes.append(q)
 
@@ -85,5 +87,8 @@ class Simulator():
 
             if self.print_log:
                 print('update samples done')
-                
+
+            if callable(iter_callback):
+                iter_callback(self.g, self.q_gen, inf_nodes, uninf_nodes)
+            
         return qs, aux

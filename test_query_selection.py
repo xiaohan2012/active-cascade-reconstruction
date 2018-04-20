@@ -2,6 +2,7 @@ import pytest
 from query_selection import (RandomQueryGenerator, EntropyQueryGenerator,
                              PRQueryGenerator, PredictionErrorQueryGenerator,
                              MutualInformationQueryGenerator,
+                             SamplingBasedGenerator,
                              NoMoreQuery)
 from simulator import Simulator
 from graph_helpers import remove_filters, get_edge_weights
@@ -10,9 +11,15 @@ from sample_pool import TreeSamplePool
 from random_steiner_tree.util import from_gt
 from tree_stat import TreeBasedStatistics
 
-from test_helpers import check_tree_samples, check_error_esitmator
+from test_helpers import check_tree_samples, check_error_esitmator, check_samples_so_far
 
 
+def iter_callback(g, q_gen, *args):
+    if isinstance(q_gen, SamplingBasedGenerator):
+        check_samples_so_far(g, q_gen.sampler,
+                             q_gen.error_estimator, *args)
+
+            
 @pytest.mark.parametrize("query_method", ['random', 'pagerank', 'entropy', 'error', 'mutual-info'])
 @pytest.mark.parametrize("sampling_method", ['cut', 'loop_erased'])
 @pytest.mark.parametrize("with_inc_sampling", [False])
@@ -62,10 +69,13 @@ def test_query_method(g, query_method, sampling_method, root_sampler, with_inc_s
             prune_nodes=True,
             n_node_samples=None,
             root_sampler=root_sampler)
+
     sim = Simulator(gv, q_gen, gi=gi, print_log=True)
     print('simulator created')
     n_queries = 10
-    qs, aux = sim.run(n_queries, gen_input_kwargs={'min_size': 20})
+    qs, aux = sim.run(n_queries,
+                      gen_input_kwargs={'min_size': 20},
+                      iter_callback=iter_callback)
     print('sim.run finished')
 
     assert len(qs) == n_queries
