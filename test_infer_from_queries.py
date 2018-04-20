@@ -5,7 +5,7 @@ from infer_from_queries import (infer_probas_from_queries)
 from fixture import g
 from experiment import gen_input
 from graph_helpers import get_edge_weights
-from test_helpers import check_tree_samples, check_error_esitmator
+from test_helpers import check_tree_samples, check_error_esitmator, check_samples_so_far
 
 
 @pytest.mark.parametrize("cid", range(2))
@@ -42,8 +42,9 @@ def test_infer_probas_for_queries_sampling_approach(g, cid, sampling_method, roo
     check_error_esitmator(queries, c, estimator)
 
 
+@pytest.mark.parametrize("rep", range(3))
 @pytest.mark.parametrize("every", [1, 2, 4, 8])
-def test_every(g, every):
+def test_every(g, rep, every):
     n_queries = 20
     p = get_edge_weights(g)
     obs, c, _ = gen_input(g, model='si', p=p, q=0.2, min_size=10, max_size=99999)
@@ -53,6 +54,7 @@ def test_every(g, every):
     inf_proba_list, sampler, estimator = infer_probas_from_queries(
         g, obs, c, queries,
         'loop_erased', root_sampler_name='true_root', n_samples=100,
+        iter_callback=check_samples_so_far,
         every=every)
 
     assert len(inf_proba_list) == (math.ceil(n_queries / every) + 1)

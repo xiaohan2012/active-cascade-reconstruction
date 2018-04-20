@@ -31,3 +31,20 @@ def check_error_esitmator(qs, c, est, every=1):
                 # uninfected
                 assert est._m[q, :].sum() == 0
     assert (est.n_row, est.n_col) == est._m.shape
+
+
+def check_samples_so_far(g, sampler, estimator, obs_inf, obs_uninf):
+    assert len(sampler.samples) == sampler.n_samples
+    for v in obs_inf:
+        for t in sampler.samples:
+            assert isinstance(t, set), 'should be set'
+            assert v in t, 'should be in sample'
+            assert estimator._m[v, :].sum() == estimator.n_col
+
+    assert estimator._m.shape == (g.num_vertices(), sampler.n_samples)
+    for v in obs_uninf:
+        for t in sampler.samples:
+            assert isinstance(t, set), 'should be set'
+            assert v not in t, 'should be in sample'
+            assert estimator._m[v, :].sum() == 0
+        

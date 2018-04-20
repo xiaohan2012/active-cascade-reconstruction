@@ -22,6 +22,7 @@ def infer_probas_from_queries(g, obs, c, queries,
                               sampling_method, root_sampler_name, n_samples,
                               with_inc_sampling=False,
                               every=1,
+                              iter_callback=None,
                               verbose=False):
     n_nodes = g.num_vertices()
 
@@ -37,7 +38,10 @@ def infer_probas_from_queries(g, obs, c, queries,
     g = remove_filters(g)
     weights = get_edge_weights(g)
     gi = from_gt(g, weights=weights)
+
     obs_inf = set(obs)
+    obs_uninf = set()
+    
     probas_list = []
 
     sampler = TreeSamplePool(g, n_samples=n_samples,
@@ -65,6 +69,7 @@ def infer_probas_from_queries(g, obs, c, queries,
         else:
             observe_uninfected_node(g, q, obs_inf)
             isolate_vertex(gi, q)
+            obs_uninf |= {q}
             # print('g.num_vertices()', g.num_vertices())
 
         # update samples
@@ -100,6 +105,10 @@ def infer_probas_from_queries(g, obs, c, queries,
 
             # refresh it
             node_update_info = {}
+
+            if callable(iter_callback):
+                iter_callback(g, sampler, estimator, obs_inf, obs_uninf)
+
         else:
             # accumulate info
             node_update_info[q] = label
