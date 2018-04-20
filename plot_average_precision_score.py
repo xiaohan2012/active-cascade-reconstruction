@@ -32,7 +32,7 @@ if __name__ == '__main__':
     # eval method
     parser.add_argument('-e', '--eval_method',
                         choices=('ap', 'auc', 'p@k', 'entropy', 'map', 'mrr',
-                                 'ratio_discovered_inf'),
+                                 'ratio_discovered_inf', 'l1', 'l2', 'cross_entropy'),
                         help='evalulation method')
     parser.add_argument('--eval_with_mask',
                         action="store_true",
@@ -52,7 +52,7 @@ list of infection probas directory ids separated by ","
 why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
     
     parser.add_argument('-n', '--n_queries', type=int, help='number of queries to show')
-    parser.add_argument('--every', type=int, help='plot every `every` iterations')
+    parser.add_argument('--every', type=int, help='evaluate every `every` iterations')
     parser.add_argument('--plot_step', type=int, help='plot every `plot_step` step')
     parser.add_argument('-s', '--sampling_method', help='')
     parser.add_argument('-l', '--legend_labels',
@@ -87,10 +87,16 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
         labels = query_dir_ids
     print('query_dir_ids:', query_dir_ids)
 
-    pkl_dir = 'eval_result/{}'.format(args.eval_method)
+    if args.eval_with_mask:
+        pkl_dir = 'eval_result/{}'.format(args.eval_method)
+    else:
+        pkl_dir = 'eval_result/{}-no-mask'.format(args.eval_method)
+
+    print('pkl dir', pkl_dir)
+    if not os.path.exists(pkl_dir):
+        os.makedirs(pkl_dir)
 
     if not args.use_cache:
-
         inf_dir_ids = list(map(lambda s: s.strip(), args.inf_dir_ids.split(',')))
         print('inf_dir_ids:', inf_dir_ids)
         print('labels:', labels)
@@ -183,9 +189,15 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
     fig.tight_layout()
 
     # plt.ylim(0.2, 0.8)
-    dir_suffix = ''
+    if args.eval_with_mask:
+        dir_suffix = ''
+    else:
+        dir_suffix = '-no-mask'
+
     dirname = 'figs/{}'.format(args.eval_method + dir_suffix)
+
     if not os.path.exists(dirname):
         os.makedirs(dirname)
 
-    fig.savefig('figs/{}/{}.pdf'.format(args.eval_method + dir_suffix, args.fig_name))
+    output_path = '{}/{}.pdf'.format(dirname, args.fig_name)
+    fig.savefig(output_path)
