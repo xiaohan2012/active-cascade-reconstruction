@@ -188,7 +188,7 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
     # ax.xaxis.label.set_fontsize(20)
     # ax.yaxis.label.set_fontsize(20)
     # ax.set_ylim(min_y - 0.01, max_y + 0.01)
-    ax.set_ylim(0.01, 0.1)
+    # ax.set_ylim(0.01, 0.1)
     ax.set_xlabel('num. of queries')
     ax.set_ylabel(args.eval_method)
     

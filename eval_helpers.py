@@ -78,6 +78,7 @@ def aggregate_scores_over_cascades_by_methods(cascades,
                                               query_dirname,
                                               eval_method,
                                               eval_with_mask,
+                                              iter_callback=None,
                                               every=1):
     """
     each element in `method_labels` uniquely identifies one experiment
@@ -111,6 +112,7 @@ def aggregate_scores_over_cascades_by_methods(cascades,
                 inf_result_dirname,
                 inf_dir,
                 '{}.pkl'.format(cid))
+
             inf_probas_list = pkl.load(open(inf_probas_path, 'rb'))
             # print('inf_probas_path', inf_probas_path)
             # print('inf_probas_list', inf_probas_list)
@@ -126,7 +128,8 @@ def aggregate_scores_over_cascades_by_methods(cascades,
                                            c, obs,
                                            eval_method,
                                            every=every,
-                                           eval_with_mask=eval_with_mask)
+                                           eval_with_mask=eval_with_mask,
+                                           iter_callback=iter_callback)
             if method_label == 'prederror':
                 print(scores)
             scores_by_method[method_label].append(scores)
@@ -168,19 +171,34 @@ def get_scores_by_queries(qs, probas, c, obs,
                           eval_method,
                           every=1,
                           eval_with_mask=True,
+                          iter_callback=None,
                           **kwargs):
     inf_nodes = set(infected_nodes(c))
     y_true = np.zeros((len(c), ))
     y_true[infected_nodes(c)] = 1
     obs_inc = copy(set(obs))
+
+    inf_obs = set(obs)
+    uninf_obs = set()
+
     scores = []
 
     for i_iter, query in enumerate(qs):
+        if c[query] == -1:
+            uninf_obs.add(query)
+        else:
+            inf_obs.add(query)
+            
         obs_inc.add(query)
         
         if i_iter % every == 0:
             # print(i_iter)
             inf_probas = probas[int(i_iter / every) + 1]
+
+            if callable(iter_callback):
+                # print('iter_callback: ON')
+                iter_callback(inf_probas, inf_obs, uninf_obs)
+                
             if eval_with_mask:
                 mask = np.array([(i not in obs_inc) for i in range(len(c))])
             else:

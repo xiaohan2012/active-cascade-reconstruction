@@ -351,3 +351,8 @@ possible dataset:
 - checked tree sample correctness for both query , inference and plot
 - for lattice, the samples are not correct (due to `every=1`). re-run inference
 
+# Apr 21
+
+- l1-no-mask gives lower score than l1 because mean is reported
+- but lattice gives almost the same score for no-mask and mask, why?
+

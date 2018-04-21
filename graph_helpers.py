@@ -359,6 +359,7 @@ def observe_uninfected_node(g, n, obs):
 
 
 def load_graph_by_name(name, weighted=False, suffix=''):
+    suffix = suffix.strip()
     if name == 'lattice':
         shape = (10, 10)
         g = lattice(shape)
