@@ -1,14 +1,18 @@
 #! /bin/zsh
 
-graphs=("fb" "grqc" "p2p")
-graph_suffix="_0.5"
-cascade_fraction="0.02"
+# "fb" 
+# graphs=("lattice-1024-sto" "infectious-sto")
+graphs=("grqc-sto")
+ # "p2p-sto"
+graph_suffix="_rev"
+cascade_fraction=0.1
 n_tree_samples=1000
 sample_method=loop_erased
 cascade_model="si"
 root_sampler='true_root'
+
 query_methods=(random pagerank entropy prediction_error mutual-info)
-# query_methods=(prediction_error)
+# query_methods=(prediction_error mutual-info entropy)
 n_queries=500
 obs_fraction=0.2
 eval_every_k=5
@@ -36,7 +40,7 @@ for graph in ${graphs}; do
 		-p ${min_proba} \
 		-m ${sample_method} \
 		-c ${cascade_dir} \
-		-d outputs/queries-weighted/${dataset_id}/${sample_method}/${query_method}
+		-d outputs/queries-weighted/${dataset_id}/${sample_method}/${query_method} 
 
 	python3 infer_from_queries.py \
 		-g ${graph} \

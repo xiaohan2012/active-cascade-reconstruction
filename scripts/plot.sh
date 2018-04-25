@@ -1,8 +1,8 @@
 #! /bin/zsh
 
 # graphs=("grqc" "p2p" "lattice-1024" "infectious")
-graphs=("grqc" "p2p")
-# graphs=("lattice-1024" "infectious")
+# graphs=("grqc" "p2p")
+graphs=("lattice-1024-sto" "infectious-sto")
 sample_method=loop_erased
 
 inf_method="inf_probas"
@@ -12,7 +12,7 @@ cascade_dirname='cascade-weighted'
 inf_dirname='inf_probas-weighted'
 
 cascade_model="si"
-cascade_fraction=0.02
+cascade_fractions=(0.1 0.25)
 n_queries=500
 # cascade_fractions=(0.01 0.02 0.04 0.08 0.16 0.32)
 # cascade_fractions=(0.04 0.08 0.16 0.32 0.64)
@@ -21,9 +21,11 @@ n_queries=500
 # 0.2 0.3 0.4 0.5
 obs_fractions=(0.2)
 
-# eval_methods=(p_at_hidden entropy mrr ap ratio_discovered_inf)
+# eval_methods=(entropy "p@k" l1 cross_entropy)
 # eval_methods=("p@k" entropy mrr ap)
-eval_methods=(l1 l2 cross_entropy)
+# eval_methods=(l1 l2 cross_entropy)
+eval_methods=(l1 cross_entropy)
+# eval_methods=(cross_entropy)
 every=5
 # eval_method="ap"
 # eval_method="p_at_hidden"
@@ -34,7 +36,8 @@ every=5
 
 other_params="--plot_step=5"
 # other_params="${other_params} --use_cache"
-# other_params="${other_params} --eval_with_mask"
+other_params="${other_params} --eval_with_mask"
+other_params="${other_params} --check"
 
 # eval_method="precision_at_cascade_size"
 
@@ -60,10 +63,11 @@ labels="random, pagerank, entropy, prederror, mutual-info"
 
 for graph in ${graphs}; do
     for eval_method in ${eval_methods}; do
-	for obs_fraction in ${obs_fractions}; do
-	    dataset_id="${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}"
+	for cascade_fraction in ${cascade_fractions}; do
+	    for obs_fraction in ${obs_fractions}; do
+		dataset_id="${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}"
 
-	    print "
+		print "
 python3 plot_performance.py \
 	-g ${graph} \
 	-d ${dataset_id} \
@@ -82,6 +86,7 @@ python3 plot_performance.py \
 "
 
 
+	    done
 	done
     done
 done

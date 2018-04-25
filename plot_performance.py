@@ -207,3 +207,4 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
 
     output_path = '{}/{}.pdf'.format(dirname, args.fig_name)
     fig.savefig(output_path)
+    print('saved to {}'.format(output_path))

@@ -356,3 +356,67 @@ possible dataset:
 - l1-no-mask gives lower score than l1 because mean is reported
 - but lattice gives almost the same score for no-mask and mask, why?
 
+# Apr 25
+
+summary in short:
+
+- smaller cascade is easier on both graphs and both measures
+- for cross-entropy, performance differs on graphs and cascade size. pagerank is quite competitive (for example the best on infectious)
+- for l1, `cond_ent` is the best on lattice but not the best on infectious
+
+
+
+changed to sum of cross-entropy and l1, because we want to measure the overall uncertainty
+
+if taking mean, it can sometimes increase
+
+## cross entropy
+
+for lattice-1024 (cascade size ~250), [fig](http://193.166.24.212/active-network-reconstruction/figs/cross_entropy/lattice-1024-sto-msi-s0.25-o0.2.pdf), we have the following observation
+
+- pagerank first drops slower than drops the fastest (why??)
+- pagerank drops to 0 at iteration ~250, by then, it "bounds" the infection region
+
+for [infectious, 1/4 of infections](http://193.166.24.212/active-network-reconstruction/figs/cross_entropy/infectious-sto-msi-s0.25-o0.2.pdf)
+
+- the information-theory based method drops at the similar speed as random, why?
+
+for `0.1` infection, random is beaten, I guess it's better when `s=0.1`, we can have a local region, while `s=0.25`, infections are everywhere.
+
+## l1
+
+for lattice:
+
+- `cond_ent` drops the fastest for both `[s=0.1](http://193.166.24.212/active-network-reconstruction/figs/l1/lattice-1024-sto-msi-s0.25-o0.2.pdf)` and `[s=0.25](http://193.166.24.212/active-network-reconstruction/figs/l1/lattice-1024-sto-msi-s0.1-o0.2.pdf)`
+
+for infectious and
+for both [s=0.1](http://193.166.24.212/active-network-reconstruction/figs/l1/infectious-sto-msi-s0.1-o0.2.pdf) and
+[s=0.25](http://193.166.24.212/active-network-reconstruction/figs/l1/infectious-sto-msi-s0.25-o0.2.pdf),
+
+`cond_ent`, `entropy` and `pagerank` are the best
+
+## my guess on why infectious prefers pagerank
+
+my guess on why pagerank is the best on infectious:
+
+first, I conjecture that the query method that first "narrows down" the infection region works the best.
+
+
+In other words, it's reason to construct an oracle query method that just queries the "leaves" of the infection region.
+
+
+for example, on lattice, conditional entropy method narrows down from outside to inside. Once it touches all the leaves, the query process can be terminated.
+
+
+for pagerank, it queries inside out. And can be terminated when leaves are touched.
+
+
+What we are comparing is which method queries the leaves earlier.
+
+
+However, on social networks, I guess the boundary is harder to find compared to lattice.
+
+
+## location based dataset
+
+maybe it's a good idea to [location-based social network](https://snap.stanford.edu/data/loc-brightkite.html)

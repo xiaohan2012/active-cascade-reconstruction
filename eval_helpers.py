@@ -130,8 +130,8 @@ def aggregate_scores_over_cascades_by_methods(cascades,
                                            every=every,
                                            eval_with_mask=eval_with_mask,
                                            iter_callback=iter_callback)
-            if method_label == 'prederror':
-                print(scores)
+            # if method_label == 'prederror':
+                # print(scores)
             scores_by_method[method_label].append(scores)
         # print('---'*10)
     return scores_by_method
@@ -226,18 +226,25 @@ def get_scores_by_queries(qs, probas, c, obs,
                     # print('num. discovered', sum(1 for o in obs_inc if c[o] >= 0))
                     score = sum(1 for o in obs_inc if c[o] >= 0) / len(inf_nodes)
                 elif eval_method == 'l1':
-                    score = np.abs(y_true[mask] - inf_probas[mask]).mean()
+                    # score = np.abs(y_true[mask] - inf_probas[mask]).mean()
+                    score = np.abs(y_true[mask] - inf_probas[mask]).sum()
                 elif eval_method == 'l2':
                     score = np.power(y_true[mask] - inf_probas[mask], 2).mean()
                 elif eval_method == 'cross_entropy':
-                    y = y_true[mask]; y[y == 0] += EPS
-                    p = inf_probas[mask]; p[p == 0] += EPS
+                    y = y_true[mask]
+                    y[y == 0] += EPS
+                    y[y == 1] -= EPS
+                    p = inf_probas[mask]
+                    p[p == 0] += EPS
+                    p[p == 1] -= EPS
 
-                    y_inv = 1 - y_true[mask]; y_inv[y_inv == 0] += EPS
-                    p_inv = 1 - inf_probas[mask]; p_inv[p_inv == 0] += EPS
+                    y_inv = 1 - y
+                    p_inv = 1 - p
 
-                    score = (- y * np.log(p)).mean()
-                    score -= (y_inv * np.log(p_inv)).mean()
+                    # score = (- y * np.log(p)).mean()
+                    # score -= (y_inv * np.log(p_inv)).mean()
+                    score = (- y * np.log(p)).sum()
+                    score -= (y_inv * np.log(p_inv)).sum()
                 else:
                     raise ValueError('not valid eval method {}'.format(eval_method))
             except FloatingPointError:

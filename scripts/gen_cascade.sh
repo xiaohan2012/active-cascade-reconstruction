@@ -1,13 +1,15 @@
 #! /bin/zsh
 
-graph="grqc"
+graph="grqc-sto"
 n_cascades=12
 n_observation_rounds=8
+# n_cascades=8
+# n_observation_rounds=1
 cascade_model="si"
-graph_suffix="_0.5"
+graph_suffix=" "
 
 obs_fraction=0.2
-cascade_fraction=0.02
+cascade_fraction=0.2
 
 dataset_id="${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}"
 
