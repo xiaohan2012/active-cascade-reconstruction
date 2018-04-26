@@ -232,11 +232,10 @@ def get_scores_by_queries(qs, probas, c, obs,
                     score = np.power(y_true[mask] - inf_probas[mask], 2).mean()
                 elif eval_method == 'cross_entropy':
                     y = y_true[mask]
-                    y[y == 0] += EPS
-                    y[y == 1] -= EPS
+                    y = np.clip(y, EPS, 1 - EPS)  # clip it between (epsilon, 1 - epsilon)
+
                     p = inf_probas[mask]
-                    p[p == 0] += EPS
-                    p[p == 1] -= EPS
+                    p = np.clip(p, EPS, 1 - EPS)
 
                     y_inv = 1 - y
                     p_inv = 1 - p
