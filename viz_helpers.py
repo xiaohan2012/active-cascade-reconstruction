@@ -2,7 +2,8 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.cm as cm
 
-from collections import OrderedDict
+from collections import OrderedDict, Iterable
+from cycler import cycler
 
 from inference import infection_probability
 from graph_tool.draw import graph_draw
@@ -81,7 +82,7 @@ def visualize(g, pos,
     # for ndarray, it converted to cm.Reds
 
     # vertex_fill_color.set_value(node_color_info['default'])
-    if 'default' in node_color_info:
+    if isinstance(node_color_info, dict) and 'default' in node_color_info:
         del node_color_info['default']
 
     # colormap to convert to rgb
@@ -187,8 +188,10 @@ def query_plot_setting(g, c, X, qs,
 
     if isinstance(indicator_type, str):
         indicator_types = {indicator_type}
-    else:
+    elif isinstance(indicator_type, Iterable):
         indicator_types = set(indicator_type)
+    else:
+        indicator_types = []
         
     if 'text' in indicator_types:
         for i, q in enumerate(qs):
@@ -330,3 +333,9 @@ class InfectionProbabilityViz():
                   **setting,
                   **kwargs)
         
+
+def set_cycler(ax):
+    ax.set_prop_cycle(cycler('color', [COLOR_ORANGE, COLOR_PINK, COLOR_BLUE, COLOR_GREEN, COLOR_YELLOW]) +
+                      cycler('linestyle', ['-', ':', '--', '-.', '-']) +
+                      cycler('marker', ['o', '*', '^', 'v', 's']) +
+                      cycler('lw', [2, 2, 2, 2, 2]))

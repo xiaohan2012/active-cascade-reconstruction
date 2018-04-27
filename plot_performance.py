@@ -8,15 +8,14 @@ import argparse
 matplotlib.use('pdf')
 
 from matplotlib import pyplot as plt
-from cycler import cycler
+
 from sklearn.metrics import average_precision_score, f1_score, roc_auc_score
 
 from helpers import load_cascades
 from graph_helpers import load_graph_by_name
 from eval_helpers import aggregate_scores_over_cascades_by_methods, precision_at_cascade_size
 from test_helpers import check_probas_so_far
-
-from viz_helpers import COLOR_BLUE, COLOR_WHITE, COLOR_YELLOW, COLOR_ORANGE, COLOR_GREEN, COLOR_PINK
+from viz_helpers import set_cycler
 
 
 plt.style.use('paper')
@@ -155,10 +154,7 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
     plt.clf()
 
     fig, ax = plt.subplots(figsize=(5, 4))
-    ax.set_prop_cycle(cycler('color', [COLOR_ORANGE, COLOR_PINK, COLOR_BLUE, COLOR_GREEN, COLOR_YELLOW]) +
-                      cycler('linestyle', ['-', ':', '--', '-.', '-']) +
-                      cycler('marker', ['o', '*', '^', 'v', 's']) +
-                      cycler('lw', [2, 2, 2, 2, 2]))
+    set_cycler(ax)
 
     # print('scores_by_method:', scores_by_method)
     min_y, max_y = 1, 0

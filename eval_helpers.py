@@ -124,14 +124,15 @@ def aggregate_scores_over_cascades_by_methods(cascades,
             # print('query_path', query_path)
             queries = pkl.load(open(query_path, 'rb'))[0]
 
-            scores = get_scores_by_queries(queries, inf_probas_list,
+            scores = get_scores_by_queries(queries,
+                                           inf_probas_list,
                                            c, obs,
                                            eval_method,
                                            every=every,
                                            eval_with_mask=eval_with_mask,
                                            iter_callback=iter_callback)
             # if method_label == 'prederror':
-                # print(scores)
+            # print(scores)
             scores_by_method[method_label].append(scores)
         # print('---'*10)
     return scores_by_method
@@ -172,6 +173,7 @@ def get_scores_by_queries(qs, probas, c, obs,
                           every=1,
                           eval_with_mask=True,
                           iter_callback=None,
+                          node_score_callback=None,
                           **kwargs):
     inf_nodes = set(infected_nodes(c))
     y_true = np.zeros((len(c), ))
@@ -181,7 +183,7 @@ def get_scores_by_queries(qs, probas, c, obs,
     inf_obs = set(obs)
     uninf_obs = set()
 
-    scores = []
+    scores_list = []
 
     for i_iter, query in enumerate(qs):
         if c[query] == -1:
@@ -193,7 +195,10 @@ def get_scores_by_queries(qs, probas, c, obs,
         
         if i_iter % every == 0:
             # print(i_iter)
-            inf_probas = probas[int(i_iter / every) + 1]
+            i = int(i_iter / every)
+            if i >= len(probas):
+                break
+            inf_probas = probas[i + 1]  # offset +1 because of the initial probas
 
             if callable(iter_callback):
                 # print('iter_callback: ON')
@@ -227,9 +232,9 @@ def get_scores_by_queries(qs, probas, c, obs,
                     score = sum(1 for o in obs_inc if c[o] >= 0) / len(inf_nodes)
                 elif eval_method == 'l1':
                     # score = np.abs(y_true[mask] - inf_probas[mask]).mean()
-                    score = np.abs(y_true[mask] - inf_probas[mask]).sum()
+                    scores = np.abs(y_true[mask] - inf_probas[mask])
                 elif eval_method == 'l2':
-                    score = np.power(y_true[mask] - inf_probas[mask], 2).mean()
+                    scores = np.power(y_true[mask] - inf_probas[mask], 2)
                 elif eval_method == 'cross_entropy':
                     y = y_true[mask]
                     y = np.clip(y, EPS, 1 - EPS)  # clip it between (epsilon, 1 - epsilon)
@@ -242,16 +247,25 @@ def get_scores_by_queries(qs, probas, c, obs,
 
                     # score = (- y * np.log(p)).mean()
                     # score -= (y_inv * np.log(p_inv)).mean()
-                    score = (- y * np.log(p)).sum()
-                    score -= (y_inv * np.log(p_inv)).sum()
+                    score0 = -(y * np.log(p))
+                    score1 = -(y_inv * np.log(p_inv))
+
+                    if node_score_callback is not None:
+                        node_score_callback([score0, score1])
+                    scores = score0 + score1
+                    # print(score)
                 else:
                     raise ValueError('not valid eval method {}'.format(eval_method))
+
+                if node_score_callback is not None:
+                    node_score_callback(scores)
+                score = scores.sum()
             except FloatingPointError:
                 score = 0
             
             if np.isnan(score):
                 score = 0
-            scores.append(score)
-    assert len(scores) == math.ceil(len(qs) / every), \
-        '{} != {}'.format(len(scores), math.ceil(len(qs) / every),)
-    return scores
+            scores_list.append(score)
+    assert len(scores_list) == math.ceil(len(qs) / every), \
+        '{} != {}'.format(len(scores_list), math.ceil(len(qs) / every),)
+    return scores_list
