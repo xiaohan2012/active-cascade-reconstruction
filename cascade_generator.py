@@ -5,8 +5,9 @@ from copy import copy
 
 from graph_tool import Graph, GraphView, PropertyMap
 from graph_tool.topology import shortest_distance, label_components
+from tqdm import tqdm
 
-from helpers import infected_nodes
+from helpers import infected_nodes, timeout
 from graph_helpers import filter_graph_by_edges, get_leaves
 
 MAXINT = np.iinfo(np.int32).max
@@ -38,7 +39,7 @@ def observe_cascade(c, source, q, method='uniform',
     else:
         raise ValueError('unknown method {}'.format(method))
 
-
+@timeout(2)
 def si(g, p, source=None, stop_fraction=0.5):
     """
     g: the graph
@@ -62,8 +63,10 @@ def si(g, p, source=None, stop_fraction=0.5):
 
     stop = False
 
+    infected_nodes_until_t = copy(infected)
     while True:
         infected_nodes_until_t = copy(infected)
+        # print('current cascade size: {}'.format(len(infected_nodes_until_t)))
         time += 1
         for i in infected_nodes_until_t:
             vi = g.vertex(i)
@@ -74,7 +77,12 @@ def si(g, p, source=None, stop_fraction=0.5):
                     inf_proba = p
                 vj = e.target()
                 j = int(vj)
-                if j not in infected and random.random() <= inf_proba:
+                rand = random.random()
+                # print('rand=', rand)
+                # print('inf_proba=', inf_proba)
+                # print('{} infected?'.format(j), j not in infected)
+                if j not in infected and rand <= inf_proba:
+                    # print('SUCCESS')
                     infected.add(j)
                     infection_times[j] = time
                     edges.append((i, j))

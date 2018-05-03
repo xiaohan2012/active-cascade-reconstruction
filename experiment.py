@@ -4,6 +4,7 @@ from tqdm import tqdm
 from cascade_generator import si, ic, observe_cascade
 from query_selection import EntropyQueryGenerator
 from inference import infection_probability
+from helpers import TimeoutError
 from eval_helpers import top_k_infection_precision_recall
 from graph_helpers import (isolate_node, remove_filters,
                            filter_graph_by_edges,
@@ -65,13 +66,23 @@ def gen_inputs_varying_obs(
         min_size=10, max_size=100,
         n_times=8,
         return_tree=False):
+    """return a bunch of sampled inputs given the same cascade simulation
+    for speed-up and result statbility
+    """
     # print('observation_method', observation_method)
     tree_requiring_methods = {'leaves'}
 
     if cascade_path is None:
         if model == 'si':
-            s, c, tree = si(g, p, stop_fraction=stop_fraction,
-                            source=source)
+            while True:
+                try:
+                    s, c, tree = si(g, p, stop_fraction=stop_fraction,
+                                    source=source)
+                    break
+                except TimeoutError:
+                    print('timeout')
+                    continue
+
         elif model == 'ic':
             while True:
                 s, c, tree_edges = ic(g, p, source=source,
