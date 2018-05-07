@@ -58,6 +58,7 @@ parser.add_argument('-e', '--num_estimation_nodes', default=None, type=int,
                     help='number of nodes used for error estimation')
 
 parser.add_argument('-d', '--output_dir', default='outputs/queries', help='output directory')
+parser.add_argument('-j', '--n_jobs', type=int, default=-1, help='number of workers in parallel')
 parser.add_argument('-b', '--debug', action='store_true', help='if debug, use non-parallel')
 parser.add_argument('-v', '--verbose', action='store_true',
                     help='if verbose, verbose information is printed')
@@ -191,9 +192,10 @@ else:
     # prevent Parallel from hanging
     openmp_set_num_threads(1)
     
-    Parallel(n_jobs=-1)(delayed(one_round)(g, tpl[0], tpl[1], path, strategy[0], strategy[1],
-                                           query_strategy, output_dir, sampling_method,
-                                           incremental_cascade,
-                                           n_samples,
-                                           args.verbose)
-                        for path, tpl in tqdm(cascade_generator))
+    Parallel(n_jobs=args.n_jobs)(delayed(one_round)(
+        g, tpl[0], tpl[1], path, strategy[0], strategy[1],
+        query_strategy, output_dir, sampling_method,
+        incremental_cascade,
+        n_samples,
+        args.verbose)
+                                 for path, tpl in tqdm(cascade_generator))

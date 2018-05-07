@@ -205,6 +205,8 @@ if __name__ == '__main__':
                         default=1,
                         type=int,
                         help='evaluate every ?')
+    parser.add_argument('-j', '--n_jobs', type=int, default=-1,
+                        help='number of workers in parallel')
     parser.add_argument('--debug',
                         action='store_true',
                         help='')
@@ -233,16 +235,17 @@ if __name__ == '__main__':
 
     if not args.debug:
         openmp_set_num_threads(1)  # prevent jobjib from hanging
-        Parallel(n_jobs=-1)(delayed(one_round)(g, tpl[0], tpl[1], path, args.query_method,
-                                               args.inference_method,
-                                               query_dirname,
-                                               inf_proba_dirname, n_samples=n_samples,
-                                               root_sampler=args.root_sampler,
-                                               with_inc_sampling=args.with_inc_sampling,
-                                               sampling_method=args.sampling_method,
-                                               every=args.eval_every,
-                                               verbose=args.verbose)
-                            for path, tpl in tqdm(cascades))
+        Parallel(n_jobs=args.n_jobs)(delayed(one_round)(
+            g, tpl[0], tpl[1], path, args.query_method,
+            args.inference_method,
+            query_dirname,
+            inf_proba_dirname, n_samples=n_samples,
+            root_sampler=args.root_sampler,
+            with_inc_sampling=args.with_inc_sampling,
+            sampling_method=args.sampling_method,
+            every=args.eval_every,
+            verbose=args.verbose)
+                                     for path, tpl in tqdm(cascades))
     else:
         for path, tpl in tqdm(cascades):
             one_round(g, tpl[0], tpl[1], path, args.query_method,
