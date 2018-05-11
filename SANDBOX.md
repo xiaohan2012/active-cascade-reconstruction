@@ -420,3 +420,16 @@ However, on social networks, I guess the boundary is harder to find compared to 
 ## location based dataset
 
 maybe it's a good idea to [location-based social network](https://snap.stanford.edu/data/loc-brightkite.html)
+
+# Apr 27
+
+1. flixter: IC model
+2. nethept: IC or SI model
+
+# May 11
+
+two strange things:
+
+- on grqc-sto, when doing inference, at some point, it takes forever to sample a tree
+- inference result by entropy and on nethept gives corrupted pickle file
+  - EOFError: `outputs/inf_probas-weighted/nethept-sto-msi-s0.01-o0.2/loop_erased/entropy/82.pkl`
