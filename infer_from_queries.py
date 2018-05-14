@@ -91,7 +91,9 @@ def infer_probas_from_queries(g, obs, c, queries,
             # evaluate every `every` iteration
             new_samples = sampler.update_samples(obs_inf,
                                                  node_update_info,
-                                                 root_sampler=root_sampler)
+                                                 root_sampler=root_sampler,
+                                                 log=False,
+                                                 verbose=False)
             estimator.update_trees(new_samples, node_update_info)
 
             # new probas

@@ -31,7 +31,7 @@ if __name__ == '__main__':
     
     # eval method
     parser.add_argument('-e', '--eval_method',
-                        choices=('ap', 'auc', 'p@k', 'entropy', 'map', 'mrr',
+                        choices=('ap', 'auc', 'p@k', 'entropy', 'map', 'mrr', 'n',
                                  'ratio_discovered_inf', 'l1', 'l2', 'cross_entropy'),
                         help='evalulation method')
     parser.add_argument('--eval_with_mask',

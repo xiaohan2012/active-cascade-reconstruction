@@ -6,12 +6,12 @@ from graph_helpers import load_graph_by_name
 from helpers import infected_nodes, cascade_source
 from collections import Counter
 
-graph = 'grqc'
-model = 'si'
+graph = 'grqc-sto'
+model = 'ic'
 # suffix = '_tmp'
 # cascade_fraction = 0
-# suffix = '_s0.01'
-cascade_fraction = 0.02
+suffix = ''
+cascade_fraction = 0.01
 obs_frac = "0.2"
 cascade_dir = 'cascade-weighted'
 
@@ -19,7 +19,7 @@ dirname = '{}/{}-m{}-s{}-o{}/*'.format(
     cascade_dir,
     graph, model, cascade_fraction, obs_frac)
 
-g = load_graph_by_name(graph, weighted=True)
+g = load_graph_by_name(graph, weighted=True, suffix=suffix)
 
 gprop = g.graph_properties
 if 'p_min' in gprop:
