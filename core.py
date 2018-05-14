@@ -82,7 +82,8 @@ def sample_steiner_trees(g, obs,
                          root=None,
                          root_sampler=None,
                          return_type=False,
-                         log=False):
+                         log=False,
+                         verbose=False):
     """sample `n_samples` steiner trees that span `obs` in `g`
 
     `method`: the method for sampling steiner tree
@@ -125,7 +126,7 @@ def sample_steiner_trees(g, obs,
         elif method in {'cut', 'loop_erased'}:
             assert gi is not None
             # print('der')
-            edges = random_steiner_tree(gi, obs, r, method)
+            edges = random_steiner_tree(gi, obs, r, method, verbose=verbose)
             if return_type == 'nodes':
                 st = set(u for e in edges for u in e)
             elif return_type == 'tuples':

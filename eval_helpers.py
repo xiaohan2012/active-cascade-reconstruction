@@ -113,7 +113,13 @@ def aggregate_scores_over_cascades_by_methods(cascades,
                 inf_dir,
                 '{}.pkl'.format(cid))
 
-            inf_probas_list = pkl.load(open(inf_probas_path, 'rb'))
+            try:
+                inf_probas_list = pkl.load(open(inf_probas_path, 'rb'))
+            except EOFError:
+                print('**EOFError, inf_probas_path=', inf_probas_path)
+                print("**WARNING**: ignore corrupted file")
+                continue
+                # raise
             # print('inf_probas_path', inf_probas_path)
             # print('inf_probas_list', inf_probas_list)
 
@@ -176,6 +182,7 @@ def get_scores_by_queries(qs, probas, c, obs,
                           node_score_callback=None,
                           **kwargs):
     inf_nodes = set(infected_nodes(c))
+    cascade_size = len(inf_nodes)
     y_true = np.zeros((len(c), ))
     y_true[infected_nodes(c)] = 1
     obs_inc = copy(set(obs))
@@ -192,7 +199,8 @@ def get_scores_by_queries(qs, probas, c, obs,
             inf_obs.add(query)
             
         obs_inc.add(query)
-        
+
+        scores = None  # ugly code..
         if i_iter % every == 0:
             # print(i_iter)
             i = int(i_iter / every)
@@ -215,6 +223,9 @@ def get_scores_by_queries(qs, probas, c, obs,
                 elif eval_method == 'p_at_k':
                     k = kwargs['k']
                     score = precision_at_k(y_true[mask], inf_probas[mask], k)
+                elif eval_method == 'n':
+                    score = precision_at_k(y_true[mask], inf_probas[mask], cascade_size)
+                    score *= cascade_size
                 elif eval_method == 'p@k':
                     k = len(inf_nodes - set(obs_inc))
                     score = precision_at_k(y_true[mask], inf_probas[mask], k)
@@ -257,9 +268,11 @@ def get_scores_by_queries(qs, probas, c, obs,
                 else:
                     raise ValueError('not valid eval method {}'.format(eval_method))
 
-                if node_score_callback is not None:
-                    node_score_callback(scores)
-                score = scores.sum()
+                if scores is not None:
+                    if node_score_callback is not None:
+                        node_score_callback(scores)
+                    score = scores.sum()
+
             except FloatingPointError:
                 score = 0
             
