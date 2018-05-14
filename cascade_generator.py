@@ -9,8 +9,8 @@ from graph_tool.search import bfs_search
 
 from tqdm import tqdm
 
-from helpers import infected_nodes, timeout
-from graph_helpers import filter_graph_by_edges, get_leaves, BFSNodeCollector
+from helpers import infected_nodes, timeout, sampling_weights_by_order
+from graph_helpers import filter_graph_by_edges, get_leaves, BFSNodeCollector, reverse_bfs
 
 MAXINT = np.iinfo(np.int32).max
 
@@ -36,16 +36,20 @@ def observe_cascade(c, source, q, method='uniform',
         return np.argsort(c)[-num_obs:]
     elif method == 'leaves':
         assert tree is not None, 'to get the leaves, the cascade tree is required'
-        return get_leaves(tree, deg='out')
+        # extract_steiner_tree(tree, )
+        nodes_in_order = reverse_bfs(tree)
+        return nodes_in_order[:num_obs]
     elif method == 'bfs-head':
         assert tree is not None, 'the cascade tree is required'
         vis = BFSNodeCollector()
-        bfs_search(tree, source, vis)
+        bfs_search(GraphView(tree, directed=False), source, vis)
+        sampling_weights_by_order
+        vis.nodes_in_order
         return vis.nodes_in_order[:num_obs]  # head
     elif method == 'bfs-tail':
         assert tree is not None, 'the cascade tree is required'
         vis = BFSNodeCollector()
-        bfs_search(tree, source, vis)
+        bfs_search(GraphView(tree, directed=False), source, vis)
         return vis.nodes_in_order[-num_obs:]  # tail
     else:
         raise ValueError('unknown method {}'.format(method))
@@ -198,31 +202,6 @@ def incremental_simulation(g, c, p, num_nodes, return_new_edges=False):
             new_infected_nodes |= set((comp.a == cid).nonzero()[0])
             covered_cids.add(cid)
     
-    # visited = {v: False for v in np.arange(num_nodes)}
-    # new_c = copy(c)
-    # for v in infected_nodes(c):
-    #     visited[v] = True
-
-    # if return_new_edges:
-    #     new_edges = []
-
-    # # bfs on all infected nodes
-
-    # queue = list(infected_nodes(c))
-    # while len(queue) > 0:
-    #     u = queue.pop(0)
-    #     uu = g.vertex(u)
-    #     for e in uu.out_edges():
-    #         v = int(e.target())
-    #         if np.random.random() <= p[e] and not visited[v]:  # active
-    #             if return_new_edges:
-    #                 new_edges.append((u, v))
-    #             # print('adding node ', v)
-    #             # print('len(new_c)', len(new_c))
-    #             # print(len(c))
-    #             new_c[v] = c[u] + 1
-    #             visited[v] = True
-    #             queue.append(v)
     new_c = np.ones(g.num_vertices()) * (-1)
     new_c[list(new_infected_nodes)] = 1
 

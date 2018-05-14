@@ -20,7 +20,7 @@ def gen_input(g, source=None, cascade_path=None, stop_fraction=0.25, p=0.5, q=0.
               min_size=10, max_size=100,
               return_tree=False):
     # print('observation_method', observation_method)
-    tree_requiring_methods = {'leaves'}
+    tree_requiring_methods = {'leaves', 'bfs-head', 'bfs-tail'}
 
     if cascade_path is None:
         if model == 'si':
@@ -77,11 +77,11 @@ def gen_inputs_varying_obs(
     for speed-up and result statbility
     """
     # print('observation_method', observation_method)
-    tree_requiring_methods = {'leaves'}
+    tree_requiring_methods = {'leaves', 'bfs-head', 'bfs-tail'}
 
-    while True:
-        try:
-            if cascade_path is None:
+    if cascade_path is None:
+        while True:
+            try:
                 if model == 'si':
                     s, c, tree = si(g, p, stop_fraction=stop_fraction,
                                     source=source)
@@ -92,10 +92,11 @@ def gen_inputs_varying_obs(
                         if time() - start > 3:
                             raise TimeoutError()
 
-                        s, c, tree_edges = ic(g, p, source=source,
-                                              min_size=min_size,
-                                              max_size=max_size,
-                                              return_tree_edges=(observation_method in tree_requiring_methods))
+                        s, c, tree_edges = ic(
+                            g, p, source=source,
+                            min_size=min_size,
+                            max_size=max_size,
+                            return_tree_edges=(observation_method in tree_requiring_methods))
                         size = np.sum(c >= 0)
                         if size >= min_size and size <= max_size:  # size fits
                             # print('big enough')
@@ -113,10 +114,10 @@ def gen_inputs_varying_obs(
                         # print('{} not in range ({}, {})'.format(size, min_size, max_size))
                 else:
                     raise ValueError('unknown cascade model')
-            break
-        except TimeoutError:
-            print('timeout')
-            continue
+                break
+            except TimeoutError:
+                print('timeout')
+                continue
     else:
         print('load from cache')
         _, c, tree = pkl.load(open(cascade_path, 'rb'))

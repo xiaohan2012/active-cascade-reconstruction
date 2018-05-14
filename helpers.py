@@ -54,3 +54,9 @@ def timeout(seconds=10, error_message=os.strerror(errno.ETIME)):
 
         return wraps(func)(wrapper)
     return decorator
+
+
+def sampling_weights_by_order(length):
+    w = 1 / (np.arange(10) + 1)[::-1]
+    w /= w.sum()
+    return w

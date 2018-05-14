@@ -20,7 +20,7 @@ from graph_helpers import (extract_steiner_tree, filter_graph_by_edges,
                            pagerank_scores,
                            reachable_node_set,
                            get_leaves,
-                           BFSNodeCollector)
+                           BFSNodeCollector, reverse_bfs)
 
 
 
@@ -183,3 +183,11 @@ def test_BFSNodeCollectorVisitor(g, expected):
     vis = BFSNodeCollector()
     bfs_search(g, 0, vis)
     assert vis.nodes_in_order == expected
+
+
+@pytest.mark.parametrize('g, expected',
+                         [(line(), [3, 2, 1, 0]),
+                          (tree(), [2, 3, 1, 0])])
+def test_reverse_bfs(g, expected):
+    nodes = reverse_bfs(g)
+    assert nodes == expected

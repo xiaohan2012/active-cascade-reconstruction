@@ -43,12 +43,26 @@ def get_leaves(t, deg):
     # assert t.is_directed() is False
     vfilt = t._Graph__filter_state['vertex_filter'][0]
     if vfilt is None:
+        # if "in"
         # bottom-up
         # pointing **towards** root
+
+        # if "out"
+        # top-down
+        # pointing **away** root
         return np.nonzero(t.degree_property_map(deg=deg).a == 0)[0]
     else:
-        # top-down
-        # pointing **against** root
+        mask = np.logical_and((t.degree_property_map(deg=deg).a == 0),
+                              vfilt.a > 0)
+        return np.nonzero(mask)[0]
+
+
+def get_root(t, tree_type='topdown'):
+    vfilt = t._Graph__filter_state['vertex_filter'][0]
+    deg = (tree_type == 'topdown' and 'in' or 'out')
+    if vfilt is None:
+        return np.nonzero(t.degree_property_map(deg=deg).a == 0)[0]
+    else:
         mask = np.logical_and((t.degree_property_map(deg=deg).a == 0),
                               vfilt.a > 0)
         return np.nonzero(mask)[0]
@@ -469,3 +483,76 @@ class BFSNodeCollector(BFSVisitor):
 
     def discover_vertex(self, u):
         self.nodes_in_order.append(int(u))
+
+
+def reverse_bfs(topdown_tree, verbose=False):
+    """bfs starting from leaves
+    
+    edges coming out from root (top-down)
+    """
+    
+    queue = get_leaves(topdown_tree, deg='out')
+
+    if verbose:
+        print('leaves', queue)
+    if not isinstance(queue, list):
+        queue = list(set(queue))
+
+    assert len(queue) > 0
+
+    # get the map from child to parent
+    pred = dict(zip(extract_nodes(topdown_tree),
+                    itertools.repeat(-1)))
+
+    class Visitor(BFSVisitor):
+        """record the predecessor"""
+
+        def __init__(self, pred):
+            self.pred = pred
+        
+        def tree_edge(self, e):
+            self.pred[int(e.target())] = int(e.source())
+    
+    vis = Visitor(pred)
+    
+    visited = dict(zip(extract_nodes(topdown_tree),
+                       repeat(False)))
+
+    nodes_visited = []
+    nodes_visited += list(queue)
+    for v in nodes_visited:
+        visited[v] = True
+
+    s = get_root(topdown_tree, tree_type='topdown')
+
+    if verbose:
+        print('root', s)
+
+    bfs_search(GraphView(topdown_tree, directed=False), source=s, visitor=vis)
+
+    if verbose:
+        print('vis.pred', vis.pred)
+
+    while len(queue) > 0:
+        x = queue.pop(0)
+        if verbose:
+            print('visiting ', x)
+        # if visited[x]:
+        #     print('visited')
+        #     continue
+
+        # # nodes_visited.append(x)
+        # visited[x] = True
+        
+        # BFS
+        y = vis.pred[x]
+        if verbose:
+            print('visiting y', y)
+        if y >= 0:  # has parent
+            if not visited[y]:
+                if verbose:
+                    print('not visited')
+                nodes_visited.append(y)
+                visited[y] = True
+                queue.append(y)
+    return nodes_visited
