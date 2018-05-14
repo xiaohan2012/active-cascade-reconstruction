@@ -5,10 +5,12 @@ from copy import copy
 
 from graph_tool import Graph, GraphView, PropertyMap
 from graph_tool.topology import shortest_distance, label_components
+from graph_tool.search import bfs_search
+
 from tqdm import tqdm
 
 from helpers import infected_nodes, timeout
-from graph_helpers import filter_graph_by_edges, get_leaves
+from graph_helpers import filter_graph_by_edges, get_leaves, BFSNodeCollector
 
 MAXINT = np.iinfo(np.int32).max
 
@@ -34,10 +36,20 @@ def observe_cascade(c, source, q, method='uniform',
         return np.argsort(c)[-num_obs:]
     elif method == 'leaves':
         assert tree is not None, 'to get the leaves, the cascade tree is required'
-        # print('get leaves...')
         return get_leaves(tree, deg='out')
+    elif method == 'bfs-head':
+        assert tree is not None, 'the cascade tree is required'
+        vis = BFSNodeCollector()
+        bfs_search(tree, source, vis)
+        return vis.nodes_in_order[:num_obs]  # head
+    elif method == 'bfs-tail':
+        assert tree is not None, 'the cascade tree is required'
+        vis = BFSNodeCollector()
+        bfs_search(tree, source, vis)
+        return vis.nodes_in_order[-num_obs:]  # tail
     else:
         raise ValueError('unknown method {}'.format(method))
+
 
 @timeout(2)
 def si(g, p, source=None, stop_fraction=0.5):
