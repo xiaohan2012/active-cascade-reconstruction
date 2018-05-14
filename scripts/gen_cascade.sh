@@ -1,14 +1,19 @@
 #! /bin/zsh
 
-graph="nethept-sto"
+graph="grqc-sto"
 n_cascades=12
 n_observation_rounds=8
 # n_cascades=8
 # n_observation_rounds=1
-cascade_model="si"
+cascade_model="ic"
 graph_suffix=" "
 
 obs_fraction=0.2
+# works for IC
+min_size=100
+max_size=1000
+
+# works for SI
 cascade_fraction=0.01
 
 dataset_id="${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}"
@@ -27,4 +32,6 @@ python3 simulate_cascades.py \
 	-m ${cascade_model} \
 	-d ${ourput_dir} \
 	-s ${cascade_fraction} \
-	--observation_method uniform
+	--observation_method uniform \
+	--min_size ${min_size} \
+	--max_size ${max_size}
