@@ -1,6 +1,8 @@
 import numpy as np
 import pickle as pkl
 from tqdm import tqdm
+from time import time
+
 from cascade_generator import si, ic, observe_cascade
 from query_selection import EntropyQueryGenerator
 from inference import infection_probability
@@ -25,7 +27,12 @@ def gen_input(g, source=None, cascade_path=None, stop_fraction=0.25, p=0.5, q=0.
             s, c, tree = si(g, p, stop_fraction=stop_fraction,
                             source=source)
         elif model == 'ic':
+            start = time()
             while True:
+                if time() - start > 1:
+                    # re-try another root
+                    raise TimeoutError()
+
                 s, c, tree_edges = ic(g, p, source=source,
                                       min_size=min_size,
                                       max_size=max_size,
@@ -72,40 +79,44 @@ def gen_inputs_varying_obs(
     # print('observation_method', observation_method)
     tree_requiring_methods = {'leaves'}
 
-    if cascade_path is None:
-        if model == 'si':
-            while True:
-                try:
+    while True:
+        try:
+            if cascade_path is None:
+                if model == 'si':
                     s, c, tree = si(g, p, stop_fraction=stop_fraction,
                                     source=source)
-                    break
-                except TimeoutError:
-                    print('timeout')
-                    continue
+                elif model == 'ic':
+                    start = time()
+                    while True:
+                        # time out, change root
+                        if time() - start > 3:
+                            raise TimeoutError()
 
-        elif model == 'ic':
-            while True:
-                s, c, tree_edges = ic(g, p, source=source,
-                                      min_size=min_size,
-                                      max_size=max_size,
-                                      return_tree_edges=(observation_method in tree_requiring_methods))
-                size = np.sum(c >= 0)
-                if size >= min_size and size <= max_size:  # size fits
-                    # print('big enough')
-                    # do this later because it's slow
-                    if return_tree:
-                        tree = filter_graph_by_edges(g, tree_edges)
-                        print('tree.is_directed()', tree.is_directed())
-                        print('tree.num_vertices()', tree.num_vertices())
-                        print('tree.num_edges()', tree.num_edges())
-                    else:
-                        tree = None
-                    # print('source', s)
-                    # print('tree.edges()', extract_edges(tree))
-                    break
-                print('{} not in range ({}, {})'.format(size, min_size, max_size))
-        else:
-            raise ValueError('unknown cascade model')
+                        s, c, tree_edges = ic(g, p, source=source,
+                                              min_size=min_size,
+                                              max_size=max_size,
+                                              return_tree_edges=(observation_method in tree_requiring_methods))
+                        size = np.sum(c >= 0)
+                        if size >= min_size and size <= max_size:  # size fits
+                            # print('big enough')
+                            # do this later because it's slow
+                            if return_tree:
+                                tree = filter_graph_by_edges(g, tree_edges)
+                                print('tree.is_directed()', tree.is_directed())
+                                print('tree.num_vertices()', tree.num_vertices())
+                                print('tree.num_edges()', tree.num_edges())
+                            else:
+                                tree = None
+                            # print('source', s)
+                            # print('tree.edges()', extract_edges(tree))
+                            break
+                        # print('{} not in range ({}, {})'.format(size, min_size, max_size))
+                else:
+                    raise ValueError('unknown cascade model')
+            break
+        except TimeoutError:
+            print('timeout')
+            continue
     else:
         print('load from cache')
         _, c, tree = pkl.load(open(cascade_path, 'rb'))

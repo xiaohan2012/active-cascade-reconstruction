@@ -75,7 +75,6 @@ if not os.path.exists(d):
     os.makedirs(d)
 
 for i in tqdm(range(args.n_cascades)):
-# for i in range(args.n_cascades):
     iters = gen_inputs_varying_obs(
         g,
         source=root_sampler(),
