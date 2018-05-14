@@ -3,7 +3,11 @@ from numpy.testing import assert_almost_equal
 from graph_tool import Graph
 from graph_tool.topology import label_components
 from graph_tool.generation import complete_graph, lattice
+from graph_tool.search import bfs_search
 from scipy.stats import entropy
+
+from fixture import line, tree
+
 
 from fixture import g, obs
 from graph_helpers import (extract_steiner_tree, filter_graph_by_edges,
@@ -15,7 +19,8 @@ from graph_helpers import (extract_steiner_tree, filter_graph_by_edges,
                            k_hop_neighbors,
                            pagerank_scores,
                            reachable_node_set,
-                           get_leaves)
+                           get_leaves,
+                           BFSNodeCollector)
 
 
 
@@ -163,26 +168,18 @@ def test_reachable_node_set():
     assert actual == {0, 1, 2}
 
 
-
-@pytest.fixture
-def tree():
-    g = Graph(directed=True)
-    g.add_vertex(4)
-    g.add_edge_list([(0, 1), (1, 2), (1, 3)])
-    return g
-
-
-@pytest.fixture
-def line():
-    g = Graph(directed=True)
-    g.add_vertex(4)
-    g.add_edge_list([(0, 1), (1, 2), (2, 3)])
-    return g
-
-
 @pytest.mark.parametrize('tree, expected',
                          [(tree(), [2, 3]),
                           (line(), [3])])
 def test_get_leaves(tree, expected):
     leaves = get_leaves(tree, deg='out')
     assert list(leaves) == expected
+
+
+@pytest.mark.parametrize('g, expected',
+                         [(line(), [0, 1, 2, 3]),
+                          (tree(), [0, 1, 2, 3])])
+def test_BFSNodeCollectorVisitor(g, expected):
+    vis = BFSNodeCollector()
+    bfs_search(g, 0, vis)
+    assert vis.nodes_in_order == expected

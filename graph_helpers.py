@@ -43,8 +43,12 @@ def get_leaves(t, deg):
     # assert t.is_directed() is False
     vfilt = t._Graph__filter_state['vertex_filter'][0]
     if vfilt is None:
+        # bottom-up
+        # pointing **towards** root
         return np.nonzero(t.degree_property_map(deg=deg).a == 0)[0]
     else:
+        # top-down
+        # pointing **against** root
         mask = np.logical_and((t.degree_property_map(deg=deg).a == 0),
                               vfilt.a > 0)
         return np.nonzero(mask)[0]
@@ -57,7 +61,7 @@ def extract_nodes(g):
 def extract_edges(g):
     return [(int(u), int(v)) for u, v in g.edges()]
 
-# @profile
+
 def extract_steiner_tree(sp_tree, terminals, return_nodes=True):
     """given spanning tree and terminal nodes, extract the minimum steiner tree that spans terminals
     
@@ -457,3 +461,11 @@ def swap_end_points(edges):
 
 def extract_nodes_from_tuples(edges):
     return {u for e in edges for u in e}
+
+
+class BFSNodeCollector(BFSVisitor):
+    def __init__(self):
+        self.nodes_in_order = []
+
+    def discover_vertex(self, u):
+        self.nodes_in_order.append(int(u))
