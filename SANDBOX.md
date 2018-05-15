@@ -441,3 +441,11 @@ plot change:
 
 - add 25/75 quantile
 - for missing values due to candidate pruning, pad with the last non-missing value
+
+hit ratio time series comparison: http://193.166.24.212:9999/notebooks/query_strategy_hit_ratio.ipynb
+
+- pagerank starts with high hit ratio, and then decreases
+- entropy shows a similar pattern but starts lower and decreases slower
+- `cond_entropy` start low and then increases setadily
+
+early stopping for `cond_entropy` because of candidate pruning, is it fair as pagerank, random all queries 500 nodes?
