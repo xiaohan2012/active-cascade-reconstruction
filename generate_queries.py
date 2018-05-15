@@ -10,7 +10,9 @@ from graph_tool import openmp_set_num_threads
 
 from query_selection import (RandomQueryGenerator, EntropyQueryGenerator,
                              PRQueryGenerator, PredictionErrorQueryGenerator,
-                             SamplingBasedGenerator, MutualInformationQueryGenerator)
+                             WeightedPredictionErrorQueryGenerator,
+                             SamplingBasedGenerator,
+                             MutualInformationQueryGenerator)
 from simulator import Simulator
 from joblib import Parallel, delayed
 from graph_helpers import remove_filters, load_graph_by_name, get_edge_weights
@@ -29,7 +31,11 @@ parser.add_argument('-w', '--weighted',
                     help='if the graph is weighted')
 
 parser.add_argument('-q', '--query_strategy',
-                    choices={'random', 'pagerank', 'entropy', 'prediction_error',
+                    choices={'random',
+                             'pagerank',
+                             'entropy',
+                             'prediction_error',
+                             'weighted-cond-ent',
                              'mutual-info'},
                     help='query strategy')
 parser.add_argument('-c', '--cascade_dir',
@@ -110,6 +116,15 @@ elif query_strategy == 'prediction_error':
                                                 'root_sampler_eps': args.root_pagerank_noise,
                                                 'min_proba': min_proba,
                                                 'n_node_samples': num_estimation_nodes})
+elif query_strategy == 'weighted-cond-ent':
+    strategy = (WeightedPredictionErrorQueryGenerator,
+                {'n_node_samples': None,
+                 'prune_nodes': True,
+                 'root_sampler': root_sampler,
+                 'root_sampler_eps': args.root_pagerank_noise,
+                 'min_proba': min_proba,
+                 'n_node_samples': num_estimation_nodes})
+
 elif query_strategy == 'mutual-info':
     strategy = (MutualInformationQueryGenerator,
                 {'n_node_samples': None,
