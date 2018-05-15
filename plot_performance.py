@@ -133,11 +133,15 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
 
         # make shape match
         max_len = max(len(r) for method in labels for r in scores_by_method[method])
+        print('num. evaluation points: ', max_len)
         for method in labels:
             assert len(scores_by_method[method]) > 0, 'no scores available for {}'.format(method)
             for r in scores_by_method[method]:
+                # for each row, pad to max_len
+                val = r[-1]  # value to pad
                 for i in range(max_len - len(r)):
-                    r.append(np.nan)
+                    # r.append(np.nan)
+                    r.append(val)
                 assert len(r) == max_len, "len(r)={}, r={}".format(len(r), r)
 
         if not os.path.exists(pkl_dir):
@@ -164,21 +168,34 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
     # print('product', max_len * args.every)
     # print('n_queries', n_queries)
     n_queries = min(n_queries, max_len * args.every)
-    print('n_queries (after)', n_queries)
+    # print('n_queries (after)', n_queries)
     x = np.arange(0, n_queries, args.every)
+    # print('x (original)', x)
     for method in labels:
         print('method', method)
         scores = np.array(scores_by_method[method], dtype=np.float32)
 
         # scores[np.isnan(scores)] = 0
-        mean_scores = np.nanmean(scores, axis=0)
+        # mean_scores = np.mean(scores, axis=0)
+        perc25 = np.percentile(scores, 25, axis=0)
+        perc50 = np.percentile(scores, 50, axis=0)
+        perc75 = np.percentile(scores, 75, axis=0)
 
         # print(x.shape)
         # print(mean_scores.shape)
-        ax.plot(x[::args.plot_step], mean_scores[::args.plot_step])
+        # print('x (new)', x[::args.plot_step])
+        # print('y (new)', perc50[::args.plot_step])
+        l = ax.plot(x[::args.plot_step], perc50[::args.plot_step])
+        print(l)
+        ax.fill_between(x[::args.plot_step],
+                        perc25[::args.plot_step],
+                        perc75[::args.plot_step],
+                        facecolor=l[0].get_color(),
+                        lw=0,
+                        alpha=0.5)
 
-        min_y = min([min_y, np.nanmin(mean_scores)])
-        max_y = max([max_y, np.nanmax(mean_scores)])
+        min_y = min([min_y, np.min(perc50)])
+        max_y = max([max_y, np.max(perc50)])
         # ax.hold(True)
     # ax.legend(labels, loc='best', ncol=1)
     # ax.xaxis.label.set_fontsize(20)

@@ -2,7 +2,9 @@
 
 # graphs=("grqc" "p2p" "lattice-1024" "infectious")
 # graphs=("grqc" "p2p")
-graphs=("lattice-1024-sto" "infectious-sto")
+# graphs=("lattice-1024-sto" "infectious-sto")
+# graphs=("grqc-sto")
+graphs=("grqc-sto")
 sample_method=loop_erased
 
 inf_method="inf_probas"
@@ -11,8 +13,9 @@ query_dirname='queries-weighted'
 cascade_dirname='cascade-weighted'
 inf_dirname='inf_probas-weighted'
 
-cascade_model="si"
-cascade_fractions=(0.1 0.25)
+cascade_model="ic"
+cascade_fractions=(0.025)  #  0.25
+obs_methods=("uniform")
 n_queries=500
 # cascade_fractions=(0.01 0.02 0.04 0.08 0.16 0.32)
 # cascade_fractions=(0.04 0.08 0.16 0.32 0.64)
@@ -21,10 +24,11 @@ n_queries=500
 # 0.2 0.3 0.4 0.5
 obs_fractions=(0.2)
 
-# eval_methods=(entropy "p@k" l1 cross_entropy)
+eval_methods=("p@k" l1 l2)
 # eval_methods=("p@k" entropy mrr ap)
 # eval_methods=(l1 l2 cross_entropy)
-eval_methods=(l1 cross_entropy)
+# eval_methods=("n")
+# l1 l2
 # eval_methods=(cross_entropy)
 every=5
 # eval_method="ap"
@@ -65,7 +69,8 @@ for graph in ${graphs}; do
     for eval_method in ${eval_methods}; do
 	for cascade_fraction in ${cascade_fractions}; do
 	    for obs_fraction in ${obs_fractions}; do
-		dataset_id="${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}"
+		for obs_method in ${obs_methods}; do
+		dataset_id="${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}-om${obs_method}"
 
 		print "
 python3 plot_performance.py \
@@ -86,7 +91,10 @@ python3 plot_performance.py \
 "
 
 
+		done
 	    done
 	done
     done
 done
+
+
