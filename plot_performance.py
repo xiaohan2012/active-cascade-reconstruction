@@ -186,7 +186,8 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
         # print('x (new)', x[::args.plot_step])
         # print('y (new)', perc50[::args.plot_step])
         l = ax.plot(x[::args.plot_step], perc50[::args.plot_step])
-        print(l)
+        print('score', perc50[::args.plot_step])
+        # print(l)
         ax.fill_between(x[::args.plot_step],
                         perc25[::args.plot_step],
                         perc75[::args.plot_step],
