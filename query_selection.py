@@ -16,6 +16,7 @@ class BaseQueryGenerator():
         self.g = g
         if obs is not None:
             self.receive_observation(obs, c)
+            self.c = c
         else:
             self._cand_pool = None
 
@@ -23,6 +24,7 @@ class BaseQueryGenerator():
 
     def receive_observation(self, obs, c):
         self._cand_pool = set(extract_nodes(self.g)) - set(obs)
+        self.c = c
 
     def update_observation(self, g, inf_nodes, q, label, c):
         pass
@@ -326,3 +328,32 @@ class MutualInformationQueryGenerator(PredictionErrorQueryGenerator):
         self.query_scores = q2score
 
         return best_q
+
+
+class LatestFirstOracle(BaseQueryGenerator):
+    """
+    query strategy that has access to an oracle.
+    it queries *latest* infection first
+    """
+    def _select_query(self, *args, **kwargs):
+        n = max(self._cand_pool, key=lambda n: self.c[n])
+        if self.c[n] >= 0:
+            return n
+        else:
+            raise NoMoreQuery
+
+
+class EarliestFirstOracle(BaseQueryGenerator):
+    """
+    query strategy that has access to an oracle.
+    it queries *earliest* infection first
+    """
+    def _select_query(self, *args, **kwargs):
+        max_val = self.c.max() + 1
+        n = min(self._cand_pool, key=lambda n: (self.c[n]
+                                                if self.c[n] >= 0
+                                                else max_val))
+        if self.c[n] >= 0:
+            return n
+        else:
+            raise NoMoreQuery

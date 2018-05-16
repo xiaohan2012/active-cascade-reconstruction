@@ -1,12 +1,15 @@
 import pytest
+import numpy as np
 from query_selection import (RandomQueryGenerator, EntropyQueryGenerator,
                              PRQueryGenerator, PredictionErrorQueryGenerator,
                              MutualInformationQueryGenerator,
                              SamplingBasedGenerator,
+                             LatestFirstOracle,
+                             EarliestFirstOracle,
                              NoMoreQuery)
 from simulator import Simulator
 from graph_helpers import remove_filters, get_edge_weights
-from fixture import g
+from fixture import g, line
 from sample_pool import TreeSamplePool
 from random_steiner_tree.util import from_gt
 from tree_stat import TreeBasedStatistics
@@ -97,7 +100,7 @@ def test_no_more_query(g):
 
     qs, aux = sim.run(g.num_vertices()+100)
     assert len(qs) < g.num_vertices()
-
+    
 
 def build_simulator_using_prediction_error_query_selector(g, **kwargs):
     gv = remove_filters(g)
@@ -144,3 +147,20 @@ def test_prediction_error_sample_nodes_for_estimation(g):
 
         samples = q_gen._sample_nodes_for_estimation()
         assert len(samples) == n_node_samples
+
+
+@pytest.mark.parametrize("graph, c", [(line(), np.array([0, 1, 2, -1]))])
+@pytest.mark.parametrize("method", ['earliest', 'latest'])
+def test_oracle_strategy(graph, c, method):
+    graph = remove_filters(graph)
+    if method == 'earliest':
+        q_gen = EarliestFirstOracle(graph)
+        expected = [1, 2]
+    elif method == 'latest':
+        q_gen = LatestFirstOracle(graph)
+        expected = [2, 1]
+
+    sim = Simulator(graph, q_gen)
+    qs, _ = sim.run(100, obs=[0], c=c)  # will hiddenly raise NoMoreQuery
+    
+    assert qs == expected
