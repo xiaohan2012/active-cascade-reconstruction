@@ -449,3 +449,52 @@ hit ratio time series comparison: http://193.166.24.212:9999/notebooks/query_str
 - `cond_entropy` start low and then increases setadily
 
 early stopping for `cond_entropy` because of candidate pruning, is it fair as pagerank, random all queries 500 nodes?
+
+# May 18
+
+## learning degrades
+
+For some vertex v, I say we learn something positive about it if loss(k, v) - loss(0, v) <= 0 for some iteration k.
+
+Then I measured the number of such nodes for iteration 1 and the last iteration .
+
+The result is surprising:
+
+```
+k= 1
+num. positively learned vertices 1196
+num. negatively learned vertices 1267
+```
+
+```
+k= -1
+num. positively learned vertices 357
+num. negatively learned vertices 2203
+```
+
+this suggests that the learning actually degrades!
+
+this is very bad because as we query more nodes, we are expected to learn more nodes.
+
+Also, this means even if hidden infections are revealed, the inference algorithm still cannot learn everything. 
+
+## l2 is a bit misleading
+
+as stated above, learning does not impove, even degrades.
+
+Then I would expect the the loss function to be steady even increases. However,
+l2 decreases, which is why it's counter-intuitive.
+
+## why l1 and l2 gives different result?
+
+for some loss and iteration k and k+1, consider two parts:
+
+- pos: we learned correctly, the loss decreases from k to k+1
+- neg: we learned incorrectly, the loss increases from k to k+1
+
+an example where `k=0`
+
+```              pos     neg
+l1, pos/neg:  -11.622   12.887
+l2, pos/neg:   -6.283    3.253
+```
