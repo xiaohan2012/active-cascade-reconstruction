@@ -22,9 +22,9 @@ def iter_callback(g, q_gen, *args):
         check_samples_so_far(g, q_gen.sampler,
                              q_gen.error_estimator, *args)
 
-            
+
 @pytest.mark.parametrize("query_method", ['random', 'pagerank', 'entropy', 'error', 'mutual-info'])
-@pytest.mark.parametrize("sampling_method", ['cut', 'loop_erased'])
+@pytest.mark.parametrize("sampling_method", ['loop_erased', 'cut'])
 @pytest.mark.parametrize("with_inc_sampling", [False])
 @pytest.mark.parametrize("root_sampler", ['true_root', 'random'])
 def test_query_method(g, query_method, sampling_method, root_sampler, with_inc_sampling):
@@ -41,12 +41,13 @@ def test_query_method(g, query_method, sampling_method, root_sampler, with_inc_s
     else:
         gi = None
 
-    pool = TreeSamplePool(gv,
-                          n_samples=20,
-                          method=sampling_method,
-                          gi=gi,
-                          return_type='nodes',  # using tree nodes
-                          with_inc_sampling=with_inc_sampling
+    pool = TreeSamplePool(
+        gv,
+        n_samples=20,
+        method=sampling_method,
+        gi=gi,
+        return_type='nodes',  # using tree nodes
+        with_inc_sampling=with_inc_sampling
     )
 
     error_estimator = TreeBasedStatistics(gv)
@@ -100,7 +101,7 @@ def test_no_more_query(g):
 
     qs, aux = sim.run(g.num_vertices()+100)
     assert len(qs) < g.num_vertices()
-    
+
 
 def build_simulator_using_prediction_error_query_selector(g, **kwargs):
     gv = remove_filters(g)
@@ -162,5 +163,5 @@ def test_oracle_strategy(graph, c, method):
 
     sim = Simulator(graph, q_gen)
     qs, _ = sim.run(100, obs=[0], c=c)  # will hiddenly raise NoMoreQuery
-    
+
     assert qs == expected

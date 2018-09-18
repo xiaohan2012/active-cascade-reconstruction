@@ -10,7 +10,7 @@ from helpers import infected_nodes
 
 
 
-def test_SimulatedCascadPool(g):
+def test_SimulatedCascadePool(g):
     n_samples = 10
     n_obs = 5
     cascade_params = dict(
