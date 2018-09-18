@@ -3,10 +3,13 @@ import networkx as nx
 from graph_tool import GraphView
 
 from core import sample_steiner_trees
-from graph_helpers import (has_vertex, get_edge_weights, filter_graph_by_edges,
-                           extract_nodes_from_tuples)
-from proba_helpers import tree_probability_gt, ic_cascade_probability_gt, \
-    cascade_probability_gt
+from graph_helpers import (
+    get_edge_weights,
+    filter_graph_by_edges,
+    extract_nodes_from_tuples
+)
+from proba_helpers import tree_probability_gt, ic_cascade_probability_gt
+from core import sample_by_simulation
 from core1 import matching_trees
 from helpers import infected_nodes
 from cascade_generator import incremental_simulation
@@ -192,3 +195,65 @@ class TreeSamplePool():
         resampled_trees = [trees[i] for i in resampled_tree_idx]
         self._sampling_weights = sampling_weights
         return resampled_trees
+
+
+class SimulatedCascadePool():
+    def __init__(
+            self, g, n_samples,
+            cascade_params={}
+    ):
+        """
+        cascade_params: dict of cascade parameters to be passed
+            when simulating cascades
+
+            example:
+
+            dict(
+                p=0.5,
+                stop_fraction=0.5,
+                cascade_model='si'
+            )
+        """
+        self.g = g
+        self.num_nodes = g.num_vertices()
+        self.n_samples = n_samples
+        self._cascade_params = cascade_params
+        self._samples = []  # a list of sets of integers
+
+    def fill(self, obs):
+        self._samples = sample_by_simulation(
+            self.g, obs,
+            n_samples=self.n_samples,
+            **self._cascade_params
+        )
+
+    def update_samples(self, inf_nodes, node_update_info):
+        """
+
+        if label=1, assuming `inf_nodes` includes `node` already
+        if label=0, assuming `self.g` removes `node` already
+
+        Return:
+        new_samples
+        """
+        for n, label in node_update_info.items():
+            assert label in {0, 1}  # 0: uninfected, 1: infected
+
+        valid_samples = matching_trees(self._samples, node_update_info)
+
+        # print('num. valid_samples: {}'.format(len(valid_samples)))
+        new_samples = sample_by_simulation(
+            self.g, inf_nodes,
+            n_samples=self.n_samples - len(valid_samples),
+            **self._cascade_params
+        )
+
+        self._samples = valid_samples + new_samples
+
+        assert len(self._samples) == self.n_samples
+
+        return new_samples
+
+    @property
+    def samples(self):
+        return self._samples

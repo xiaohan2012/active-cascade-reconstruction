@@ -48,7 +48,7 @@ parser.add_argument('-c', '--cascade_dir',
 parser.add_argument('-n', '--n_queries', default=10, type=int,
                     help='number of queries')
 parser.add_argument('-m', '--sampling_method', default='loop_erased', type=str,
-                    choices={'loop_erased', 'cut', 'cut_naive'},
+                    choices={'loop_erased', 'cut', 'cut_naive', 'simulation'},
                     help='the steiner tree sampling method')
 parser.add_argument('-r', '--root_sampler', type=str,
                     default='pagerank',

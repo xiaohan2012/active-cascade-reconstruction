@@ -1,54 +1,58 @@
 import pytest
 
 import numpy as np
-from sample_pool import TreeSamplePool
+from sample_pool import SimulatedCascadePool
 from test_helpers import check_tree_samples
 from graph_helpers import observe_uninfected_node, extract_nodes
-from random_steiner_tree.util import isolate_vertex
-from fixture import g, gi, obs
+from fixture import g
+from cascade_generator import si
+from helpers import infected_nodes
 
-N_SAMPLES = 1000
 
-# @pytest.mark.parametrize('return_type', ['nodes', 'tuples'])
-# def test_resampling(g, gi, obs, return_type):
-#     pool = TreeSamplePool(g, gi=gi,
-#                           n_samples=N_SAMPLES,
-#                           method='loop_erased',
-#                           with_inc_sampling=False,
-#                           with_resampling=True,
-#                           return_type=return_type)
-#     pool.fill(obs)
 
-#     if return_type == 'tuples':
-#         # type checking
-#         for t in pool.samples:
-#             assert isinstance(t, tuple)
-#             for e in t:
-#                 assert isinstance(e, tuple)
-#                 assert len(e) == 2
-#         unique_resampled_trees = set(pool.samples)
+def test_SimulatedCascadPool(g):
+    n_samples = 10
+    n_obs = 5
+    cascade_params = dict(
+        p=0.5,
+        stop_fraction=0.5,
+        cascade_model='si'
+    )
+    source, times, _ = si(
+        g, source=None,
+        p=cascade_params['p'],
+        stop_fraction=cascade_params['stop_fraction']
+    )
+    inf_nodes = infected_nodes(times)
+    obs = set(np.random.choice(inf_nodes, n_obs, replace=False))
 
-#     elif return_type == 'nodes':
-#         for t in pool.samples:
-#             assert isinstance(t, set)
-#         unique_resampled_trees = set(map(tuple, pool.samples))
+    cascade_params['source'] = source
 
-#     unique_sampled_trees = set(pool._old_samples)
+    pool = SimulatedCascadePool(g, n_samples, cascade_params)
+    pool.fill(obs)
 
-#     print(len(unique_resampled_trees))
-#     assert len(unique_resampled_trees) < 10  # far few unique resampled trees
-#     assert len(unique_sampled_trees) == N_SAMPLES  # with high probability
+    for o in obs:
+        for s in pool.samples:
+            assert o in s
 
-#     if return_type == 'nodes':
-#         n_nodes_to_rm = 5
-#         qs = np.random.choice(list(set(extract_nodes(g)) - set(obs)), size=n_nodes_to_rm)
-#         for i in qs:
-#             isolate_vertex(gi, i)
-#             observe_uninfected_node(g, i, obs)
-#             pool.update_samples(obs, i, 0)
+    assert len(pool.samples) == n_samples
 
-#         c = [0] * g.num_vertices()
-#         for q in qs:
-#             c[q] = -1
+    # node addition case
+    node_to_add = list(set(inf_nodes) - obs)[0]
+    pool.update_samples(obs | {node_to_add},
+                        {node_to_add: 1})
 
-#         check_tree_samples(qs, c, pool.samples)
+    for s in pool.samples:
+        assert node_to_add in s
+
+    assert len(pool.samples) == n_samples
+
+    # node removal case
+    node_to_remove = list(pool.samples[0] - obs)[0]
+    observe_uninfected_node(g, node_to_remove, obs)
+    pool.update_samples(obs, {node_to_remove: 0})
+
+    for s in pool.samples:
+        assert node_to_remove not in s
+
+    assert len(pool.samples) == n_samples

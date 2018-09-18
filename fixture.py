@@ -11,12 +11,12 @@ from preprocess_graph import preprocess
 @pytest.fixture
 def g():
     graph = remove_filters(lattice((10, 10)))
-    
+
     graph.set_directed(True)
     edges_iter = list(graph.edges())
     for e in edges_iter:
         graph.add_edge(e.target(), e.source())
-        
+
     ew = graph.new_edge_property('float')
     ew.a = np.random.random(graph.num_edges()) * 0.2 + 0.8
     graph.edge_properties['weights'] = ew
