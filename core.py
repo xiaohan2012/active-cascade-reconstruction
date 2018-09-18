@@ -1,4 +1,4 @@
-0;95;0cimport numpy as np
+import numpy as np
 import random
 from scipy.stats import entropy
 
@@ -10,8 +10,11 @@ from graph_helpers import (contract_graph_by_nodes,
                            reachable_node_set,
                            swap_end_points)
 from inference import infection_probability
+from helpers import infected_nodes
 from tqdm import tqdm
 from random_steiner_tree import random_steiner_tree
+from cascade_generator import si
+
 
 # @profile
 def det_score_of_steiner_tree(st, g):
@@ -140,6 +143,29 @@ def sample_steiner_trees(g, obs,
 
     return steiner_tree_samples
 
+
+def sample_by_simulation(g, obs,
+                         cascade_model,
+                         n_samples,
+                         **kwargs):
+    samples = []
+    obs = set(obs)
+    
+    for i in range(n_samples):
+        if cascade_model == 'si':
+            assert 'p' in kwargs
+            assert 'source' in kwargs
+            assert 'stop_fraction' in kwargs
+            while True:
+                _, infection_times, tree = si(g, **kwargs)
+                inf_nodes = set(infected_nodes(infection_times))
+                if obs.issubset(inf_nodes):
+                    samples.append(inf_nodes)
+                    break
+        else:
+            raise ValueError('model {} unsupported'.format(cascade_model))
+    
+    return samples
 
 # @profile
 def uncertainty_scores_old(g, obs,
