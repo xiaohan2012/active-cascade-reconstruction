@@ -190,4 +190,5 @@ class TreeSamplePool():
                                               size=self.n_samples)
 
         resampled_trees = [trees[i] for i in resampled_tree_idx]
+        self._sampling_weights = sampling_weights
         return resampled_trees

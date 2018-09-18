@@ -35,6 +35,8 @@ COLOR_WHITE = (255/255, 255/255, 255/255, 1.0)
 COLOR_ORANGE = (252/255, 120/255, 88/255, 1.0)
 COLOR_PINK = (1.0, 20/255, 147/255, 1.0)
 COLOR_GREEN = (50/255, 205/255, 50/255, 1.0)
+COLOR_GREY = (0.5, 0.5, 0.5, 1.0)
+COLOR_BLACK = (0, 0, 0, 1.0)
 
 SHAPE_CIRCLE = 'circle'
 SHAPE_PENTAGON = 'pentagon'
@@ -335,10 +337,11 @@ class InfectionProbabilityViz():
         
 
 def set_cycler(ax):
-    ax.set_prop_cycle(cycler('color', [COLOR_ORANGE, COLOR_PINK, COLOR_BLUE, COLOR_GREEN, COLOR_YELLOW]) +
-                      cycler('linestyle', ['-', ':', '--', '-.', '-']) +
-                      cycler('marker', ['o', '*', '^', 'v', 's']) +
-                      cycler('lw', [2, 2, 2, 2, 2]))
+    ax.set_prop_cycle(cycler('color', [COLOR_ORANGE, COLOR_PINK, COLOR_BLUE, COLOR_GREEN, COLOR_YELLOW,
+                                       COLOR_BLACK, COLOR_GREY]) +
+                      cycler('linestyle', ['-', ':', '--', '-.', '-', ':', '-']) +
+                      cycler('marker', ['o', '*', '^', 'v', 's', 'd', 'p']) +
+                      cycler('lw', [2, 2, 2, 2, 2, 2, 2]))
 
 
 

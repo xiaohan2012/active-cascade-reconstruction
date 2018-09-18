@@ -12,7 +12,8 @@ from query_selection import (RandomQueryGenerator, EntropyQueryGenerator,
                              PRQueryGenerator, PredictionErrorQueryGenerator,
                              WeightedPredictionErrorQueryGenerator,
                              SamplingBasedGenerator,
-                             MutualInformationQueryGenerator)
+                             MutualInformationQueryGenerator,
+                             EarliestFirstOracle, LatestFirstOracle)
 from simulator import Simulator
 from joblib import Parallel, delayed
 from graph_helpers import remove_filters, load_graph_by_name, get_edge_weights
@@ -36,7 +37,9 @@ parser.add_argument('-q', '--query_strategy',
                              'entropy',
                              'prediction_error',
                              'weighted-cond-ent',
-                             'mutual-info'},
+                             'mutual-info',
+                             'oracle-e',
+                             'oracle-l'},
                     help='query strategy')
 parser.add_argument('-c', '--cascade_dir',
                     help='directory of generated cascades')
@@ -102,6 +105,10 @@ g = load_graph_by_name(graph_name, weighted=args.weighted,
 
 if query_strategy == 'random':
     strategy = (RandomQueryGenerator, {})
+elif query_strategy == 'oracle-e':
+    strategy = (EarliestFirstOracle, {})
+elif query_strategy == 'oracle-l':
+    strategy = (LatestFirstOracle, {})
 elif query_strategy == 'pagerank':
     strategy = (PRQueryGenerator, {})
 elif query_strategy == 'entropy':

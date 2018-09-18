@@ -16,6 +16,7 @@ inf_dirname='inf_probas-weighted'
 cascade_model="ic"
 cascade_fractions=(0.025)  #  0.25
 obs_methods=("uniform")
+# "bfs-head"  "uniform"
 n_queries=500
 # cascade_fractions=(0.01 0.02 0.04 0.08 0.16 0.32)
 # cascade_fractions=(0.04 0.08 0.16 0.32 0.64)
@@ -24,7 +25,8 @@ n_queries=500
 # 0.2 0.3 0.4 0.5
 obs_fractions=(0.2)
 
-eval_methods=("p@k" l1 l2)
+# eval_methods=(l1 l2)
+eval_methods=(ap)
 # eval_methods=("p@k" entropy mrr ap)
 # eval_methods=(l1 l2 cross_entropy)
 # eval_methods=("n")
@@ -58,9 +60,13 @@ other_params="${other_params} --check"
 # inf_dir_ids="entropy, prediction_error, mutual-info"
 # labels="entropy, prederror, mutual-info"
 
-query_dir_ids="random, pagerank, entropy, prediction_error, mutual-info"
-inf_dir_ids="random, pagerank, entropy, prediction_error, mutual-info"
-labels="random, pagerank, entropy, prederror, mutual-info"
+# query_dir_ids="random, pagerank, entropy, prediction_error, mutual-info"
+# inf_dir_ids="random, pagerank, entropy, prediction_error, mutual-info"
+# labels="random, pagerank, entropy, prederror, mutual-info"
+
+query_dir_ids="random, pagerank, entropy, prediction_error, mutual-info, oracle-e, oracle-l"
+inf_dir_ids="random, pagerank, entropy, prediction_error, mutual-info, oracle-e, oracle-l"
+labels="random, pagerank, entropy, prederror, mutual-info, oracle-e, oracle-l"
 
 
 

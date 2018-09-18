@@ -1,4 +1,4 @@
-import numpy as np
+0;95;0cimport numpy as np
 import random
 from scipy.stats import entropy
 
@@ -81,7 +81,7 @@ def sample_steiner_trees(g, obs,
                          gi=None,
                          root=None,
                          root_sampler=None,
-                         return_type=False,
+                         return_type='nodes',
                          log=False,
                          verbose=False):
     """sample `n_samples` steiner trees that span `obs` in `g`

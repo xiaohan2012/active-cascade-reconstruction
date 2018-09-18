@@ -16,7 +16,7 @@ min_size=25
 max_size=1000
 
 # works for SI
-cascade_fraction=0.01
+cascade_fraction=0.025
 
 dataset_id="${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}-om${obs_method}"
 
