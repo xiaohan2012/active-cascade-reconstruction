@@ -1,9 +1,7 @@
-import pytest
-
+import random
 import numpy as np
 from sample_pool import SimulatedCascadePool
-from test_helpers import check_tree_samples
-from graph_helpers import observe_uninfected_node, extract_nodes
+from graph_helpers import observe_uninfected_node
 from fixture import g
 from cascade_generator import si
 from helpers import infected_nodes
@@ -38,21 +36,25 @@ def test_SimulatedCascadePool(g):
     assert len(pool.samples) == n_samples
 
     # node addition case
-    node_to_add = list(set(inf_nodes) - obs)[0]
-    pool.update_samples(obs | {node_to_add},
-                        {node_to_add: 1})
+    # add 10 nodes
+    for i in range(10):
+        node_to_add = list(set(inf_nodes) - obs)[0]
+        pool.update_samples(obs | {node_to_add},
+                            {node_to_add: 1})
 
-    for s in pool.samples:
-        assert node_to_add in s
+        for s in pool.samples:
+            assert node_to_add in s
 
-    assert len(pool.samples) == n_samples
+        assert len(pool.samples) == n_samples
 
     # node removal case
-    node_to_remove = list(pool.samples[0] - obs)[0]
-    observe_uninfected_node(g, node_to_remove, obs)
-    pool.update_samples(obs, {node_to_remove: 0})
+    # remove 10 nodes
+    for i in range(10):
+        node_to_remove = random.choice(list(random.choice(pool.samples) - obs))
+        observe_uninfected_node(g, node_to_remove, obs)
+        pool.update_samples(obs, {node_to_remove: 0})
 
-    for s in pool.samples:
-        assert node_to_remove not in s
+        for s in pool.samples:
+            assert node_to_remove not in s
 
-    assert len(pool.samples) == n_samples
+        assert len(pool.samples) == n_samples

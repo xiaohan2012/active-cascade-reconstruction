@@ -89,9 +89,16 @@ class PRQueryGenerator(BaseQueryGenerator):
 
 
 class SamplingBasedGenerator(BaseQueryGenerator):
-    def __init__(self, g, sampler, *args, root_sampler=None, error_estimator=None,
-                 root_sampler_eps=0.0,
-                 **kwargs):
+    def __init__(
+            self,
+            g,
+            sampler,
+            *args,
+            root_sampler='random',
+            error_estimator=None,
+            root_sampler_eps=0.0,
+            **kwargs
+    ):
         self.sampler = sampler
         assert root_sampler in {'random', 'pagerank', 'true_root'}
 
@@ -138,8 +145,10 @@ class SamplingBasedGenerator(BaseQueryGenerator):
         self._update_root_sampler(inf_nodes, c)
 
         new_samples = self.sampler.update_samples(
-            inf_nodes, {node: label},
-            root_sampler=self.root_sampler)
+            inf_nodes,
+            {node: label},
+            root_sampler=self.root_sampler
+        )
 
         if not self.sampler.with_resampling:
             # should be deprecated because trees are re-sampled

@@ -7,12 +7,12 @@ def check_tree_samples(qs, c, trees, every=1):
     for i, q in enumerate(qs[:-1]):
         if i % every == 0:
             for t in trees:
-                if c[q] >= 0:
+                if c[q] >= 0:  # query is infected
                     if isinstance(t, set):
                         assert q in t
                     else:
                         assert has_vertex(t, q)
-                else:
+                else:  # query is uninfected
                     if isinstance(t, set):
                         assert q not in t
                     else:

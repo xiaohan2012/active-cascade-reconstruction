@@ -1,20 +1,31 @@
 import pytest
 import numpy as np
-from query_selection import (RandomQueryGenerator, EntropyQueryGenerator,
-                             PRQueryGenerator, PredictionErrorQueryGenerator,
-                             MutualInformationQueryGenerator,
-                             SamplingBasedGenerator,
-                             LatestFirstOracle,
-                             EarliestFirstOracle,
-                             NoMoreQuery)
+from query_selection import (
+    RandomQueryGenerator,
+    EntropyQueryGenerator,
+    PRQueryGenerator,
+    PredictionErrorQueryGenerator,
+    MutualInformationQueryGenerator,
+    SamplingBasedGenerator,
+    LatestFirstOracle,
+    EarliestFirstOracle
+)
 from simulator import Simulator
 from graph_helpers import remove_filters, get_edge_weights
 from fixture import g, line
-from sample_pool import TreeSamplePool
+from sample_pool import (
+    TreeSamplePool,
+    SimulatedCascadePool
+)
 from random_steiner_tree.util import from_gt
 from tree_stat import TreeBasedStatistics
-
-from test_helpers import check_tree_samples, check_error_esitmator, check_samples_so_far
+from cascade_generator import si
+from test_helpers import (
+    check_tree_samples,
+    check_error_esitmator,
+    check_samples_so_far
+)
+from helpers import infected_nodes
 
 
 def iter_callback(g, q_gen, *args):
@@ -93,6 +104,77 @@ def test_query_method(g, query_method, sampling_method, root_sampler, with_inc_s
         check_error_esitmator(qs, aux['c'], error_estimator)
 
 
+@pytest.mark.parametrize("query_method", ['entropy', 'cond_entropy'])
+def test_under_simulated_cascade(g, query_method):
+    n_obs = 5
+    n_samples = 20
+    n_queries = 5
+    
+    print('query_method: ', query_method)
+
+    gv = remove_filters(g)
+    print(gv.num_edges())
+
+    cascade_params = dict(
+        p=0.5,
+        stop_fraction=0.5,
+        cascade_model='si'
+    )
+    source, times, _ = si(
+        g, source=None,
+        p=cascade_params['p'],
+        stop_fraction=cascade_params['stop_fraction']
+    )
+    cascade_params['source'] = source
+
+    inf_nodes = infected_nodes(times)
+    obs = set(np.random.choice(inf_nodes, n_obs, replace=False))
+
+    pool = SimulatedCascadePool(gv, n_samples, cascade_params)
+        
+    error_estimator = TreeBasedStatistics(gv)
+
+    if query_method == 'entropy':
+        q_gen = EntropyQueryGenerator(gv, pool,
+                                      error_estimator=error_estimator,
+                                      root_sampler='random')
+    elif query_method == 'cond_entropy':
+        q_gen = PredictionErrorQueryGenerator(gv, pool,
+                                              error_estimator=error_estimator,
+                                              prune_nodes=True,
+                                              n_node_samples=None,
+                                              root_sampler='random')
+    else:
+        raise ValueError
+
+    sim = Simulator(gv, q_gen, print_log=True)
+
+    qs, aux = sim.run(
+        n_queries,
+        c=times,
+        obs=obs
+    )
+    print('sim.run finished')
+
+    assert len(qs) == n_queries
+    assert set(qs).intersection(set(aux['obs'])) == set()
+
+    for q in qs:
+        if times[q] < 0:
+            print(q)
+            for s in pool.samples:
+                if q in s:
+                    print(s)
+            break
+    assert aux['graph_changed']
+    if query_method in {'entropy', 'error'}:
+        check_tree_samples(qs, times, pool.samples)
+
+    if query_method in {'error'}:
+        # ensure that error estimator updates its tree samples
+        check_error_esitmator(qs, times, error_estimator)
+        
+        
 def test_no_more_query(g):
     gv = remove_filters(g)
 

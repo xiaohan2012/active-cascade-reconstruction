@@ -220,22 +220,26 @@ class SimulatedCascadePool():
         self._cascade_params = cascade_params
         self._samples = []  # a list of sets of integers
 
-    def fill(self, obs):
+        # for downstream compatibility
+        self.with_resampling = False
+
+    def fill(self, obs, **kwargs):
         self._samples = sample_by_simulation(
             self.g, obs,
             n_samples=self.n_samples,
             **self._cascade_params
         )
 
-    def update_samples(self, inf_nodes, node_update_info):
+    def update_samples(self, inf_nodes, node_update_info, **kwargs):
         """
 
         if label=1, assuming `inf_nodes` includes `node` already
-        if label=0, assuming `self.g` removes `node` already
+        if label=0 assuming `self.g` removes `node` already
 
         Return:
         new_samples
         """
+        # print("calling sample_pool.SimulatedCascadePool.update_samples")
         for n, label in node_update_info.items():
             assert label in {0, 1}  # 0: uninfected, 1: infected
 
@@ -251,9 +255,15 @@ class SimulatedCascadePool():
         self._samples = valid_samples + new_samples
 
         assert len(self._samples) == self.n_samples
-
+        # print('#new_samples=', len(new_samples))
+        
         return new_samples
 
     @property
     def samples(self):
         return self._samples
+
+    @property
+    def is_empty(self):
+        return len(self._samples) == 0
+    

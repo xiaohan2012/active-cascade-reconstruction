@@ -38,6 +38,9 @@ class Simulator():
             iters = range(n_queries)
 
         for i in iters:
+            if self.print_log:
+                print('iteration #{}'.format(i))
+
             try:
                 q = self.q_gen.select_query(self.g, inf_nodes)
             except NoMoreQuery:
@@ -54,21 +57,21 @@ class Simulator():
             
             if c[q] == -1:  # not infected
                 if self.print_log:
-                    # print('isolating node {} started'.format(q))
-                    pass
+                    print('query {} is uninfected'.format(q))
 
                 observe_uninfected_node(self.g, q, inf_nodes)
                 if self.gi is not None:
                     isolate_vertex(self.gi, q)
 
                 if self.print_log:
-                    # print('isolating node {} done'.format(q))
-                    pass
+                    print('isolated node {}'.format(q))
 
                 self.q_gen.update_pool(self.g)
                 aux['graph_changed'] = True
                 uninf_nodes.append(q)
             else:
+                if self.print_log:
+                    print('query {} is infected'.format(q))
                 inf_nodes.append(q)
 
             # update tree samples if necessary
