@@ -1,6 +1,7 @@
 import numpy as np
 import random
 from scipy.stats import entropy
+from tqdm import tqdm
 
 from linalg_helpers import num_spanning_trees_dense
 from graph_helpers import (contract_graph_by_nodes,
@@ -147,11 +148,17 @@ def sample_steiner_trees(g, obs,
 def sample_by_simulation(g, obs,
                          cascade_model,
                          n_samples,
+                         debug=True,
                          **kwargs):
     samples = []
     obs = set(obs)
-    
-    for i in range(n_samples):
+
+    if debug:
+        iters = tqdm(range(n_samples), total=n_samples)
+    else:
+        iters = range(n_samples)
+        
+    for i in iters:
         if cascade_model == 'si':
             assert 'p' in kwargs
             assert 'source' in kwargs

@@ -6,9 +6,9 @@ kernprof -l generate_queries.py \
 	 -f '_reversed' \
 	 -q entropy \
 	 -n 5 \
-	 -s 2500 \
+	 -s 100 \
 	 -p 0.00 \
-	 -m loop_erased \
+	 -m simulation \
 	 -r true_root \
 	 -c cascade/grqc-msi-s0.02-o0.1/ \
 	 -d outputs/queries/test/ \

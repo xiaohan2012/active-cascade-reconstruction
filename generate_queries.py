@@ -17,8 +17,8 @@ from query_selection import (RandomQueryGenerator, EntropyQueryGenerator,
 from simulator import Simulator
 from joblib import Parallel, delayed
 from graph_helpers import remove_filters, load_graph_by_name, get_edge_weights
-from helpers import load_cascades
-from sample_pool import TreeSamplePool
+from helpers import load_cascades, cascade_source
+from sample_pool import TreeSamplePool, SimulatedCascadePool
 from random_steiner_tree.util import from_gt
 from tree_stat import TreeBasedStatistics
 
@@ -170,14 +170,29 @@ def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir,
     gi = from_gt(gv, weights=weights)
     
     if issubclass(q_gen_cls, SamplingBasedGenerator):
-        sampler = TreeSamplePool(
-            gv,
-            n_samples=n_samples,
-            method=sampling_method,
-            gi=gi,
-            return_type='nodes',
-            with_resampling=False,
-            with_inc_sampling=incremental_cascade)
+        if sampling_method == 'simulation':
+            print('-' * 30)
+            print('using simulated cascade')
+            print('-' * 30)
+            cascade_params = dict(
+                p=0.5,
+                stop_fraction=0.1,
+                cascade_model='si',
+                source=cascade_source(c)
+            )
+            sampler = SimulatedCascadePool(
+                gv, n_samples, cascade_params
+            )
+        else:
+            sampler = TreeSamplePool(
+                gv,
+                n_samples=n_samples,
+                method=sampling_method,
+                gi=gi,
+                return_type='nodes',
+                with_resampling=False,
+                with_inc_sampling=incremental_cascade
+            )
         args.append(sampler)
         param['error_estimator'] = TreeBasedStatistics(gv)
         
@@ -206,18 +221,40 @@ if args.debug:
     print('====================')
     cls, param = strategy
     for path, tpl in tqdm(cascade_generator):
-        one_round(g, tpl[0], tpl[1], path, cls, param, query_strategy, output_dir, sampling_method,
-                  incremental_cascade,
-                  n_samples,
-                  args.verbose)
+        one_round(
+            g,
+            tpl[0],
+            tpl[1],
+            path,
+            cls,
+            param,
+            query_strategy,
+            output_dir,
+            sampling_method,
+            incremental_cascade,
+            n_samples,
+            args.verbose
+        )
 else:
     # prevent Parallel from hanging
     openmp_set_num_threads(1)
+
+    jobs = (
+        delayed(one_round)(
+            g,
+            tpl[0],
+            tpl[1],
+            path,
+            strategy[0],
+            strategy[1],
+            query_strategy,
+            output_dir,
+            sampling_method,
+            incremental_cascade,
+            n_samples,
+            args.verbose
+        )
+        for path, tpl in tqdm(cascade_generator)
+    )
     
-    Parallel(n_jobs=args.n_jobs)(delayed(one_round)(
-        g, tpl[0], tpl[1], path, strategy[0], strategy[1],
-        query_strategy, output_dir, sampling_method,
-        incremental_cascade,
-        n_samples,
-        args.verbose)
-                                 for path, tpl in tqdm(cascade_generator))
+    Parallel(n_jobs=args.n_jobs)(jobs)
