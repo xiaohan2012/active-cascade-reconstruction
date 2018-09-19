@@ -44,6 +44,7 @@ to achieve so, do the following
 
 ## query
 
+- `run.sh`: run the query selection as well as inference part
 - `query_cascades_with_varying_size.sh`
 - `query_cascades_with_varying_obs_fraction.sh`
 - `query_weighted_graph.sh`: on weighted graph

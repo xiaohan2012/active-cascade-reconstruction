@@ -171,9 +171,9 @@ def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir,
     
     if issubclass(q_gen_cls, SamplingBasedGenerator):
         if sampling_method == 'simulation':
-            print('-' * 30)
-            print('using simulated cascade')
-            print('-' * 30)
+            # print('-' * 30)
+            # print('using simulated cascade')
+            # print('-' * 30)
             cascade_params = dict(
                 p=0.5,
                 stop_fraction=0.1,
