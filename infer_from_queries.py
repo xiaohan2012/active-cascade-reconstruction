@@ -18,12 +18,14 @@ from tree_stat import TreeBasedStatistics
 from root_sampler import build_root_sampler_by_pagerank_score, build_true_root_sampler
 
 
-def infer_probas_from_queries(g, obs, c, queries,
-                              sampling_method, root_sampler_name, n_samples,
-                              with_inc_sampling=False,
-                              every=1,
-                              iter_callback=None,
-                              verbose=False):
+def infer_probas_from_queries(
+        g, obs, c, queries,
+        sampling_method, root_sampler_name, n_samples,
+        with_inc_sampling=False,
+        every=1,
+        iter_callback=None,
+        verbose=False
+):
     n_nodes = g.num_vertices()
 
     assert root_sampler_name in {'random', 'pagerank', 'true_root'}
@@ -44,15 +46,20 @@ def infer_probas_from_queries(g, obs, c, queries,
     
     probas_list = []
 
-    sampler = TreeSamplePool(g, n_samples=n_samples,
-                             method=sampling_method,
-                             gi=gi,
-                             with_inc_sampling=with_inc_sampling,
-                             with_resampling=False,
-                             return_type='nodes')
+    sampler = TreeSamplePool(
+        g, n_samples=n_samples,
+        method=sampling_method,
+        gi=gi,
+        with_inc_sampling=with_inc_sampling,
+        with_resampling=False,
+        return_type='nodes'
+    )
+    
     estimator = TreeBasedStatistics(g)
-    sampler.fill(obs,
-                 root_sampler=root_sampler)
+    sampler.fill(
+        obs,
+        root_sampler=root_sampler
+    )
     estimator.build_matrix(sampler.samples)
 
     # initial step (without any queries)
@@ -130,7 +137,8 @@ def one_round(g, obs, c, c_path,
               debug=False,
               verbose=False):
     print('\ninference {} started, query_method={}, root_sampler={}, \n'.format(
-        c_path, query_method, root_sampler))
+        c_path, query_method, root_sampler)
+    )
     stime = time.time()
 
     cid = os.path.basename(c_path).split('.')[0]
@@ -162,7 +170,8 @@ def one_round(g, obs, c, c_path,
     print('\ninference {} done (query_method={}, inference_method={}): taking {:.4f} secs\n'.format(
         c_path,
         query_method, inference_method,
-        time.time() - stime))
+        time.time() - stime
+    ))
 
 
 if __name__ == '__main__':
@@ -236,26 +245,41 @@ if __name__ == '__main__':
     cascades = load_cascades(args.cascade_dir)
 
     if not args.debug:
-        openmp_set_num_threads(1)  # prevent jobjib from hanging
-        Parallel(n_jobs=args.n_jobs)(delayed(one_round)(
-            g, tpl[0], tpl[1], path, args.query_method,
-            args.inference_method,
-            query_dirname,
-            inf_proba_dirname, n_samples=n_samples,
-            root_sampler=args.root_sampler,
-            with_inc_sampling=args.with_inc_sampling,
-            sampling_method=args.sampling_method,
-            every=args.eval_every,
-            verbose=args.verbose)
-                                     for path, tpl in tqdm(cascades))
+        openmp_set_num_threads(1)  # prevent joblib from hanging
+        jobs = (
+            delayed(one_round)(
+                g,
+                tpl[0],
+                tpl[1],
+                path,
+                args.query_method,
+                args.inference_method,
+                query_dirname,
+                inf_proba_dirname, n_samples=n_samples,
+                root_sampler=args.root_sampler,
+                with_inc_sampling=args.with_inc_sampling,
+                sampling_method=args.sampling_method,
+                every=args.eval_every,
+                verbose=args.verbose
+            )
+            for path, tpl in tqdm(cascades)
+        )
+        
+        Parallel(n_jobs=args.n_jobs)(jobs)
     else:
         for path, tpl in tqdm(cascades):
-            one_round(g, tpl[0], tpl[1], path, args.query_method,
-                      args.inference_method,
-                      query_dirname,
-                      inf_proba_dirname, n_samples=n_samples,
-                      root_sampler=args.root_sampler,
-                      with_inc_sampling=args.with_inc_sampling,
-                      every=args.eval_every,
-                      sampling_method=args.sampling_method,
-                      verbose=args.verbose)
+            one_round(
+                g,
+                tpl[0],
+                tpl[1],
+                path,
+                args.query_method,
+                args.inference_method,
+                query_dirname,
+                inf_proba_dirname, n_samples=n_samples,
+                root_sampler=args.root_sampler,
+                with_inc_sampling=args.with_inc_sampling,
+                every=args.eval_every,
+                sampling_method=args.sampling_method,
+                verbose=args.verbose
+            )

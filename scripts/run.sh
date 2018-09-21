@@ -14,7 +14,7 @@ cascade_fraction=0.1
 obs_fraction=0.2
 obs_methods=("uniform")
 
-n_tree_samples=250
+n_tree_samples=100  # 2500
 sample_method="simulation"
 
 root_sampler='true_root'
@@ -24,7 +24,7 @@ root_sampler='true_root'
 # query_methods=(oracle-e oracle-l)
 # query_methods=(prediction_error mutual-info entropy)
 query_methods=(entropy prediction_error)
-n_queries=500
+n_queries=200  # 500
 eval_every_k=5
  # 0.2 0.3 0.4 0.5
 # obs_fractions=(0.1)
@@ -55,7 +55,7 @@ for graph in ${graphs}; do
 		    -m ${sample_method} \
 		    -c ${cascade_dir} \
 		    -d outputs/queries-weighted/${dataset_id}/${sample_method}/${query_method}  \
-		    -j ${n_jobs}
+		    -j ${n_jobs} --verbose
 
 	    # python3 infer_from_queries.py \
 	    # 	    -g ${graph} \
