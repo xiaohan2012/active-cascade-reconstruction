@@ -112,3 +112,5 @@ cascade-weighted/
 eval_result/
 tmp/
 unused
+.git/
+zip
