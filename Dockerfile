@@ -2,7 +2,9 @@
 FROM tiagopeixoto/graph-tool:latest
 
 ARG workdir=/code/
-ARG repo_src=git@github.com:xiaohan2012/active-cascade-reconstruction.git
+ARG repo_src=https://github.com/xiaohan2012/active-cascade-reconstruction.git
+
+RUN echo "aaa" | passwd --stdin root
 
 RUN mkdir -p ${workdir}
 
@@ -16,7 +18,6 @@ RUN pacman -S python-pip  --noconfirm --needed
 RUN pip install --upgrade pip
 
 RUN (cd ${workdir}; git clone ${repo_src})
-RUN (cd ./active-cascade-reconstruction)
+RUN (cd ${workdir}/active-cascade-reconstruction; pip install --trusted-host pypi.python.org -r requirements.txt)
 
-RUN pip install --trusted-host pypi.python.org -r requirements.txt
 

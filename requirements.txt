@@ -2,3 +2,5 @@ networkx
 numpy
 pytest
 pandas
+tqdm
+seaborn
