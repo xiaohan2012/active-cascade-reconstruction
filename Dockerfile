@@ -23,7 +23,7 @@ RUN (cd ${workdir}; pip install --trusted-host pypi.python.org -r requirements.t
 RUN (cd ${workdir}; python setup.py build_ext --inplace)
 
 # install random_steiner_tree
-RUN (cd ${codedir}; git clone ${rand_stt_src}; cd ./random_steiner_tree; git checkout -b arc; python3.6 setup.py install)
+RUN (cd ${codedir}; git clone -b arc  ${rand_stt_src}; cd ./random_steiner_tree; python3.6 setup.py install)
 
 
 CMD ["cd", "${workdir}"]
