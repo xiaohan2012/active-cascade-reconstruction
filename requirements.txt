@@ -6,3 +6,4 @@ tqdm
 seaborn
 sklearn
 Cython
+joblib
