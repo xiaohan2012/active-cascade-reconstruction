@@ -1,5 +1,28 @@
 # sampling-steiner-tree
 
+# get started
+
+We made a Docker image that provides the running environment, you can pull from the Docker:
+
+```
+> docker pull xiaohan2012/active_cascade_reconstruction
+```
+
+Then, you can enter the container's shell environment:
+
+```
+> cd active_cascade_reconstruction
+> ./start_docker.sh
+# (now, you are in docker container)
+```
+
+To test the code,
+
+```
+> cd /code/active_cascade_reconstruction
+> pytest test*.py
+```
+
 # algorithm files:
 
 - query selection algorithms
