@@ -10,14 +10,12 @@ from tree_stat import TreeBasedStatistics
 from fixture import g, gi, obs
 
 
-@pytest.mark.parametrize("with_inc_sampling", [True, False])
-def test_inf_probas_shape(g, gi, obs, with_inc_sampling):
+def test_inf_probas_shape(g, gi, obs):
     """might fail if the removed vertex isolates some observed nodes
     """
     error_estimator = TreeBasedStatistics(g)
     sampler = TreeSamplePool(g, 25, 'cut', gi=gi,
-                             return_type='nodes',
-                             with_inc_sampling=with_inc_sampling)
+                             return_type='nodes')
     sampler.fill(obs)
     error_estimator.build_matrix(sampler.samples)
 

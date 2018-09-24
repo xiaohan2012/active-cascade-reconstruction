@@ -184,29 +184,3 @@ def ic(g, p, source=None, return_tree_edges=False,
         # tree = filter_graph_by_edges(gv, tree_edges)
     
     return source, times, tree_edges
-
-
-def incremental_simulation(g, c, p, num_nodes, return_new_edges=False):
-    """incrementally add edges to given cascade
-    num_nodes is passed bacause vfilt might be passed
-    """
-    # print('incremental_simulation -> g', g)
-    gv = sample_graph_by_p(g, p)
-
-    new_infected_nodes = set(infected_nodes(c))
-    comp = label_components(gv)[0]
-    covered_cids = set()
-    for v in infected_nodes(c):
-        cid = comp[v]
-        if cid not in covered_cids:
-            new_infected_nodes |= set((comp.a == cid).nonzero()[0])
-            covered_cids.add(cid)
-    
-    new_c = np.ones(g.num_vertices()) * (-1)
-    new_c[list(new_infected_nodes)] = 1
-
-    if return_new_edges:
-        raise Exception("`return_new_edges` not supported anymore")
-    else:
-        return new_c
-

@@ -21,7 +21,6 @@ from root_sampler import build_root_sampler_by_pagerank_score, build_true_root_s
 def infer_probas_from_queries(
         g, obs, c, queries,
         sampling_method, root_sampler_name, n_samples,
-        with_inc_sampling=False,
         every=1,
         iter_callback=None,
         verbose=False
@@ -50,7 +49,6 @@ def infer_probas_from_queries(
         g, n_samples=n_samples,
         method=sampling_method,
         gi=gi,
-        with_inc_sampling=with_inc_sampling,
         with_resampling=False,
         return_type='nodes'
     )
@@ -133,7 +131,6 @@ def one_round(g, obs, c, c_path,
               every=1,
               root_sampler=None,
               sampling_method='loop_erased',
-              with_inc_sampling=False,
               debug=False,
               verbose=False):
     print('\ninference {} started, query_method={}, root_sampler={}, \n'.format(
@@ -160,7 +157,6 @@ def one_round(g, obs, c, c_path,
                                                       sampling_method,
                                                       root_sampler,
                                                       n_samples,
-                                                      with_inc_sampling=with_inc_sampling,
                                                       every=every,
                                                       verbose=verbose)
         pkl.dump(probas_list, open(path, 'wb'))
@@ -194,9 +190,6 @@ if __name__ == '__main__':
                         choices=('loop_erased', 'cut'),
                         help='')
 
-    parser.add_argument('-i', '--with_inc_sampling',
-                        action='store_true',
-                        help='whether with incremental sampling or not')
     parser.add_argument('--query_method',
                         help='query method used for infer hidden infections')
     parser.add_argument('-r', '--root_sampler', type=str,
@@ -257,7 +250,6 @@ if __name__ == '__main__':
                 query_dirname,
                 inf_proba_dirname, n_samples=n_samples,
                 root_sampler=args.root_sampler,
-                with_inc_sampling=args.with_inc_sampling,
                 sampling_method=args.sampling_method,
                 every=args.eval_every,
                 verbose=args.verbose
@@ -278,7 +270,6 @@ if __name__ == '__main__':
                 query_dirname,
                 inf_proba_dirname, n_samples=n_samples,
                 root_sampler=args.root_sampler,
-                with_inc_sampling=args.with_inc_sampling,
                 every=args.eval_every,
                 sampling_method=args.sampling_method,
                 verbose=args.verbose

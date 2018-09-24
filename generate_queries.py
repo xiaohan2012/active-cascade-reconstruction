@@ -56,9 +56,6 @@ parser.add_argument('-r', '--root_sampler', type=str,
                     help='the steiner tree sampling method')
 parser.add_argument('-s', '--n_samples', default=100, type=int,
                     help='number of samples')
-parser.add_argument('-i', '--incremental_cascade', action='store_true',
-                    help='whether enable incremental cascade (probabilistic trimming) ' +
-                    'for tree samples or not')
 
 # specific to prediction error-based sampler
 parser.add_argument('-p', '--min_proba', default=0.0, type=float,
@@ -93,7 +90,6 @@ root_sampler = args.root_sampler
 # output_dir = '{}/{}'.format(args.output_dir, graph_name)
 output_dir = args.output_dir
 sampling_method = args.sampling_method
-incremental_cascade = args.incremental_cascade
 query_strategy = args.query_strategy
 
 # for prediction error-based query selector
@@ -146,7 +142,6 @@ else:
 
 def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir,
               sampling_method,
-              incremental_cascade,
               n_samples,
               verbose):
     stime = time.time()
@@ -190,8 +185,7 @@ def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir,
                 method=sampling_method,
                 gi=gi,
                 return_type='nodes',
-                with_resampling=False,
-                with_inc_sampling=incremental_cascade
+                with_resampling=False
             )
         args.append(sampler)
         param['error_estimator'] = TreeBasedStatistics(gv)
@@ -231,7 +225,6 @@ if args.debug:
             query_strategy,
             output_dir,
             sampling_method,
-            incremental_cascade,
             n_samples,
             args.verbose
         )
@@ -250,7 +243,6 @@ else:
             query_strategy,
             output_dir,
             sampling_method,
-            incremental_cascade,
             n_samples,
             args.verbose
         )

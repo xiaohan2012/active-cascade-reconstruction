@@ -12,13 +12,11 @@ from proba_helpers import tree_probability_gt, ic_cascade_probability_gt
 from core import sample_by_simulation
 from core1 import matching_trees
 from helpers import infected_nodes
-from cascade_generator import incremental_simulation
 
 
 class TreeSamplePool():
     def __init__(self, g, n_samples, method,
                  gi=None,
-                 with_inc_sampling=False,
                  with_resampling=False,
                  true_casacde_proba_func=ic_cascade_probability_gt,
                  return_type='nodes'):
@@ -29,7 +27,6 @@ class TreeSamplePool():
         self.gi = gi
         self.method = method
         self.return_type = return_type
-        self.with_inc_sampling = with_inc_sampling
         self._samples = []
 
         self.true_casacde_proba_func = true_casacde_proba_func
@@ -44,7 +41,6 @@ class TreeSamplePool():
         else:
             self._internal_return_type = return_type
 
-        # print('DEBUG: TreeSamplePool.with_inc_sampling=', self.with_inc_sampling)
 
     def fill(self, obs, **kwargs):
         self._samples = sample_steiner_trees(
@@ -55,30 +51,11 @@ class TreeSamplePool():
             gi=self.gi,
             **kwargs)
 
-        if self.with_inc_sampling:
-            self._samples = [self.add_incremental_edges(s)
-                             for s in self._samples]
-
         if self.with_resampling:
             print('DEBUG: TreeSamplePool.with_resampling=', self.with_resampling)
             self._old_samples = self._samples
             self._samples = self.resample_trees(self._samples)
 
-    def add_incremental_edges(self, tree_nodes):
-        if isinstance(tree_nodes, GraphView):
-            raise TypeError('add_incremental_edges does not support GraphView yet. ' +
-                            'Please pass in a set of nodes')
-        fake_c = np.ones(self.num_nodes) * (-1)
-        fake_c[list(tree_nodes)] = 1
-
-        edge_weights = get_edge_weights(self.g)
-        assert edge_weights is not None, 'for incremental edge addition, edge weight should be given'
-
-        new_c = incremental_simulation(self.g, fake_c, edge_weights,
-                                       self.num_nodes,
-                                       return_new_edges=False)
-
-        return set(infected_nodes(new_c))
 
     # @profile
     def update_samples(self, inf_nodes, node_update_info, **kwargs):
@@ -115,11 +92,6 @@ class TreeSamplePool():
             return_type=self._internal_return_type,
             gi=self.gi,
             **kwargs)
-
-        if self.with_inc_sampling:
-            # print('With incremental sampling')
-            new_samples = [self.add_incremental_edges(t)
-                           for t in new_samples]
 
         self._samples = valid_samples + new_samples
 

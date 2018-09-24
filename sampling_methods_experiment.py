@@ -18,40 +18,12 @@ from tree_stat import TreeBasedStatistics
 from random_steiner_tree.util import from_gt
 
 from root_sampler import build_root_sampler_by_pagerank_score
-# from sklearn.metrics import average_precision_score
 
 
-def incremental_simulation(g, c, p, return_new_edges=False):
-    visited = {v: False for v in np.arange(g.num_vertices())}
-    new_c = copy(c)
-    for v in infected_nodes(c):
-        visited[v] = True
-
-    if return_new_edges:
-        new_edges = []
-        
-    queue = list(infected_nodes(c))
-    while len(queue) > 0:
-        u = queue.pop(0)
-        uu = g.vertex(u)
-        for e in uu.out_edges():
-            v = int(e.target())
-            if np.random.random() <= p[e] and not visited[v]:  # active
-                if return_new_edges:
-                    new_edges.append((u, v))
-                new_c[v] = c[u] + 1
-                visited[v] = True
-                queue.append(v)
-
-    if return_new_edges:
-        return (new_c, new_edges)
-    else:
-        return new_c
-
-
-def one_run(g, norm_g, q, eps, root_sampler_name, min_size, max_size,
-            observation_method="uniform",
-            with_inc=False):
+def one_run(
+        g, norm_g, q, eps, root_sampler_name, min_size, max_size,
+        observation_method="uniform"
+):
     print("observation_method", observation_method)
 
     n_samples = 100
@@ -86,25 +58,6 @@ def one_run(g, norm_g, q, eps, root_sampler_name, min_size, max_size,
     node_stat = TreeBasedStatistics(g, st_tree_nodes)
     st_naive_probas = node_stat.unconditional_proba()
 
-    if with_inc:
-        # method 3
-        # with incremental cascade simulation
-        st_tree_nodes = sample_steiner_trees(g, obs, root=root_sampler(),
-                                             method='cut', n_samples=n_samples, gi=gi,
-                                             return_tree_nodes=True)
-        new_tree_nodes = []
-        for nodes in st_tree_nodes:
-            fake_c = np.ones(g.num_vertices()) * (-1)
-            fake_c[list(nodes)] = 1
-            new_c = incremental_simulation(g, fake_c, p, return_new_edges=False)
-            new_tree_nodes.append(infected_nodes(new_c))
-        node_stat = TreeBasedStatistics(g, new_tree_nodes)
-        st_tree_inc_probas = node_stat.unconditional_proba()
-            
-        # y_true = np.zeros((len(c), ))
-        # y_true[inf_nodes] = 1
-
-        # mask = np.array([(i not in obs) for i in range(len(c))])
 
     row = {
         'c': c,
@@ -112,11 +65,6 @@ def one_run(g, norm_g, q, eps, root_sampler_name, min_size, max_size,
         'st_naive_probas': st_naive_probas
     }
 
-    if with_inc:
-        row['st_tree_inc_probas'] = st_tree_inc_probas
-    # # for inf_probas in [brute_force_inf_probas, st_naive_probas, st_tree_inc_probas]:
-    # for inf_probas in [st_naive_probas, st_tree_inc_probas]:
-    #     row.append(average_precision_score(y_true[mask], inf_probas[mask]))
     return row
 
 
@@ -169,15 +117,15 @@ if __name__ == '__main__':
     print('norm_g.num_edges()', norm_g.num_edges())
     
     result = {}
-    # if False:
+
     for eps in [0.0, 0.5]:
         rows = Parallel(n_jobs=-1)(delayed(one_run)(g, norm_g, q, eps, 'pagerank',
                                                     min_size, max_size,
                                                     observation_method=observation_method)
                                    for i in tqdm(range(n_runs), total=n_runs))
-        # df = pd.DataFrame(rows, columns=['st_vanilla', 'st_inc'])
+
         print('pagerank, eps=', eps)
-        # print(df.describe())
+
         result['pagerank-eps{}'.format(eps)] = rows
 
     print('root sampler = None')
@@ -185,8 +133,7 @@ if __name__ == '__main__':
                                                 min_size, max_size,
                                                 observation_method=observation_method)
                                for i in tqdm(range(n_runs), total=n_runs))
-    # df = pd.DataFrame(rows, columns=['st_vanilla', 'st_inc'])
-    # print(df.describe())
+
     result['random_root'] = rows
 
     print('root sampler = real source')
@@ -194,8 +141,6 @@ if __name__ == '__main__':
                                                 min_size, max_size,
                                                 observation_method=observation_method)
                                for i in tqdm(range(n_runs), total=n_runs))
-    # df = pd.DataFrame(rows, columns=['st_vanilla', 'st_inc'])
-    # print(df.describe())
     result['true_root'] = rows
 
     pkl.dump(result, open(args.output_path, 'wb'))

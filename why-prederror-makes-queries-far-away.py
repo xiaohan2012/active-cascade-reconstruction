@@ -102,8 +102,7 @@ sampler = TreeSamplePool(
     method=sampling_method,
     gi=gi,
     return_type='nodes',
-    with_resampling=False,
-    with_inc_sampling=False)
+    with_resampling=False)
 
 params = {'n_node_samples': None,
           'prune_nodes': True,
@@ -312,8 +311,7 @@ sampler = TreeSamplePool(
     n_samples=250,
     method='cut',
     gi=gi,
-    return_type='tuples',
-    with_inc_sampling=False)
+    return_type='tuples')
 sampler.fill(obs,
              root_sampler=build_true_root_sampler(c))
 sample_sizes =[len(s)-1 for i, s in enumerate(sampler.samples)]
@@ -383,8 +381,7 @@ sampler = TreeSamplePool(
     n_samples=1,
     method='cut',
     gi=gi,
-    return_tree_nodes=False,
-    with_inc_sampling=False)
+    return_tree_nodes=False)
 sampler.fill(obs,
              root_sampler=build_true_root_sampler(c))
 
