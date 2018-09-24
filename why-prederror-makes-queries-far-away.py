@@ -26,7 +26,7 @@ from graph_helpers import load_graph_by_name, remove_filters, get_edge_weights, 
 from random_steiner_tree.util import from_gt
 from viz_helpers import lattice_node_pos
 from sample_pool import TreeSamplePool
-from query_selection import PredictionErrorQueryGenerator
+from query_selection import CondEntropyQueryGenerator
 from simulator import Simulator
 from tree_stat import TreeBasedStatistics
 from experiment import gen_input
@@ -111,7 +111,7 @@ params = {'n_node_samples': None,
           'min_proba': 0.0,
           'n_node_samples': None,
           'error_estimator': TreeBasedStatistics(gv)}
-q_gen = PredictionErrorQueryGenerator(gv, sampler, **params, verbose=True)
+q_gen = CondEntropyQueryGenerator(gv, sampler, **params, verbose=True)
 sim = Simulator(gv, q_gen, gi=gi, print_log=True)
 
 

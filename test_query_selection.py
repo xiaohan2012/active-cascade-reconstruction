@@ -4,7 +4,7 @@ from query_selection import (
     RandomQueryGenerator,
     EntropyQueryGenerator,
     PRQueryGenerator,
-    PredictionErrorQueryGenerator,
+    CondEntropyQueryGenerator,
     MutualInformationQueryGenerator,
     SamplingBasedGenerator,
     LatestFirstOracle,
@@ -34,7 +34,7 @@ def iter_callback(g, q_gen, *args):
                              q_gen.error_estimator, *args)
 
 
-@pytest.mark.parametrize("query_method", ['random', 'pagerank', 'entropy', 'error', 'mutual-info'])
+@pytest.mark.parametrize("query_method", ['random', 'pagerank', 'entropy', 'cond_entropy', 'mutual-info'])
 @pytest.mark.parametrize("sampling_method", ['loop_erased', 'cut'])
 @pytest.mark.parametrize("root_sampler", ['true_root', 'random'])
 def test_query_method(g, query_method, sampling_method, root_sampler):
@@ -46,7 +46,7 @@ def test_query_method(g, query_method, sampling_method, root_sampler):
     print(gv.num_edges())
     edge_weights = get_edge_weights(gv)
 
-    if query_method in {'entropy', 'error', 'mutual-info'}:
+    if query_method in {'entropy', 'cond_entropy', 'mutual-info'}:
         gi = from_gt(g, edge_weights)
     else:
         gi = None
@@ -69,8 +69,8 @@ def test_query_method(g, query_method, sampling_method, root_sampler):
         q_gen = EntropyQueryGenerator(gv, pool,
                                       error_estimator=error_estimator,
                                       root_sampler=root_sampler)
-    elif query_method == 'error':
-        q_gen = PredictionErrorQueryGenerator(gv, pool,
+    elif query_method == 'cond_entropy':
+        q_gen = CondEntropyQueryGenerator(gv, pool,
                                               error_estimator=error_estimator,
                                               prune_nodes=True,
                                               n_node_samples=None,
@@ -94,10 +94,10 @@ def test_query_method(g, query_method, sampling_method, root_sampler):
     assert len(qs) == n_queries
     assert set(qs).intersection(set(aux['obs'])) == set()
 
-    if query_method in {'entropy', 'error', 'weighted-prederror'}:
+    if query_method in {'entropy', 'cond_entropy'}:
         check_tree_samples(qs, aux['c'], q_gen.sampler.samples)
 
-    if query_method in {'error', 'weighted-prederror'}:
+    if query_method in {'cond_entropy'}:
         # ensure that error estimator updates its tree samples
         check_error_esitmator(qs, aux['c'], error_estimator)
 
@@ -138,7 +138,7 @@ def _test_under_simulated_cascade(g, query_method):
                                       error_estimator=error_estimator,
                                       root_sampler='random')
     elif query_method == 'cond_entropy':
-        q_gen = PredictionErrorQueryGenerator(gv, pool,
+        q_gen = CondEntropyQueryGenerator(gv, pool,
                                               error_estimator=error_estimator,
                                               prune_nodes=True,
                                               n_node_samples=None,
@@ -166,10 +166,10 @@ def _test_under_simulated_cascade(g, query_method):
                     print(s)
             break
     assert aux['graph_changed']
-    if query_method in {'entropy', 'error'}:
+    if query_method in {'entropy', 'cond_entropy'}:
         check_tree_samples(qs, times, pool.samples)
 
-    if query_method in {'error'}:
+    if query_method in {'cond_entropy'}:
         # ensure that error estimator updates its tree samples
         check_error_esitmator(qs, times, error_estimator)
         
@@ -184,7 +184,7 @@ def test_no_more_query(g):
     assert len(qs) < g.num_vertices()
 
 
-def build_simulator_using_prediction_error_query_selector(g, **kwargs):
+def build_simulator_using_cond_entropy_query_selector(g, **kwargs):
     gv = remove_filters(g)
     gi = from_gt(g)
     pool = TreeSamplePool(
@@ -195,7 +195,7 @@ def build_simulator_using_prediction_error_query_selector(g, **kwargs):
         return_type='nodes'  # using tree nodes
     )
 
-    q_gen = PredictionErrorQueryGenerator(gv, pool,
+    q_gen = CondEntropyQueryGenerator(gv, pool,
                                           error_estimator=TreeBasedStatistics(gv),
                                           root_sampler='random',
                                           **kwargs)
@@ -203,12 +203,12 @@ def build_simulator_using_prediction_error_query_selector(g, **kwargs):
 
 
 @pytest.mark.parametrize("repeat_id", range(5))
-def test_prediction_error_with_candidate_pruning(g, repeat_id):
+def test_cond_entropy_with_candidate_pruning(g, repeat_id):
     min_probas = [0, 0.1, 0.2, 0.3, 0.4]
     cand_nums = []
 
     for min_proba in min_probas:
-        sim, q_gen = build_simulator_using_prediction_error_query_selector(
+        sim, q_gen = build_simulator_using_cond_entropy_query_selector(
             g, prune_nodes=True, min_proba=min_proba)
 
         sim.run(0)  # just get the candidates
@@ -221,10 +221,10 @@ def test_prediction_error_with_candidate_pruning(g, repeat_id):
         assert prev >= cur
 
 
-def test_prediction_error_sample_nodes_for_estimation(g):
+def test_cond_entropy_sample_nodes_for_estimation(g):
     n_node_samples_list = [10, 20, 30, 40, 50]
     for n_node_samples in n_node_samples_list:
-        sim, q_gen = build_simulator_using_prediction_error_query_selector(
+        sim, q_gen = build_simulator_using_cond_entropy_query_selector(
             g, n_node_samples=n_node_samples)
         sim.run(0)
 

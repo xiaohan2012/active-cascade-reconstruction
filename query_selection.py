@@ -181,7 +181,7 @@ class EntropyQueryGenerator(SamplingBasedGenerator):
         return q
 
 
-class PredictionErrorQueryGenerator(SamplingBasedGenerator):
+class CondEntropyQueryGenerator(SamplingBasedGenerator):
     """OUR CONTRIBUTION"""
     def __init__(self, *args,
                  prune_nodes=False,
@@ -195,7 +195,7 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
         self.n_node_samples = n_node_samples
         self.prune_nodes = prune_nodes
 
-        super(PredictionErrorQueryGenerator, self).__init__(*args, **kwargs)
+        super(CondEntropyQueryGenerator, self).__init__(*args, **kwargs)
 
     def _sample_nodes_for_estimation(self):
         # use node samples to estimate prediction error
@@ -274,37 +274,7 @@ class PredictionErrorQueryGenerator(SamplingBasedGenerator):
         return best_q
 
 
-class WeightedPredictionErrorQueryGenerator(PredictionErrorQueryGenerator):
-    def _select_query(self, g, inf_nodes):
-        self._prepare_for_selection(inf_nodes)
-
-        def score(q):
-            nodes = set(self.node_samples) - {q}
-            if len(nodes) == 0:
-                return float('inf')  # throw this node away
-            else:
-                return self.error_estimator.query_score(
-                    q, nodes,
-                    node_weights='uncond_proba',
-                    return_verbose=True)
-
-        q2score = {}
-        self.aux = {}
-        # for q in tqdm(self._cand_pool)
-        for q in self._cand_pool:
-            q2score[q], other_stuff = score(q)
-            self.aux[q] = other_stuff
-
-        if len(self._cand_pool) == 0:
-            raise NoMoreQuery
-
-        best_q = min(self._cand_pool, key=q2score.__getitem__)
-        self.query_scores = q2score
-
-        return best_q
-
-
-class MutualInformationQueryGenerator(PredictionErrorQueryGenerator):
+class MutualInformationQueryGenerator(CondEntropyQueryGenerator):
     def _select_query(self, g, inf_nodes):
         self._prepare_for_selection(inf_nodes)
 

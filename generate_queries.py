@@ -9,8 +9,7 @@ from tqdm import tqdm
 from graph_tool import openmp_set_num_threads
 
 from query_selection import (RandomQueryGenerator, EntropyQueryGenerator,
-                             PRQueryGenerator, PredictionErrorQueryGenerator,
-                             WeightedPredictionErrorQueryGenerator,
+                             PRQueryGenerator, CondEntropyQueryGenerator,
                              SamplingBasedGenerator,
                              MutualInformationQueryGenerator,
                              EarliestFirstOracle, LatestFirstOracle)
@@ -35,8 +34,7 @@ parser.add_argument('-q', '--query_strategy',
                     choices={'random',
                              'pagerank',
                              'entropy',
-                             'prediction_error',
-                             'weighted-cond-ent',
+                             'cond-entropy',
                              'mutual-info',
                              'oracle-e',
                              'oracle-l'},
@@ -110,23 +108,15 @@ elif query_strategy == 'pagerank':
 elif query_strategy == 'entropy':
     strategy = (EntropyQueryGenerator, {'method': 'entropy', 'root_sampler': root_sampler,
                                         'root_sampler_eps': args.root_pagerank_noise})
-elif query_strategy == 'prediction_error':
+elif query_strategy == 'cond-entropy':
     print("min_proba={}".format(min_proba))
     print("num_estimation_nodes={}".format(num_estimation_nodes))
-    strategy = (PredictionErrorQueryGenerator, {'n_node_samples': None,
+    strategy = (CondEntropyQueryGenerator, {'n_node_samples': None,
                                                 'prune_nodes': True,
                                                 'root_sampler': root_sampler,
                                                 'root_sampler_eps': args.root_pagerank_noise,
                                                 'min_proba': min_proba,
                                                 'n_node_samples': num_estimation_nodes})
-elif query_strategy == 'weighted-cond-ent':
-    strategy = (WeightedPredictionErrorQueryGenerator,
-                {'n_node_samples': None,
-                 'prune_nodes': True,
-                 'root_sampler': root_sampler,
-                 'root_sampler_eps': args.root_pagerank_noise,
-                 'min_proba': min_proba,
-                 'n_node_samples': num_estimation_nodes})
 
 elif query_strategy == 'mutual-info':
     strategy = (MutualInformationQueryGenerator,
