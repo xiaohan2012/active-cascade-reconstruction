@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from inference import infer_infected_nodes, infection_probability
+from inference import infection_probability
 from graph_helpers import (gen_random_spanning_tree, extract_nodes,
                            remove_filters,
                            observe_uninfected_node)
@@ -44,28 +44,3 @@ def test_inf_probas_shape(g, gi, obs):
             assert probas[r] == 0
         for o in obs:
             assert probas[o] == 1.0
-
-
-def test_infer_infected_nodes_sampling_approach(g, gi, obs):
-    error_estimator = TreeBasedStatistics(g)
-    sampler = TreeSamplePool(g, 100, 'cut', gi=gi,
-                             return_type='nodes')
-    sampler.fill(obs)
-    error_estimator.build_matrix(sampler.samples)
-
-    g = remove_filters(g)
-
-    # with min steiner trees
-    inf_nodes = infer_infected_nodes(g, obs, estimator=None, use_proba=False, method="min_steiner_tree")
-    # simple test, just make sure observation is in the prediction
-    assert set(obs).issubset(set(inf_nodes))
-
-    # sampling approach without probability
-    inf_nodes2 = infer_infected_nodes(g, obs, estimator=error_estimator, use_proba=False, method="sampling")
-    assert set(obs).issubset(set(inf_nodes2))
-
-    # sampling approach with probability
-    probas = infer_infected_nodes(g, obs, estimator=error_estimator, use_proba=True, method="sampling")
-
-    assert isinstance(probas, np.ndarray)
-    assert probas.dtype == np.float

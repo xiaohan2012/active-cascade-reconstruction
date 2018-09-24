@@ -1,16 +1,17 @@
 import pytest
 import numpy as np
 import math
-from infer_from_queries import (infer_probas_from_queries)
+from infer_from_queries import infer_probas_from_queries
 from fixture import g
 from experiment import gen_input
 from graph_helpers import get_edge_weights
 from test_helpers import check_tree_samples, check_error_esitmator, check_samples_so_far
 
 
-@pytest.mark.parametrize("cid", range(2))
+
+@pytest.mark.parametrize("cid", range(3))
 @pytest.mark.parametrize("sampling_method", ['cut', 'loop_erased'])
-@pytest.mark.parametrize("root_sampler_name", ['random', 'pagerank', 'true_root'])
+@pytest.mark.parametrize("root_sampler_name", ['pagerank', 'true_root'])
 def test_infer_probas_for_queries_sampling_approach(
         g, cid, sampling_method, root_sampler_name
 ):
@@ -24,10 +25,12 @@ def test_infer_probas_for_queries_sampling_approach(
         g, obs, c, queries,
         sampling_method,
         root_sampler_name=root_sampler_name,
-        n_samples=100)
+        n_samples=100
+    )
 
     assert len(inf_proba_list) == n_queries + 1
     for i, probas in enumerate(inf_proba_list):
+        print("iteration", i)
         assert probas.shape == (g.num_vertices(), )
 
         for o in obs:
