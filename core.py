@@ -120,8 +120,7 @@ def sample_by_simulation(g, obs,
 
 def uncertainty_scores(g, obs,
                        sampler,
-                       error_estimator,
-                       normalize_p=None):
+                       error_estimator):
     """
     calculate uncertainty scores based on sampled steiner trees
 
@@ -141,22 +140,10 @@ def uncertainty_scores(g, obs,
         sampler.fill(obs)
 
     p = infection_probability(g, obs, sampler, error_estimator)
-    # print('p', p)
     non_obs_nodes = set(extract_nodes(g)) - set(obs)
 
-    if normalize_p == 'div_max':
-        mask = np.ones(len(p), dtype=np.bool)
-        mask[obs] = 0
-        p[mask] /= p[mask].max()
-    elif normalize_p is None:
-        pass
-    else:
-        raise ValueError('unrecognized "normalize_p" {}'.format(
-            normalize_p))
-        # print('p (normalized)', p)
-
     uncert = [entropy([v, 1-v]) for v in p]
-    # print(uncert)
+
     r = {n: uncert[n]
          for n in non_obs_nodes}
     return r

@@ -12,16 +12,14 @@ from random_steiner_tree.util import isolate_vertex, edges as gi_edges
 from fixture import g, gi, obs
 
 
-@pytest.mark.parametrize("normalize_p", ['div_max', None])
 @pytest.mark.parametrize("sampling_method", ['cut', 'loop_erased'])
-def test_uncertainty_scores(g, gi, obs, normalize_p, sampling_method):
+def test_uncertainty_scores(g, gi, obs, sampling_method):
     estimator = TreeBasedStatistics(g)
     sampler = TreeSamplePool(g, 25, sampling_method, gi=gi,
                              return_type='nodes')
     sampler.fill(obs)
 
-    scores = uncertainty_scores(g, obs, sampler, estimator,
-                                normalize_p=normalize_p)
+    scores = uncertainty_scores(g, obs, sampler, estimator)
 
     with pytest.raises(KeyError):
         for o in obs:
