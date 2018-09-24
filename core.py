@@ -167,8 +167,14 @@ def sample_by_simulation(g, obs,
                 _, infection_times, tree = si(g, **kwargs)
                 inf_nodes = set(infected_nodes(infection_times))
                 if obs.issubset(inf_nodes):
+                    if debug:
+                        print("accept sample")
                     samples.append(inf_nodes)
                     break
+                if debug:
+                    print("reject sample")
+        if debug:
+            print("{}th sample".format(i))
         else:
             raise ValueError('model {} unsupported'.format(cascade_model))
     

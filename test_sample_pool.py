@@ -14,7 +14,8 @@ def test_SimulatedCascadePool(g):
     cascade_params = dict(
         p=0.5,
         stop_fraction=0.5,
-        cascade_model='si'
+        cascade_model='si',
+        debug=True
     )
     source, times, _ = si(
         g, source=None,
