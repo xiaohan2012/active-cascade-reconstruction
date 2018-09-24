@@ -36,9 +36,8 @@ def iter_callback(g, q_gen, *args):
 
 @pytest.mark.parametrize("query_method", ['random', 'pagerank', 'entropy', 'error', 'mutual-info'])
 @pytest.mark.parametrize("sampling_method", ['loop_erased', 'cut'])
-@pytest.mark.parametrize("with_inc_sampling", [False])
 @pytest.mark.parametrize("root_sampler", ['true_root', 'random'])
-def test_query_method(g, query_method, sampling_method, root_sampler, with_inc_sampling):
+def test_query_method(g, query_method, sampling_method, root_sampler):
     print('query_method: ', query_method)
     print('sampling_method: ', sampling_method)
     print('root_sampler: ', root_sampler)
@@ -58,7 +57,6 @@ def test_query_method(g, query_method, sampling_method, root_sampler, with_inc_s
         method=sampling_method,
         gi=gi,
         return_type='nodes',  # using tree nodes
-        with_inc_sampling=with_inc_sampling
     )
 
     error_estimator = TreeBasedStatistics(gv)
@@ -104,7 +102,7 @@ def test_query_method(g, query_method, sampling_method, root_sampler, with_inc_s
         check_error_esitmator(qs, aux['c'], error_estimator)
 
 
-@pytest.mark.parametrize("query_method", ['entropy', 'cond_entropy'])
+@pytest.mark.parametrize("query_method", ['entropy'])
 def test_under_simulated_cascade(g, query_method):
     n_obs = 5
     n_samples = 20
@@ -188,11 +186,12 @@ def test_no_more_query(g):
 def build_simulator_using_prediction_error_query_selector(g, **kwargs):
     gv = remove_filters(g)
     gi = from_gt(g)
-    pool = TreeSamplePool(gv,
-                          n_samples=1000,
-                          method='loop_erased',
-                          gi=gi,
-                          return_type='nodes'  # using tree nodes
+    pool = TreeSamplePool(
+        gv,
+        n_samples=1000,
+        method='loop_erased',
+        gi=gi,
+        return_type='nodes'  # using tree nodes
     )
 
     q_gen = PredictionErrorQueryGenerator(gv, pool,
