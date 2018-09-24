@@ -27,8 +27,8 @@ def observe_cascade(c, source, q, method='uniform',
         all_infection = list(set(all_infection) - {source})
     num_obs = int(math.ceil(len(all_infection) * q))
 
-    if num_obs < 2:
-        num_obs = 2
+    # if num_obs < 2:
+    #     num_obs = 2
 
     if method == 'uniform':
         return np.random.permutation(all_infection)[:num_obs]

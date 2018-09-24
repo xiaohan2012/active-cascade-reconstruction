@@ -103,7 +103,7 @@ def test_query_method(g, query_method, sampling_method, root_sampler):
 
 
 @pytest.mark.parametrize("query_method", ['entropy'])
-def test_under_simulated_cascade(g, query_method):
+def _test_under_simulated_cascade(g, query_method):
     n_obs = 5
     n_samples = 20
     n_queries = 5

@@ -56,6 +56,7 @@ for graph in ${graphs}; do
 		    -c ${cascade_dir} \
 		    -d outputs/queries-weighted/${dataset_id}/${sample_method}/${query_method}  \
 		    -j ${n_jobs} --verbose
+	    
 
 	    # python3 infer_from_queries.py \
 	    # 	    -g ${graph} \

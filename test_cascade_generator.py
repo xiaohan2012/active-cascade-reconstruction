@@ -60,13 +60,13 @@ def test_observe_cascade_on_leaves(tree, expected):
     assert list(obs) == expected
 
 
-@pytest.mark.parametrize('tree, expected',
-                         [(line(), [3]),
-                          (tree1(), [2, 3])])
-def test_observe_cascade_on_leaves(tree, expected):
+@pytest.mark.parametrize('tree, expected, q',
+                         [(line(), [3], 0.25),
+                          (tree1(), [2, 3], 0.5)])
+def test_observe_cascade_on_leaves(tree, expected, q):
     c = np.array([0, 1, 2, 3])  # dummy
     obs = observe_cascade(c,
-                          None, q=1.0,
+                          None, q=q,
                           method='leaves',
                           tree=tree, source_includable=True)
     assert list(obs) == expected
