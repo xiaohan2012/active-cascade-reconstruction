@@ -1,16 +1,16 @@
 import random
 import math
 import numpy as np
-from copy import copy
 
-from graph_tool import Graph, GraphView, PropertyMap
-from graph_tool.topology import shortest_distance, label_components
+from graph_tool import GraphView, PropertyMap
+from graph_tool.topology import shortest_distance
 from graph_tool.search import bfs_search
 
 from tqdm import tqdm
 
-from helpers import infected_nodes, timeout, sampling_weights_by_order
-from graph_helpers import filter_graph_by_edges, get_leaves, BFSNodeCollector, reverse_bfs
+from helpers import infected_nodes, sampling_weights_by_order
+from graph_helpers import BFSNodeCollector, reverse_bfs
+from si import si_opt as si
 
 MAXINT = np.iinfo(np.int32).max
 
@@ -53,71 +53,6 @@ def observe_cascade(c, source, q, method='uniform',
         return vis.nodes_in_order[-num_obs:]  # tail
     else:
         raise ValueError('unknown method {}'.format(method))
-
-
-@timeout(2)
-def si(g, p, source=None, stop_fraction=0.5):
-    """
-    g: the graph
-    p: edge-wise infection probability
-    stop_fraction: stopping if more than N x stop_fraction nodes are infected
-    """
-    weighted = False
-    if isinstance(p, PropertyMap):
-        weighted = True
-    else:
-        # is float and uniform
-        assert 0 < p and p <= 1
-        
-    if source is None:
-        source = random.choice(np.arange(g.num_vertices()))
-    infected = {source}
-    infection_times = np.ones(g.num_vertices()) * -1
-    infection_times[source] = 0
-    time = 0
-    edges = []
-
-    stop = False
-
-    infected_nodes_until_t = copy(infected)
-    while True:
-        infected_nodes_until_t = copy(infected)
-        # print('current cascade size: {}'.format(len(infected_nodes_until_t)))
-        time += 1
-        for i in infected_nodes_until_t:
-            vi = g.vertex(i)
-            for e in vi.all_edges():
-                if weighted:
-                    inf_proba = p[e]
-                else:
-                    inf_proba = p
-                vj = e.target()
-                j = int(vj)
-                rand = random.random()
-                # print('rand=', rand)
-                # print('inf_proba=', inf_proba)
-                # print('{} infected?'.format(j), j not in infected)
-                if j not in infected and rand <= inf_proba:
-                    # print('SUCCESS')
-                    infected.add(j)
-                    infection_times[j] = time
-                    edges.append((i, j))
-
-                    # stop when enough nodes have been infected
-                    if (len(infected) / g.num_vertices()) >= stop_fraction:
-                        stop = True
-                        break
-            if stop:
-                break
-        if stop:
-            break
-        
-    tree = Graph(directed=True)
-    for _ in range(g.num_vertices()):
-        tree.add_vertex()
-    for u, v in edges:
-        tree.add_edge(u, v)
-    return source, infection_times, tree
 
 
 def sample_graph_by_p(g, p):
