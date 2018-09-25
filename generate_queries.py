@@ -153,15 +153,22 @@ def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir,
 
     weights = get_edge_weights(gv)
     gi = from_gt(gv, weights=weights)
-    
+
     if issubclass(q_gen_cls, SamplingBasedGenerator):
         if sampling_method == 'simulation':
             # print('-' * 30)
             # print('using simulated cascade')
             # print('-' * 30)
+            p = 0.25
+            stop_fraction = 0.25
+            if verbose:
+                print("loading simulation-based sampler")
+                print("p={}".format(p))
+                print("stop_fraction={}".format(stop_fraction))
+
             cascade_params = dict(
                 p=0.5,
-                stop_fraction=0.1,
+                stop_fraction=0.25,
                 cascade_model='si',
                 source=cascade_source(c)
             )

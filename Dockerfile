@@ -25,5 +25,11 @@ RUN (cd ${workdir}; python setup.py build_ext --inplace)
 # install random_steiner_tree
 RUN (cd ${codedir}; git clone -b arc  ${rand_stt_src}; cd ./random_steiner_tree; python3.6 setup.py install)
 
+# git stuff
+# should be included into a bash file
+RUN git config --global user.email "xiaohan2012@gmail.com"
+RUN git config --global user.name "Han Xiao"
+
+RUN pytest="pytest -W ignore"
 
 CMD ["cd", "${workdir}"]

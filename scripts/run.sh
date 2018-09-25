@@ -1,17 +1,17 @@
 #! /bin/zsh
 # "fb" 
-graphs=("lattice-1024")
+graphs=("lattice-100")
 # "lattice-sto";
 #
  # "flixster-sto"
  # "infectious-sto"
 # graphs=("grqc-sto")
  # "p2p-sto"
-graph_suffix="_0.5"
+graph_suffix=" "
 
 cascade_model="si"
-cascade_fraction=0.1
-obs_fraction=0.2
+cascade_fraction=0.25
+obs_fraction=0.25
 obs_methods=("uniform")
 
 n_tree_samples=100  # 2500
@@ -23,8 +23,8 @@ root_sampler='true_root'
 # query_methods=(weighted-cond-ent)
 # query_methods=(oracle-e oracle-l)
 # query_methods=(prediction_error mutual-info entropy)
-query_methods=(entropy prediction_error)
-n_queries=200  # 500
+query_methods=(random pagerank cond-entropy entropy)
+n_queries=100  # 500
 eval_every_k=5
  # 0.2 0.3 0.4 0.5
 # obs_fractions=(0.1)
@@ -37,7 +37,7 @@ n_jobs=-1
 
 for graph in ${graphs}; do
     for obs_method in ${obs_methods}; do
-	dataset_id="${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}"
+	dataset_id="${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}-omuniform"
 	print "dataset_id: ${dataset_id}"
 
 	cascade_dir="cascade-weighted/${dataset_id}"

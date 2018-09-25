@@ -5,7 +5,6 @@ from graph_helpers import load_graph_by_name
 from experiment import gen_inputs_varying_obs
 from tqdm import tqdm
 from glob import glob
-from root_sampler import build_out_degree_root_sampler
 
 
 parser = argparse.ArgumentParser(description='')
@@ -69,8 +68,7 @@ else:
     g = load_graph_by_name(graph_name, weighted=True, suffix=args.graph_suffix)
     p = g.edge_properties['weights']
 
-print('p=', p)
-print('p.a=', p.a)
+print('p=', p.a[:10])
 
 # root_sampler = build_out_degree_root_sampler(g)
 root_sampler = lambda: None
@@ -121,7 +119,8 @@ else:
             min_size=args.min_size,
             max_size=args.max_size,
             n_times=args.n_observation_rounds,
-            return_tree=(args.observation_method in METHODS_WANT_TREE))
+            return_tree=(args.observation_method in METHODS_WANT_TREE)
+        )
         
         for j, (obs, c, tree) in enumerate(iters):
             id_ = args.n_observation_rounds * i + j

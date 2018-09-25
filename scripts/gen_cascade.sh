@@ -1,22 +1,22 @@
 #! /bin/zsh
 
-graph="grqc-sto"
+graph="lattice-100"
 n_cascades=96
 n_observation_rounds=1
 # n_cascades=8
 # n_observation_rounds=1
 cascade_model="si"
-graph_suffix=" "
+graph_suffix="_0.5"
 
 obs_method="uniform"
-obs_fraction=0.2
+obs_fraction=0.25
 
 # works for IC
 min_size=100
 max_size=1000
 
 # works for SI
-cascade_fraction=0.025
+cascade_fraction=0.25
 dataset_id="${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}-om${obs_method}"
 
 # copy from existing cascades
