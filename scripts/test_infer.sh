@@ -1,13 +1,16 @@
 #! /bin/bash
 
+rm outputs/inf_probas/test/*
+
 python3 infer_from_queries.py \
-	-g lattice-1024 \
-	-s 250 \
-	-m inf_probas \
-	-c cascade/bug-fix/ \
-	--query_method pagerank \
-	-q outputs/queries/lattice-1024-msi-s0.04-o0.1/loop_erased \
-	-p outputs/test \
+	-g lattice-100 \
+	-f " " \
+	-s 10 \
+	--sampling_method "simulation" \
+	-c cascade-weighted/lattice-100-msi-s0.25-o0.25-omuniform \
+	--query_method entropy \
+	-q outputs/queries/test/ \
+	-p outputs/inf_probas/test \
 	--verbose --debug
 
 

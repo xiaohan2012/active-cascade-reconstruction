@@ -158,14 +158,6 @@ def test_under_simulated_cascade(g, query_method):
     assert len(qs) == n_queries
     assert set(qs).intersection(set(aux['obs'])) == set()
 
-    for q in qs:
-        if times[q] < 0:
-            print(q)
-            for s in pool.samples:
-                if q in s:
-                    print(s)
-            break
-    assert aux['graph_changed']
     if query_method in {'entropy', 'cond_entropy'}:
         check_tree_samples(qs, times, pool.samples)
 

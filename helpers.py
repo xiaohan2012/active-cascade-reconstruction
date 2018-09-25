@@ -60,3 +60,8 @@ def sampling_weights_by_order(length):
     w = 1 / (np.arange(10) + 1)[::-1]
     w /= w.sum()
     return w
+
+
+def makedir_if_not_there(d):
+    if not os.path.exists(d):
+        os.makedirs(d)

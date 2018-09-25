@@ -6,26 +6,46 @@ from fixture import g
 from experiment import gen_input
 from graph_helpers import get_edge_weights
 from test_helpers import check_tree_samples, check_error_esitmator, check_samples_so_far
-
+from helpers import cascade_source
 
 
 @pytest.mark.parametrize("cid", range(3))
-@pytest.mark.parametrize("sampling_method", ['cut', 'loop_erased'])
+@pytest.mark.parametrize("sampling_method", ['cut', 'loop_erased', 'simulation'])
 @pytest.mark.parametrize("root_sampler_name", ['pagerank', 'true_root'])
 def test_infer_probas_for_queries_sampling_approach(
         g, cid, sampling_method, root_sampler_name
 ):
+    p = 0.5
+    stop_fraction = 0.5
+    model = 'si'
+    
     n_queries = 10
-    p = get_edge_weights(g)
-    obs, c, _ = gen_input(g, model='ic', p=p, min_size=10, max_size=99999)
+
+    obs, c, _ = gen_input(g, model=model, p=p, stop_fraction=stop_fraction)
+    source = cascade_source(c)
+
     remaining_nodes = list(set(np.arange(g.num_vertices())) - set(obs))
     queries = np.random.permutation(remaining_nodes)[:n_queries]
+
+    if sampling_method == 'simulation':
+        n_samples = 10
+        sampler_kwargs = dict(
+            p=p,
+            stop_fraction=stop_fraction,
+            source=source,
+            cascade_model=model,
+            debug=True,
+        )
+    else:
+        n_samples = 100
+        sampler_kwargs = dict()
 
     inf_proba_list, sampler, estimator = infer_probas_from_queries(
         g, obs, c, queries,
         sampling_method,
         root_sampler_name=root_sampler_name,
-        n_samples=100
+        n_samples=n_samples,
+        sampler_kwargs=sampler_kwargs
     )
 
     assert len(inf_proba_list) == n_queries + 1

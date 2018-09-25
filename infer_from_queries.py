@@ -8,22 +8,45 @@ from tqdm import tqdm
 from joblib import Parallel, delayed
 from graph_tool import openmp_set_num_threads
 
-from helpers import load_cascades
+from helpers import (
+    load_cascades,
+    cascade_source,
+    makedir_if_not_there
+)
 from inference import infection_probability
-from graph_helpers import (load_graph_by_name, remove_filters,
-                           observe_uninfected_node, get_edge_weights)
-from sample_pool import TreeSamplePool
-from random_steiner_tree.util import from_gt, isolate_vertex
+from graph_helpers import (
+    load_graph_by_name,
+    remove_filters,
+    observe_uninfected_node,
+    get_edge_weights
+)
+from sample_pool import (
+    TreeSamplePool,
+    SimulatedCascadePool
+)
+from random_steiner_tree.util import (
+    from_gt,
+    isolate_vertex
+)
 from tree_stat import TreeBasedStatistics
-from root_sampler import build_root_sampler_by_pagerank_score, build_true_root_sampler
+from root_sampler import (
+    build_root_sampler_by_pagerank_score,
+    build_true_root_sampler
+)    
 
 
 def infer_probas_from_queries(
-        g, obs, c, queries,
-        sampling_method, root_sampler_name, n_samples,
+        g,
+        obs,
+        c,
+        queries,
+        sampling_method,
+        root_sampler_name,
+        n_samples,
         every=1,
         iter_callback=None,
-        verbose=False
+        verbose=False,
+        sampler_kwargs={},
 ):
     n_nodes = g.num_vertices()
 
@@ -45,13 +68,20 @@ def infer_probas_from_queries(
     
     probas_list = []
 
-    sampler = TreeSamplePool(
-        g, n_samples=n_samples,
-        method=sampling_method,
-        gi=gi,
-        with_resampling=False,
-        return_type='nodes'
-    )
+    if sampling_method == 'simulation':
+        sampler = SimulatedCascadePool(
+            g,
+            n_samples,
+            cascade_params=sampler_kwargs
+        )
+    else:
+        sampler = TreeSamplePool(
+            g, n_samples=n_samples,
+            method=sampling_method,
+            gi=gi,
+            with_resampling=False,
+            return_type='nodes'
+        )
     
     estimator = TreeBasedStatistics(g)
     sampler.fill(
@@ -123,16 +153,21 @@ def infer_probas_from_queries(
     return probas_list, sampler, estimator
 
 
-def one_round(g, obs, c, c_path,
-              query_method,
-              inference_method,
-              query_dirname, inf_proba_dirname,
-              n_samples=250,
-              every=1,
-              root_sampler=None,
-              sampling_method='loop_erased',
-              debug=False,
-              verbose=False):
+def one_round(
+        g,
+        obs,
+        c,
+        c_path,
+        query_method,
+        query_dirname,
+        inf_proba_dirname,
+        n_samples=250,
+        every=1,
+        root_sampler=None,
+        sampling_method='loop_erased',
+        debug=False,
+        verbose=False
+):
     print('\ninference {} started, query_method={}, root_sampler={}, \n'.format(
         c_path, query_method, root_sampler)
     )
@@ -140,8 +175,6 @@ def one_round(g, obs, c, c_path,
 
     cid = os.path.basename(c_path).split('.')[0]
     probas_dir = inf_proba_dirname
-    if not os.path.exists(probas_dir):
-        os.makedirs(probas_dir)
     path = os.path.join(probas_dir, '{}.pkl'.format(cid))
 
     if os.path.exists(path):
@@ -151,22 +184,44 @@ def one_round(g, obs, c, c_path,
     query_log_path = os.path.join(query_dirname, '{}.pkl'.format(cid))
     queries, _ = pkl.load(open(query_log_path, 'rb'))
 
-    if inference_method == 'inf_probas':
-        # the real part
-        probas_list, _, _ = infer_probas_from_queries(g, obs, c, queries,
-                                                      sampling_method,
-                                                      root_sampler,
-                                                      n_samples,
-                                                      every=every,
-                                                      verbose=verbose)
-        pkl.dump(probas_list, open(path, 'wb'))
+    if sampling_method == 'simulation':
+        sampler_kwargs = dict(
+            p=0.5,
+            stop_fraction=0.25,
+            source=cascade_source(c),
+            cascade_model='si',
+            debug=debug
+        )
     else:
-        raise ValueError('unknown inference method "{}"'.format(inference_method))
+        sampler_kwargs = dict()
 
-    print('\ninference {} done (query_method={}, inference_method={}): taking {:.4f} secs\n'.format(
-        c_path,
-        query_method, inference_method,
-        time.time() - stime
+    # infer the infection probability
+    probas_list, _, _ = infer_probas_from_queries(
+        g, obs, c, queries,
+        sampling_method,
+        root_sampler,
+        n_samples,
+        every=every,
+        verbose=verbose,
+        sampler_kwargs=sampler_kwargs
+    )
+    pkl.dump(probas_list, open(path, 'wb'))
+
+    print("""
+    inference done:
+
+    - cascade_path: {cascade_path}
+    - query_method: {query_method}
+    - sampling_method: {sampling_method}
+    - time cost: {time_cost} s
+    - output path {output_path}
+
+    """.format(
+        cascade_path=c_path,
+        query_method=query_method,
+        sampling_method=sampling_method,
+        time_cost=time.time() - stime,
+        output_path=path
     ))
 
 
@@ -181,13 +236,9 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--n_samples', type=int,
                         default=100,
                         help='number of samples')
-    parser.add_argument('-m', '--inference_method',
-                        default='inf_probas',
-                        choices=('inf_probas'),
-                        help='method used for infer hidden infections')
     parser.add_argument('--sampling_method',
-                        default='loop_erased',
-                        choices=('loop_erased', 'cut'),
+                        default='simulation',
+                        choices=('loop_erased', 'cut', 'simulation'),
                         help='')
 
     parser.add_argument('--query_method',
@@ -231,6 +282,7 @@ if __name__ == '__main__':
 
     query_dirname = args.query_dirname
     inf_proba_dirname = args.inf_proba_dirname
+    makedir_if_not_there(inf_proba_dirname)
 
     g = load_graph_by_name(graph_name, weighted=args.weighted,
                            suffix=graph_suffix)
@@ -246,7 +298,6 @@ if __name__ == '__main__':
                 tpl[1],
                 path,
                 args.query_method,
-                args.inference_method,
                 query_dirname,
                 inf_proba_dirname, n_samples=n_samples,
                 root_sampler=args.root_sampler,
@@ -266,7 +317,6 @@ if __name__ == '__main__':
                 tpl[1],
                 path,
                 args.query_method,
-                args.inference_method,
                 query_dirname,
                 inf_proba_dirname, n_samples=n_samples,
                 root_sampler=args.root_sampler,
