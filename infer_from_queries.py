@@ -322,5 +322,5 @@ if __name__ == '__main__':
                 root_sampler=args.root_sampler,
                 every=args.eval_every,
                 sampling_method=args.sampling_method,
-                verbose=args.verbose
+                verbose=args.verbose,
             )
