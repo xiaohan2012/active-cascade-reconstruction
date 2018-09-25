@@ -70,7 +70,7 @@ def test_observe_cascade_on_leaves(tree, expected, q):
                           method='leaves',
                           tree=tree, source_includable=True)
     assert list(obs) == expected
-    
+
 
 
 @pytest.mark.parametrize('tree, q, expected',
@@ -104,5 +104,3 @@ def test_observe_bfs_tail(tree, q, expected):
                           method='bfs-tail',
                           tree=tree, source_includable=True)
     assert list(obs) == expected
-
-    

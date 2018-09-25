@@ -113,3 +113,5 @@ eval_result/
 tmp/
 unused
 core1.cpp
+si.cpp
+*.prof
