@@ -41,7 +41,6 @@ class TreeSamplePool():
         else:
             self._internal_return_type = return_type
 
-
     def fill(self, obs, **kwargs):
         self._samples = sample_steiner_trees(
             self.g, obs,
@@ -228,7 +227,7 @@ class SimulatedCascadePool():
 
         assert len(self._samples) == self.n_samples
         # print('#new_samples=', len(new_samples))
-        
+
         return new_samples
 
     @property
@@ -238,4 +237,3 @@ class SimulatedCascadePool():
     @property
     def is_empty(self):
         return len(self._samples) == 0
-    

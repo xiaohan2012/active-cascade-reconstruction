@@ -40,6 +40,7 @@ def test_SimulatedCascadePool(g):
     # add 10 nodes
     for i in range(10):
         node_to_add = list(set(inf_nodes) - obs)[0]
+
         pool.update_samples(obs | {node_to_add},
                             {node_to_add: 1})
 
@@ -52,7 +53,13 @@ def test_SimulatedCascadePool(g):
     # remove 10 nodes
     for i in range(10):
         node_to_remove = random.choice(list(random.choice(pool.samples) - obs))
+
         observe_uninfected_node(g, node_to_remove, obs)
+
+        if len(g.get_out_neighbours(source)) == 1:
+            print('terminate early because of source is isoloated due to node deletion')
+            break
+
         pool.update_samples(obs, {node_to_remove: 0})
 
         for s in pool.samples:

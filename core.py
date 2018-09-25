@@ -42,7 +42,7 @@ def sample_steiner_trees(g, obs,
         iters = tqdm(range(n_samples), total=n_samples)
     else:
         iters = range(n_samples)
-        
+
     for i in iters:
         if root is None:
             # if root not give, sample it using some sampler
@@ -95,7 +95,7 @@ def sample_by_simulation(g, obs,
         iters = tqdm(range(n_samples), total=n_samples)
     else:
         iters = range(n_samples)
-        
+
     for i in iters:
         if cascade_model == 'si':
             assert 'p' in kwargs
@@ -105,17 +105,17 @@ def sample_by_simulation(g, obs,
                 _, infection_times, tree = si(g, **kwargs)
                 inf_nodes = set(infected_nodes(infection_times))
                 if obs.issubset(inf_nodes):
-                    if debug:
-                        print("accept sample")
+                    # if debug:
+                    #     print("accept sample")
                     samples.append(inf_nodes)
                     break
-                if debug:
-                    print("reject sample")
+                # if debug:
+                #     print("reject sample")
         else:
             raise ValueError('model {} unsupported'.format(cascade_model))
         if debug:
             print("{}th sample".format(i))
-    
+
     return samples
 
 def uncertainty_scores(g, obs,
