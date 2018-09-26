@@ -32,7 +32,10 @@ from tree_stat import TreeBasedStatistics
 from root_sampler import (
     build_root_sampler_by_pagerank_score,
     build_true_root_sampler
-)    
+)
+from arg_helpers import (
+    add_cascade_parameter_args
+)
 
 
 def infer_probas_from_queries(
@@ -166,7 +169,8 @@ def one_round(
         root_sampler=None,
         sampling_method='loop_erased',
         debug=False,
-        verbose=False
+        verbose=False,
+        args=None
 ):
     print('\ninference {} started, query_method={}, root_sampler={}, \n'.format(
         c_path, query_method, root_sampler)
@@ -186,10 +190,10 @@ def one_round(
 
     if sampling_method == 'simulation':
         sampler_kwargs = dict(
-            p=0.5,
-            stop_fraction=0.25,
+            p=args.infection_proba,
+            stop_fraction=args.cascade_size,
             source=cascade_source(c),
-            cascade_model='si',
+            cascade_model=args.cascade_model,
             debug=debug
         )
     else:
@@ -254,6 +258,10 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--inf_proba_dirname',
                         required=True,
                         help='directory to store the inferred probabilities')
+
+    add_cascade_parameter_args(parser)
+    
+    # run-time related
     parser.add_argument('--eval_every',
                         default=1,
                         type=int,
@@ -301,7 +309,8 @@ if __name__ == '__main__':
                 root_sampler=args.root_sampler,
                 sampling_method=args.sampling_method,
                 every=args.eval_every,
-                verbose=args.verbose
+                verbose=args.verbose,
+                args=args
             )
             for path, tpl in tqdm(cascades)
         )
@@ -321,4 +330,5 @@ if __name__ == '__main__':
                 every=args.eval_every,
                 sampling_method=args.sampling_method,
                 verbose=args.verbose,
+                args=args
             )

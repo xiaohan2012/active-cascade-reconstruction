@@ -1,20 +1,22 @@
 #! /bin/zsh
 
-graphs=("email-univ" "student" "infectious")
+graphs=("infectious" "student" "email-univ")
 
-graph_suffix="_0.5"
+infection_proba=0.5
+graph_suffix="_${infection_proba}"
 
 cascade_model="si"
 cascade_fraction=0.1
 obs_fraction=0.1
 obs_methods=("uniform")
 
+
 n_tree_samples=100  # 2500
 sample_method="simulation"
 
 root_sampler='true_root'
 
-query_methods=(random pagerank entropy cond-entropy)
+query_methods=(random entropy cond-entropy pagerank)
 
 n_queries=100  # 500
 eval_every_k=5
@@ -42,7 +44,11 @@ for graph in ${graphs}; do
 	    	    -m ${sample_method} \
 	    	    -c ${cascade_dir} \
 	    	    -d outputs/queries-weighted/${dataset_id}/${sample_method}/${query_method}  \
-	    	    -j ${n_jobs} --verbose
+	    	    -j ${n_jobs} --verbose \
+		    --infection_proba ${infection_proba} \
+		    --cascade_size ${cascade_fraction} \
+		    --cascade_model ${cascade_model} \
+		    --debug
 	    
 
 	    python3 infer_from_queries.py \
@@ -57,7 +63,10 @@ for graph in ${graphs}; do
 	    	    -p outputs/inf-probas-weighted/${dataset_id}/${sample_method}/${query_method} \
 	    	    --eval_every ${eval_every_k} \
 	    	    -j ${n_jobs} \
-		    --verbose
+		    --verbose \
+		    --infection_proba ${infection_proba} \
+		    --cascade_size ${cascade_fraction} \
+		    --cascade_model ${cascade_model}
 	done
     done
 done

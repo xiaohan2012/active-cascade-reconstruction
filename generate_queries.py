@@ -20,6 +20,10 @@ from helpers import load_cascades, cascade_source
 from sample_pool import TreeSamplePool, SimulatedCascadePool
 from random_steiner_tree.util import from_gt
 from tree_stat import TreeBasedStatistics
+from arg_helpers import (
+    add_cascade_parameter_args
+)
+
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('-g', '--graph', help='graph name')
@@ -67,6 +71,8 @@ parser.add_argument('-v', '--verbose', action='store_true',
 # specific to pagerank root sampler
 parser.add_argument('--root_pagerank_noise', default=0.0, type=float,
                     help='the epsilon value for pagerank root sampling, the higher the more noisy')
+
+add_cascade_parameter_args(parser)
 
 args = parser.parse_args()
 
@@ -127,10 +133,20 @@ else:
     raise ValueError('invalid strategy name')
 
 
-def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir,
-              sampling_method,
-              n_samples,
-              verbose):
+def one_round(
+        g,
+        obs,
+        c,
+        c_path,
+        q_gen_cls,
+        param,
+        q_gen_name,
+        output_dir,
+        sampling_method,
+        n_samples,
+        verbose,
+        cmd_args
+):
     stime = time.time()
     c_id = os.path.basename(c_path).split('.')[0]
     d = output_dir
@@ -153,20 +169,15 @@ def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir,
 
     if issubclass(q_gen_cls, SamplingBasedGenerator):
         if sampling_method == 'simulation':
-            # print('-' * 30)
-            # print('using simulated cascade')
-            # print('-' * 30)
-            p = 0.25
-            stop_fraction = 0.25
             if verbose:
                 print("loading simulation-based sampler")
-                print("p={}".format(p))
-                print("stop_fraction={}".format(stop_fraction))
+                print("p={}".format(cmd_args.infection_proba))
+                print("stop_fraction={}".format(cmd_args.cascade_size))
 
             cascade_params = dict(
-                p=0.5,
-                stop_fraction=0.25,
-                cascade_model='si',
+                p=cmd_args.infection_proba,
+                stop_fraction=cmd_args.cascade_size,
+                cascade_model=cmd_args.cascade_model,
                 source=cascade_source(c),
                 debug=False  # turn it to True if you want to see more details
             )
@@ -221,7 +232,8 @@ if args.debug:
             output_dir,
             sampling_method,
             n_samples,
-            args.verbose
+            args.verbose,
+            args
         )
 else:
     # prevent Parallel from hanging
@@ -239,7 +251,8 @@ else:
             output_dir,
             sampling_method,
             n_samples,
-            args.verbose
+            args.verbose,
+            args
         )
         for path, tpl in tqdm(cascade_generator)
     )

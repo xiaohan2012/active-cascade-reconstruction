@@ -1,18 +1,17 @@
-import numpy as np
 import random
 from scipy.stats import entropy
 from tqdm import tqdm
 
-from linalg_helpers import num_spanning_trees_dense
-from graph_helpers import (contract_graph_by_nodes,
-                           extract_nodes, extract_steiner_tree,
-                           has_vertex, gen_random_spanning_tree,
-                           filter_graph_by_edges,
-                           reachable_node_set,
-                           swap_end_points)
+from graph_helpers import (
+    extract_nodes,
+    extract_steiner_tree,
+    gen_random_spanning_tree,
+    filter_graph_by_edges,
+    reachable_node_set,
+    swap_end_points
+)
 from inference import infection_probability
 from helpers import infected_nodes
-from tqdm import tqdm
 from random_steiner_tree import random_steiner_tree
 from cascade_generator import si
 
@@ -109,6 +108,17 @@ def sample_by_simulation(g, obs,
                     #     print("accept sample")
                     samples.append(inf_nodes)
                     break
+                else:
+                    # if debug:
+                    #     num_captured = len(obs.intersection(inf_nodes))
+                    #     num_obs = len(obs)
+                    #     print('reject')
+                    #     print('fraction captured by sample {}/{} = {}'.format(
+                    #         num_captured,
+                    #         num_obs,
+                    #         num_captured / num_obs
+                    #     ))
+                    pass
                 # if debug:
                 #     print("reject sample")
         else:
@@ -117,6 +127,7 @@ def sample_by_simulation(g, obs,
             print("{}th sample".format(i))
 
     return samples
+
 
 def uncertainty_scores(g, obs,
                        sampler,
