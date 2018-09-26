@@ -119,6 +119,10 @@ def aggregate_scores_over_cascades_by_methods(cascades,
                 print('**EOFError, inf_probas_path=', inf_probas_path)
                 print("**WARNING**: ignore corrupted file")
                 continue
+            except IOError:
+                print('**File does not exist: ', inf_probas_path)
+                print("**WARNING**: ignore non-existing file")
+                continue
                 # raise
             # print('inf_probas_path', inf_probas_path)
             # print('inf_probas_list', inf_probas_list)

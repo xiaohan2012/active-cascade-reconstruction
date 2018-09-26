@@ -28,6 +28,12 @@ if __name__ == '__main__':
 
     parser.add_argument('--use_cache', action='store_true',
                         help='use evaluation result from cache or not')
+
+    # plot options
+    parser.add_argument('--plot_percentile', action='store_true',
+                        help='wether show the 25 and 75 percentile in the plot or not')
+    parser.add_argument('--show_legend', action='store_true',
+                        help='wether show legend or not')
     
     # eval method
     parser.add_argument('-e', '--eval_method',
@@ -132,6 +138,7 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
             iter_callback=(check_probas_so_far if args.check else None))
 
         # make shape match
+        # fill in missing values (due to early termination)
         max_len = max(len(r) for method in labels for r in scores_by_method[method])
         print('num. evaluation points: ', max_len)
         for method in labels:
@@ -188,17 +195,19 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
         l = ax.plot(x[::args.plot_step], perc50[::args.plot_step])
         print('score', perc50[::args.plot_step])
         # print(l)
-        ax.fill_between(x[::args.plot_step],
-                        perc25[::args.plot_step],
-                        perc75[::args.plot_step],
-                        facecolor=l[0].get_color(),
-                        lw=0,
-                        alpha=0.5)
+        if args.plot_percentile:
+            ax.fill_between(x[::args.plot_step],
+                            perc25[::args.plot_step],
+                            perc75[::args.plot_step],
+                            facecolor=l[0].get_color(),
+                            lw=0,
+                            alpha=0.5)
 
         min_y = min([min_y, np.min(perc50)])
         max_y = max([max_y, np.max(perc50)])
         # ax.hold(True)
-    # ax.legend(labels, loc='best', ncol=1)
+    if args.show_legend:
+        ax.legend(labels, loc='best', ncol=1)
     # ax.xaxis.label.set_fontsize(20)
     # ax.yaxis.label.set_fontsize(20)
     # ax.set_ylim(min_y - 0.01, max_y + 0.01)

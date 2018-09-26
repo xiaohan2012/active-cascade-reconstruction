@@ -23,7 +23,8 @@ root_sampler='true_root'
 # query_methods=(weighted-cond-ent)
 # query_methods=(oracle-e oracle-l)
 # query_methods=(prediction_error mutual-info entropy)
-query_methods=(random pagerank  entropy cond-entropy)
+query_methods=(entropy random)
+# pagerank  cond-entropy 
 n_queries=100  # 500
 eval_every_k=5
 # 0.2 0.3 0.4 0.5
@@ -41,19 +42,19 @@ for graph in ${graphs}; do
 	cascade_dir="cascade-weighted/${dataset_id}"
 	for query_method in ${query_methods}; do
 	    print "${query_method} on ${cascade_dir}"
-	    #     python3 generate_queries.py \
-	    # 	    -g ${graph} \
-	    # 	    -f "${graph_suffix}" \
-	    # 	    --root_sampler ${root_sampler} \
-	    # 	    --weighted \
-	    # 	    -q ${query_method} \
-	    # 	    -n ${n_queries} \
-	    # 	    -s ${n_tree_samples} \
-	    # 	    -p ${min_proba} \
-	    # 	    -m ${sample_method} \
-	    # 	    -c ${cascade_dir} \
-	    # 	    -d outputs/queries-weighted/${dataset_id}/${sample_method}/${query_method}  \
-	    # 	    -j ${n_jobs} --verbose
+	        python3 generate_queries.py \
+	    	    -g ${graph} \
+	    	    -f "${graph_suffix}" \
+	    	    --root_sampler ${root_sampler} \
+	    	    --weighted \
+	    	    -q ${query_method} \
+	    	    -n ${n_queries} \
+	    	    -s ${n_tree_samples} \
+	    	    -p ${min_proba} \
+	    	    -m ${sample_method} \
+	    	    -c ${cascade_dir} \
+	    	    -d outputs/queries-weighted/${dataset_id}/${sample_method}/${query_method}  \
+	    	    -j ${n_jobs} --verbose
 	    
 
 	    python3 infer_from_queries.py \

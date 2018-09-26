@@ -4,26 +4,26 @@
 # graphs=("grqc" "p2p")
 # graphs=("lattice-1024-sto" "infectious-sto")
 # graphs=("grqc-sto")
-graphs=("grqc-sto")
-sample_method=loop_erased
+graphs=("lattice-100")
+sample_method="simulation"
 
-inf_method="inf_probas"
+inf_method="inf-probas"
 
 query_dirname='queries-weighted'
 cascade_dirname='cascade-weighted'
-inf_dirname='inf_probas-weighted'
+inf_dirname="${inf_method}-weighted"
 
-cascade_model="ic"
-cascade_fractions=(0.025)  #  0.25
+cascade_model="si"
+cascade_fractions=(0.25)  #  0.25
 obs_methods=("uniform")
 # "bfs-head"  "uniform"
-n_queries=500
+n_queries=100
 # cascade_fractions=(0.01 0.02 0.04 0.08 0.16 0.32)
 # cascade_fractions=(0.04 0.08 0.16 0.32 0.64)
 # cascade_fractions=(0.02 0.04 0.08 0.16 0.32)
 # 0.2 0.3 0.4 0.5
 # 0.2 0.3 0.4 0.5
-obs_fractions=(0.2)
+obs_fractions=(0.25)
 
 # eval_methods=(l1 l2)
 eval_methods=(ap)
@@ -40,10 +40,11 @@ every=5
 # eval_method='mrr'
 
 
-other_params="--plot_step=5"
+other_params="--plot_step=1"
 # other_params="${other_params} --use_cache"
 other_params="${other_params} --eval_with_mask"
 other_params="${other_params} --check"
+other_params="${other_params} --show_legend"
 
 # eval_method="precision_at_cascade_size"
 
@@ -52,22 +53,10 @@ other_params="${other_params} --check"
 # other_params="${other_params} --use_cache"
 
 
-# query_dir_ids="random, pagerank, entropy, prediction_error, weighted_prediction_error"
-# inf_dir_ids="random, pagerank, entropy, prediction_error, weighted_prediction_error"
-# labels="random, pagerank, entropy, prederror, weighted_prederror"
 
-# query_dir_ids="entropy, prediction_error, mutual-info"
-# inf_dir_ids="entropy, prediction_error, mutual-info"
-# labels="entropy, prederror, mutual-info"
-
-# query_dir_ids="random, pagerank, entropy, prediction_error, mutual-info"
-# inf_dir_ids="random, pagerank, entropy, prediction_error, mutual-info"
-# labels="random, pagerank, entropy, prederror, mutual-info"
-
-query_dir_ids="random, pagerank, entropy, prediction_error, mutual-info, oracle-e, oracle-l"
-inf_dir_ids="random, pagerank, entropy, prediction_error, mutual-info, oracle-e, oracle-l"
-labels="random, pagerank, entropy, prederror, mutual-info, oracle-e, oracle-l"
-
+query_dir_ids="random, pagerank, entropy, cond-entropy"
+inf_dir_ids="random, pagerank, entropy, cond-entropy"
+labels="random, pagerank, entropy, cond-entropy"
 
 
 
@@ -79,7 +68,7 @@ for graph in ${graphs}; do
 		dataset_id="${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}-om${obs_method}"
 
 		print "
-python3 plot_performance.py \
+python3 eval_and_plot_performance.py \
 	-g ${graph} \
 	-d ${dataset_id} \
         -e ${eval_method} \
