@@ -23,7 +23,7 @@ To test the code,
 > pytest test*.py
 ```
 
-# algorithm files:
+# algorithm files
 
 - query selection algorithms
   - `query_selection.py`: random, pagerank, entropy, prediction\_error
@@ -38,8 +38,14 @@ To test the code,
 - `simulate_cascades.py`: simulate cascades and dump to files
 - `generate_queries.py`: produce queries and dump to files
 - `infer_from_queries.py`: infer the infection probabilities from queries
-- `./scripts/eval_plot.sh`: performance evaluation and plotting
 
+a typical pipeline:
+
+1. `./scripts/gen_cascade.sh`: generate the cascades
+2. `./scripts/run.sh`: generate queries and infer the infection proability
+3. `./scripts/eval_plot.sh`: performance evaluation and plotting
+
+---------------------
 
 # shell scripts
 
