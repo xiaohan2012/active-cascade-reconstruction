@@ -1,17 +1,12 @@
 #! /bin/zsh
-# "fb" 
-graphs=("lattice-100")
-# "lattice-sto";
-#
-# "flixster-sto"
-# "infectious-sto"
-# graphs=("grqc-sto")
-# "p2p-sto"
-graph_suffix=" "
+
+graphs=("email-univ" "student" "infectious")
+
+graph_suffix="_0.5"
 
 cascade_model="si"
-cascade_fraction=0.25
-obs_fraction=0.25
+cascade_fraction=0.1
+obs_fraction=0.1
 obs_methods=("uniform")
 
 n_tree_samples=100  # 2500
@@ -19,16 +14,10 @@ sample_method="simulation"
 
 root_sampler='true_root'
 
-# query_methods=(random pagerank entropy prediction_error mutual-info oracle-e oracle-l)
-# query_methods=(weighted-cond-ent)
-# query_methods=(oracle-e oracle-l)
-# query_methods=(prediction_error mutual-info entropy)
-query_methods=(entropy random)
-# pagerank  cond-entropy 
+query_methods=(random pagerank entropy cond-entropy)
+
 n_queries=100  # 500
 eval_every_k=5
-# 0.2 0.3 0.4 0.5
-# obs_fractions=(0.1)
 
 min_proba=0.05
 
@@ -46,7 +35,6 @@ for graph in ${graphs}; do
 	    	    -g ${graph} \
 	    	    -f "${graph_suffix}" \
 	    	    --root_sampler ${root_sampler} \
-	    	    --weighted \
 	    	    -q ${query_method} \
 	    	    -n ${n_queries} \
 	    	    -s ${n_tree_samples} \
@@ -60,7 +48,6 @@ for graph in ${graphs}; do
 	    python3 infer_from_queries.py \
 	    	    -g ${graph} \
 	    	    -f "${graph_suffix}" \
-	    	    --weighted \
 	    	    -s ${n_tree_samples} \
 	    	    --sampling_method ${sample_method} \
 	    	    -c ${cascade_dir} \

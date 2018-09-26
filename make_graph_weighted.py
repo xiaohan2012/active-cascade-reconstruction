@@ -6,11 +6,20 @@ from graph_tool.stats import remove_self_loops
 
 def main():
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument('-g', '--graph', help='graph name')
-    parser.add_argument('--p_min', default=0.0, type=float,
-                        help='lower bound for edge weight')
-    parser.add_argument('--p_max', default=1.0, type=float,
-                        help='upper bound for edge weight')
+    parser.add_argument(
+        '-g',
+        '--graph',
+        required=True,
+        help='graph name'
+    )
+    parser.add_argument(
+        '--p_min', default=0.0, type=float,
+        help='lower bound for edge weight'
+    )
+    parser.add_argument(
+        '--p_max', default=1.0, type=float,
+        help='upper bound for edge weight'
+    )
     parser.add_argument('-o', '--output')
     
     args = parser.parse_args()

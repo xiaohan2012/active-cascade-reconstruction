@@ -231,8 +231,6 @@ if __name__ == '__main__':
                         help='graph name')
     parser.add_argument('-f', '--graph_suffix', required=True,
                         help='suffix of graph name')
-    parser.add_argument('-w', '--weighted', action='store_true',
-                        help='use weights or not')
     parser.add_argument('-s', '--n_samples', type=int,
                         default=100,
                         help='number of samples')
@@ -284,7 +282,7 @@ if __name__ == '__main__':
     inf_proba_dirname = args.inf_proba_dirname
     makedir_if_not_there(inf_proba_dirname)
 
-    g = load_graph_by_name(graph_name, weighted=args.weighted,
+    g = load_graph_by_name(graph_name, weighted=False,
                            suffix=graph_suffix)
 
     cascades = load_cascades(args.cascade_dir)

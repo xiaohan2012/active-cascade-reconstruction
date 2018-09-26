@@ -59,20 +59,18 @@ for k, v in args._get_kwargs():
 
 graph_name = args.graph
 
+g = load_graph_by_name(graph_name, weighted=False, suffix=args.graph_suffix)
+
 if not args.use_edge_weights:
-    print('uniform edge weight')
-    g = load_graph_by_name(graph_name, weighted=False, suffix=args.graph_suffix)
+    print('use edge weights in cmd')
     p = args.infection_proba
 else:
-    print('non-uniform edge weight')
-    g = load_graph_by_name(graph_name, weighted=True, suffix=args.graph_suffix)
+    print('use edge weights in graph')
     p = g.edge_properties['weights']
 
 print('p=', p.a[:10])
 
-# root_sampler = build_out_degree_root_sampler(g)
 root_sampler = lambda: None
-# root_sampler = lambda: 45
 
 d = args.output_dir
 if not os.path.exists(d):

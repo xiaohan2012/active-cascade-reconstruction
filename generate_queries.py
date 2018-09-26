@@ -26,9 +26,6 @@ parser.add_argument('-g', '--graph', help='graph name')
 parser.add_argument('-f', '--graph_suffix',
                     required=True,
                     help='suffix of graph name')
-parser.add_argument('-w', '--weighted',
-                    action='store_true',
-                    help='if the graph is weighted')
 
 parser.add_argument('-q', '--query_strategy',
                     choices={'random',
@@ -94,7 +91,7 @@ query_strategy = args.query_strategy
 min_proba = args.min_proba
 num_estimation_nodes = args.num_estimation_nodes
 
-g = load_graph_by_name(graph_name, weighted=args.weighted,
+g = load_graph_by_name(graph_name, weighted=False,
                        suffix=graph_suffix)
 
 if query_strategy == 'random':
@@ -112,11 +109,11 @@ elif query_strategy == 'cond-entropy':
     print("min_proba={}".format(min_proba))
     print("num_estimation_nodes={}".format(num_estimation_nodes))
     strategy = (CondEntropyQueryGenerator, {'n_node_samples': None,
-                                                'prune_nodes': True,
-                                                'root_sampler': root_sampler,
-                                                'root_sampler_eps': args.root_pagerank_noise,
-                                                'min_proba': min_proba,
-                                                'n_node_samples': num_estimation_nodes})
+                                            'prune_nodes': True,
+                                            'root_sampler': root_sampler,
+                                            'root_sampler_eps': args.root_pagerank_noise,
+                                            'min_proba': min_proba,
+                                            'n_node_samples': num_estimation_nodes})
 
 elif query_strategy == 'mutual-info':
     strategy = (MutualInformationQueryGenerator,
@@ -170,7 +167,8 @@ def one_round(g, obs, c, c_path, q_gen_cls, param, q_gen_name, output_dir,
                 p=0.5,
                 stop_fraction=0.25,
                 cascade_model='si',
-                source=cascade_source(c)
+                source=cascade_source(c),
+                debug=False  # turn it to True if you want to see more details
             )
             sampler = SimulatedCascadePool(
                 gv, n_samples, cascade_params
