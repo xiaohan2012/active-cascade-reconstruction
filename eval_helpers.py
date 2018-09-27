@@ -69,17 +69,19 @@ def top_k_infection_precision_recall(g, inf_probas, c, obs, k):
     return infection_precision_recall(set(inf_nodes), c, obs)
 
 
-def aggregate_scores_over_cascades_by_methods(cascades,
-                                              method_labels,
-                                              query_dir_ids,
-                                              inf_dir_ids,
-                                              n_queries,
-                                              inf_result_dirname,
-                                              query_dirname,
-                                              eval_method,
-                                              eval_with_mask,
-                                              iter_callback=None,
-                                              every=1):
+def aggregate_scores_over_cascades_by_methods(
+        cascades,
+        method_labels,
+        query_dir_ids,
+        inf_dir_ids,
+        n_queries,
+        inf_result_dirname,
+        query_dirname,
+        eval_method,
+        eval_with_mask,
+        iter_callback=None,
+        every=1
+):
     """
     each element in `method_labels` uniquely identifies one experiment
 
@@ -106,7 +108,6 @@ def aggregate_scores_over_cascades_by_methods(cascades,
         
         for method_label, query_dir, inf_dir in zip(method_labels, query_dir_ids, inf_dir_ids):
             cid = os.path.basename(c_path).split('.')[0]
-
             # load infection probabilities
             inf_probas_path = os.path.join(
                 inf_result_dirname,
@@ -115,6 +116,7 @@ def aggregate_scores_over_cascades_by_methods(cascades,
 
             try:
                 inf_probas_list = pkl.load(open(inf_probas_path, 'rb'))
+
             except EOFError:
                 print('**EOFError, inf_probas_path=', inf_probas_path)
                 print("**WARNING**: ignore corrupted file")
@@ -141,10 +143,15 @@ def aggregate_scores_over_cascades_by_methods(cascades,
                                            every=every,
                                            eval_with_mask=eval_with_mask,
                                            iter_callback=iter_callback)
-            # if method_label == 'prederror':
+            print('cid', cid)
             # print(scores)
             scores_by_method[method_label].append(scores)
-        # print('---'*10)
+    for method_label in method_labels:
+        print('{method}: collected {count} rounds'.format(
+            method=method_label,
+            count=len(scores_by_method[method_label])
+        ))
+        
     return scores_by_method
 
 
@@ -207,17 +214,23 @@ def get_scores_by_queries(qs, probas, c, obs,
         scores = None  # ugly code..
         if i_iter % every == 0:
             # print(i_iter)
-            i = int(i_iter / every)
-            if i >= len(probas):
+            # i = int(i_iter / every)
+            if (i_iter + 1) >= len(probas):
                 break
-            inf_probas = probas[i + 1]  # offset +1 because of the initial probas
+            try:
+                inf_probas = probas[i_iter + 1]  # offset +1 because of the initial probas
+            except IndexError:
+                print('inf_probas missing, append np.nan')
+                scores_list.append(np.nan)
+                continue
 
             if callable(iter_callback):
                 # print('iter_callback: ON')
                 iter_callback(inf_probas, inf_obs, uninf_obs)
-                
+
+            # mask out the observed nodes
             if eval_with_mask:
-                mask = np.array([(i not in obs_inc) for i in range(len(c))])
+                mask = np.array([(node not in obs_inc) for node in range(len(c))])
             else:
                 mask = np.ones(len(c), dtype=np.bool)
 
@@ -278,11 +291,13 @@ def get_scores_by_queries(qs, probas, c, obs,
                     score = scores.sum()
 
             except FloatingPointError:
-                score = 0
-            
-            if np.isnan(score):
-                score = 0
+                # score = 0
+                score = np.nan
+
             scores_list.append(score)
-    assert len(scores_list) == math.ceil(len(qs) / every), \
-        '{} != {}'.format(len(scores_list), math.ceil(len(qs) / every),)
+    # assert len(scores_list) == math.ceil(len(qs) / every), \
+    #     '{} != {}'.format(len(scores_list), math.ceil(len(qs) / every),)
     return scores_list
+
+
+

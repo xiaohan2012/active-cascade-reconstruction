@@ -16,7 +16,8 @@ sample_method="simulation"
 
 root_sampler='true_root'
 
-query_methods=(random entropy cond-entropy pagerank)
+# random 
+query_methods=(entropy cond-entropy pagerank)
 
 n_queries=100  # 500
 eval_every_k=5
@@ -47,8 +48,7 @@ for graph in ${graphs}; do
 	    	    -j ${n_jobs} --verbose \
 		    --infection_proba ${infection_proba} \
 		    --cascade_size ${cascade_fraction} \
-		    --cascade_model ${cascade_model} \
-		    --debug
+		    --cascade_model ${cascade_model}
 	    
 
 	    python3 infer_from_queries.py \

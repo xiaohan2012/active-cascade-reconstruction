@@ -32,7 +32,7 @@ eval_methods=(ap)
 # eval_methods=("n")
 # l1 l2
 # eval_methods=(cross_entropy)
-every=5
+every=1
 # eval_method="ap"
 # eval_method="p_at_hidden"
 # eval_method="entropy"
@@ -46,17 +46,15 @@ other_params="${other_params} --eval_with_mask"
 other_params="${other_params} --check"
 other_params="${other_params} --show_legend"
 
-# eval_method="precision_at_cascade_size"
-
-# eval_method="auc"
-# other_params="${other_params} --eval_with_mask"
-# other_params="${other_params} --use_cache"
-
 
 
 query_dir_ids="random, pagerank, entropy, cond-entropy"
 inf_dir_ids="random, pagerank, entropy, cond-entropy"
 labels="random, pagerank, entropy, cond-entropy"
+
+# query_dir_ids="pagerank"
+# inf_dir_ids="pagerank"
+# labels="pagerank"
 
 
 

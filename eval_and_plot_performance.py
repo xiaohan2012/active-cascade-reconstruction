@@ -183,7 +183,7 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
         scores = np.array(scores_by_method[method], dtype=np.float32)
 
         # scores[np.isnan(scores)] = 0
-        # mean_scores = np.mean(scores, axis=0)
+        mean_scores = np.mean(scores, axis=0)
         perc25 = np.percentile(scores, 25, axis=0)
         perc50 = np.percentile(scores, 50, axis=0)
         perc75 = np.percentile(scores, 75, axis=0)
@@ -191,11 +191,13 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
         # print(x.shape)
         # print(mean_scores.shape)
         # print('x (new)', x[::args.plot_step])
-        # print('y (new)', perc50[::args.plot_step])
-        l = ax.plot(x[::args.plot_step], perc50[::args.plot_step])
         print('score', perc50[::args.plot_step])
+
+        l = ax.plot(x[::args.plot_step], perc50[::args.plot_step])
+
         # print(l)
         if args.plot_percentile:
+            
             ax.fill_between(x[::args.plot_step],
                             perc25[::args.plot_step],
                             perc75[::args.plot_step],
@@ -203,15 +205,16 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
                             lw=0,
                             alpha=0.5)
 
-        min_y = min([min_y, np.min(perc50)])
-        max_y = max([max_y, np.max(perc50)])
+        # min_y = min([min_y, np.min(perc50)])
+        # max_y = max([max_y, np.max(perc50)])
         # ax.hold(True)
     if args.show_legend:
-        ax.legend(labels, loc='best', ncol=1)
+        ax.legend(labels, loc='best', ncol=1, fontsize=16)
     # ax.xaxis.label.set_fontsize(20)
     # ax.yaxis.label.set_fontsize(20)
     # ax.set_ylim(min_y - 0.01, max_y + 0.01)
     # ax.set_ylim(0.01, 0.1)
+    plt.locator_params(nbins=5)
     ax.set_xlabel('num. of queries')
     ax.set_ylabel(args.eval_method)
     

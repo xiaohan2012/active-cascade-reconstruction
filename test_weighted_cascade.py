@@ -32,7 +32,7 @@ def test_gen_input(g, cascade_model, weighted, source):
     for r1, r2 in combinations(rows, 2):
         obs1, c1 = r1[:2]
         obs2, c2 = r2[:2]
-        assert set(obs1) != set(obs2)
+        assert set(obs1) != set(list(obs2))
 
     # check for cascade size
     # only applicable for SI model
