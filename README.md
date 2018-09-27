@@ -38,8 +38,9 @@ To test the code,
 - `simulate_cascades.py`: simulate cascades and dump to files
 - `generate_queries.py`: produce queries and dump to files
 - `infer_from_queries.py`: infer the infection probabilities from queries
+- `query_process_illustration.py`: visualize different query strategies
 
-a typical pipeline:
+a typical pipeline to run experiment:
 
 1. `./scripts/gen_cascade.sh`: generate the cascades
 2. `./scripts/run.sh`: generate queries and infer the infection proability

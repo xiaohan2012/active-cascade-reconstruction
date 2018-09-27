@@ -113,7 +113,10 @@ def visualize(g, pos,
     
     edge_color = populate_property('string', edge_color_info, True)
     edge_pen_width = populate_property('float', edge_pen_width_info, True)
-    
+
+    if output is not None:
+        print('saving to {}'.format(output))
+        
     graph_draw(g, pos=pos,
                vertex_fill_color=vertex_fill_color,
                vertex_size=vertex_size,
@@ -129,14 +132,14 @@ def visualize(g, pos,
 
 def default_plot_setting(g, c, X,
                          size_multiplier=1.0, edge_width_multiplier=1.0,
-                         deemphasize_hidden_infs=False):
+                         emphasize_hidden_infs=True):
     source = cascade_source(c)
     inf_nodes = infected_nodes(c)
     hidden_infs = set(inf_nodes) - set(X)
 
     node_color_info = OrderedDict()
     node_color_info[tuple(X)] = COLOR_BLUE
-    if not deemphasize_hidden_infs:
+    if emphasize_hidden_infs:
         node_color_info[tuple(hidden_infs)] = COLOR_YELLOW
     node_color_info[(source, )] = COLOR_GREEN
     node_color_info['default'] = COLOR_WHITE
@@ -150,8 +153,8 @@ def default_plot_setting(g, c, X,
 
     node_size_info[tuple(X)] = 15 * size_multiplier
     node_size_info[(source, )] = 20 * size_multiplier
-    if not deemphasize_hidden_infs:
-        node_size_info[tuple(hidden_infs)] = 12.5 * size_multiplier
+    if emphasize_hidden_infs:
+        node_size_info[tuple(hidden_infs)] = 20 * size_multiplier
     node_size_info['default'] = 5 * size_multiplier
 
     node_text_info = {'default': ''}
