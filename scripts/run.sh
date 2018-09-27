@@ -17,9 +17,15 @@ sample_method="simulation"
 root_sampler='true_root'
 
 # random 
-query_methods=(entropy cond-entropy pagerank)
+query_methods=(entropy cond-entropy pagerank random)
 
-n_queries=100  # 500
+# this is VERY important for simulated-based sampler
+# if it's too big (e.g, > casade size), it's extremely hard to accept the samples
+# I would suggest making n_queries slightly  smaller than #hidden infections
+# for example, for infectious (|V|=410)+ cascade_size = 0.1 and obs_fraction = 0.1
+# #hidden nodes = 36.9
+# I would set n_queries=30
+n_queries=30
 eval_every_k=5
 
 min_proba=0.05
