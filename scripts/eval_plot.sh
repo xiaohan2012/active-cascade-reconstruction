@@ -17,7 +17,7 @@ cascade_model="si"
 cascade_fractions=(0.25)  #  0.25
 obs_methods=("uniform")
 # "bfs-head"  "uniform"
-n_queries=100
+n_queries=31
 # cascade_fractions=(0.01 0.02 0.04 0.08 0.16 0.32)
 # cascade_fractions=(0.04 0.08 0.16 0.32 0.64)
 # cascade_fractions=(0.02 0.04 0.08 0.16 0.32)
@@ -32,7 +32,7 @@ eval_methods=(ap)
 # eval_methods=("n")
 # l1 l2
 # eval_methods=(cross_entropy)
-every=1
+every=5
 # eval_method="ap"
 # eval_method="p_at_hidden"
 # eval_method="entropy"
@@ -42,7 +42,7 @@ every=1
 
 other_params="--plot_step=1"
 # other_params="${other_params} --use_cache"
-other_params="${other_params} --eval_with_mask"
+# other_params="${other_params} --eval_with_mask"
 other_params="${other_params} --check"
 other_params="${other_params} --show_legend"
 

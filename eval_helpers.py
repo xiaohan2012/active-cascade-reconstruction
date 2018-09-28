@@ -117,6 +117,9 @@ def aggregate_scores_over_cascades_by_methods(
             try:
                 inf_probas_list = pkl.load(open(inf_probas_path, 'rb'))
 
+                n_probas_to_show = int(n_queries / every)
+                inf_probas_list = inf_probas_list[:n_probas_to_show+1]
+        
             except EOFError:
                 print('**EOFError, inf_probas_path=', inf_probas_path)
                 print("**WARNING**: ignore corrupted file")
@@ -125,16 +128,13 @@ def aggregate_scores_over_cascades_by_methods(
                 print('**File does not exist: ', inf_probas_path)
                 print("**WARNING**: ignore non-existing file")
                 continue
-                # raise
-            # print('inf_probas_path', inf_probas_path)
-            # print('inf_probas_list', inf_probas_list)
 
             # load queries
             query_path = os.path.join(
                 query_dirname, query_dir, '{}.pkl'.format(cid))
 
-            # print('query_path', query_path)
             queries = pkl.load(open(query_path, 'rb'))[0]
+            queries = queries[:n_queries]
 
             scores = get_scores_by_queries(queries,
                                            inf_probas_list,
@@ -203,6 +203,9 @@ def get_scores_by_queries(qs, probas, c, obs,
 
     scores_list = []
 
+    print('len(qs)', len(qs))
+    print('len(probas)', len(probas))
+    
     for i_iter, query in enumerate(qs):
         if c[query] == -1:
             uninf_obs.add(query)
@@ -214,11 +217,11 @@ def get_scores_by_queries(qs, probas, c, obs,
         scores = None  # ugly code..
         if i_iter % every == 0:
             # print(i_iter)
-            # i = int(i_iter / every)
-            if (i_iter + 1) >= len(probas):
-                break
+            proba_index = int(i_iter / every)
+            print('i_iter', i_iter)
+            print('proba_index', proba_index)
             try:
-                inf_probas = probas[i_iter + 1]  # offset +1 because of the initial probas
+                inf_probas = probas[proba_index + 1]  # offset +1 because of the initial probas
             except IndexError:
                 print('inf_probas missing, append np.nan')
                 scores_list.append(np.nan)
@@ -295,6 +298,7 @@ def get_scores_by_queries(qs, probas, c, obs,
                 score = np.nan
 
             scores_list.append(score)
+    print('scores_list', scores_list)
     # assert len(scores_list) == math.ceil(len(qs) / every), \
     #     '{} != {}'.format(len(scores_list), math.ceil(len(qs) / every),)
     return scores_list

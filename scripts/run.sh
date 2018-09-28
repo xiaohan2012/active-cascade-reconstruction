@@ -24,8 +24,8 @@ query_methods=(entropy cond-entropy pagerank random)
 # I would suggest making n_queries slightly  smaller than #hidden infections
 # for example, for infectious (|V|=410)+ cascade_size = 0.1 and obs_fraction = 0.1
 # #hidden nodes = 36.9
-# I would set n_queries=30
-n_queries=30
+# I would set n_queries=15
+n_queries=15
 eval_every_k=5
 
 min_proba=0.05
