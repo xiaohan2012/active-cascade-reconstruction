@@ -5,8 +5,8 @@ import matplotlib.cm as cm
 from collections import OrderedDict, Iterable
 from cycler import cycler
 
-from inference import infection_probability
 from graph_tool.draw import graph_draw
+from graph_tool.stats import remove_parallel_edges
 from graph_helpers import (extract_nodes,
                            observe_uninfected_node,
                            remove_filters)
@@ -232,7 +232,7 @@ def heatmap_plot_setting(g, c, X, weight, **kwargs):
     return s
 
 
-class QueryIllustrator():
+class QueryProcessIllustrator():
     """illustrate the querying process"""
 
     def __init__(self, g, obs, c,
@@ -240,9 +240,15 @@ class QueryIllustrator():
                  output_size=(300, 300),
                  vertex_size=20,
                  vcmap=mpl.cm.Reds):
-        self.g_bak = g
+        self.g_bak = g.copy()
+
+        if self.g_bak.is_directed():
+            self.g_bak.set_directed(False)
+        remove_parallel_edges(self.g_bak)
+
         self.g = remove_filters(g)  # refresh
         self.obs = obs
+        self.source = cascade_source(c)
         self.c = c
 
         self.pos = pos
@@ -256,8 +262,12 @@ class QueryIllustrator():
         self.obs_uninf = set()
         self.hidden_inf = self.inf_nodes - self.obs_inf
         self.hidden_uninf = set(extract_nodes(g)) - self.inf_nodes
+
+        self.queries = []
         
     def add_query(self, query):
+        self.queries.append(query)
+        
         if self.c[query] >= 0:  # infected
             self.obs_inf |= {query}
             self.hidden_inf -= {query}
@@ -266,28 +276,36 @@ class QueryIllustrator():
             self.hidden_uninf -= {query}
             observe_uninfected_node(self.g, query, self.obs_inf)
 
-    def plot_snapshot(self, query, n_samples, ax=None):
-        """plot one snap shot using one query and update node infection/observailability
-        n_samples: num of samples used for inference
+    def plot_snapshot(self, query, inf_probas, ax=None):
+        """plot one snap shot using one query and show node infection/observailability
         """
-        self.add_query(query)
-        probas = infection_probability(self.g, self.obs_inf, n_samples=n_samples)
-        # print(probas.shape)
-        vcolor = self.node_colors(probas)
+        vcolor = self.node_colors(inf_probas)
         vcolor[query] = 1  # highlight query
 
         vshape = self.node_shapes(query)
-        vshape[query] = SHAPE_PENTAGON  # hack, override it
+        vsize = self.node_sizes(query)
 
-        graph_draw(self.g_bak,  # use the very earliest graph
-                   pos=self.pos,
-                   vcmap=self.vcmap,
-                   output_size=self.output_size,
-                   vertex_size=self.vertex_size,
-                   vertex_fill_color=vcolor,
-                   vertex_shape=vshape,
-                   mplfig=ax)
-        
+        graph_draw(
+            self.g_bak,  # use the very earliest graph
+            pos=self.pos,
+            vcmap=self.vcmap,
+            output_size=self.output_size,
+            vertex_size=vsize,
+            vertex_fill_color=vcolor,
+            vertex_shape=vshape,
+            mplfig=ax
+        )
+
+    def node_sizes(self, query):
+        groups = [
+            (self.vertex_size * 2, self.hidden_inf),
+            (self.vertex_size * 1.5, self.queries),
+            (self.vertex_size * 2, [query])
+        ]
+        return self.node_properties_by_group(
+            self.g_bak, groups, 'int', self.vertex_size
+        )
+    
     def node_properties_by_group(self, g, value_groups, dtype, default_val):
         """
         value_groups: dict of (dtype, list): (value, list of nodes)
@@ -300,10 +318,12 @@ class QueryIllustrator():
         return vprop
 
     def node_shapes(self, query):
-        groups = [(SHAPE_PENTAGON, [query]),
-                  (SHAPE_SQUARE, self.obs_inf | self.obs_uninf),
-                  (SHAPE_CIRCLE, self.hidden_inf),
-                  (SHAPE_TRIANGLE, self.hidden_uninf)]
+        groups = [
+            (SHAPE_PENTAGON, [self.source]),
+            (SHAPE_SQUARE, self.obs),
+            (SHAPE_TRIANGLE, self.queries),
+        ]
+        
         return self.node_properties_by_group(self.g_bak, groups, 'string', SHAPE_CIRCLE)
 
     def node_colors(self, probas):

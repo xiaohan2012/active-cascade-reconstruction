@@ -136,15 +136,16 @@ def aggregate_scores_over_cascades_by_methods(
             queries = pkl.load(open(query_path, 'rb'))[0]
             queries = queries[:n_queries]
 
-            scores = get_scores_by_queries(queries,
-                                           inf_probas_list,
-                                           c, obs,
-                                           eval_method,
-                                           every=every,
-                                           eval_with_mask=eval_with_mask,
-                                           iter_callback=iter_callback)
-            print('cid', cid)
-            # print(scores)
+            scores = get_scores_by_queries(
+                queries,
+                inf_probas_list,
+                c, obs,
+                eval_method,
+                every=every,
+                eval_with_mask=eval_with_mask,
+                iter_callback=iter_callback
+            )
+            
             scores_by_method[method_label].append(scores)
     for method_label in method_labels:
         print('{method}: collected {count} rounds'.format(
@@ -203,8 +204,8 @@ def get_scores_by_queries(qs, probas, c, obs,
 
     scores_list = []
 
-    print('len(qs)', len(qs))
-    print('len(probas)', len(probas))
+    # print('len(qs)', len(qs))
+    # print('len(probas)', len(probas))
     
     for i_iter, query in enumerate(qs):
         if c[query] == -1:
@@ -218,8 +219,8 @@ def get_scores_by_queries(qs, probas, c, obs,
         if i_iter % every == 0:
             # print(i_iter)
             proba_index = int(i_iter / every)
-            print('i_iter', i_iter)
-            print('proba_index', proba_index)
+            # print('i_iter', i_iter)
+            # print('proba_index', proba_index)
             try:
                 inf_probas = probas[proba_index + 1]  # offset +1 because of the initial probas
             except IndexError:
@@ -228,12 +229,12 @@ def get_scores_by_queries(qs, probas, c, obs,
                 continue
 
             if callable(iter_callback):
-                # print('iter_callback: ON')
                 iter_callback(inf_probas, inf_obs, uninf_obs)
 
             # mask out the observed nodes
             if eval_with_mask:
                 mask = np.array([(node not in obs_inc) for node in range(len(c))])
+                # print('#hidden infs to evaluate: {}'.format(int(y_true[mask].sum())))
             else:
                 mask = np.ones(len(c), dtype=np.bool)
 
@@ -258,11 +259,8 @@ def get_scores_by_queries(qs, probas, c, obs,
                 elif eval_method == 'mrr':
                     score = mean_reciprical_rank(y_true[mask], inf_probas[mask])
                 elif eval_method == 'ratio_discovered_inf':
-                    # print('len(obs_inc)', len(obs_inc))
-                    # print('num. discovered', sum(1 for o in obs_inc if c[o] >= 0))
                     score = sum(1 for o in obs_inc if c[o] >= 0) / len(inf_nodes)
                 elif eval_method == 'l1':
-                    # score = np.abs(y_true[mask] - inf_probas[mask]).mean()
                     scores = np.abs(y_true[mask] - inf_probas[mask])
                 elif eval_method == 'l2':
                     scores = np.power(y_true[mask] - inf_probas[mask], 2)
@@ -276,15 +274,12 @@ def get_scores_by_queries(qs, probas, c, obs,
                     y_inv = 1 - y
                     p_inv = 1 - p
 
-                    # score = (- y * np.log(p)).mean()
-                    # score -= (y_inv * np.log(p_inv)).mean()
                     score0 = -(y * np.log(p))
                     score1 = -(y_inv * np.log(p_inv))
 
                     if node_score_callback is not None:
                         node_score_callback([score0, score1])
                     scores = score0 + score1
-                    # print(score)
                 else:
                     raise ValueError('not valid eval method {}'.format(eval_method))
 
@@ -294,13 +289,9 @@ def get_scores_by_queries(qs, probas, c, obs,
                     score = scores.sum()
 
             except FloatingPointError:
-                # score = 0
                 score = np.nan
 
             scores_list.append(score)
-    print('scores_list', scores_list)
-    # assert len(scores_list) == math.ceil(len(qs) / every), \
-    #     '{} != {}'.format(len(scores_list), math.ceil(len(qs) / every),)
     return scores_list
 
 
