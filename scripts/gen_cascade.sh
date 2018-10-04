@@ -1,4 +1,4 @@
-#! /bin/zsh
+#! /bin/bash
 
 graph="infectious"
 n_cascades=96
