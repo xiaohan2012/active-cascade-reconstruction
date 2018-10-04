@@ -1,6 +1,6 @@
-#! /bin/zsh
+#! /bin/bash
 
-graph="student"
+graph="infectious"
 n_cascades=96
 n_observation_rounds=1
 # n_cascades=8
@@ -15,15 +15,17 @@ obs_fraction=0.1
 min_size=100
 max_size=1000
 
+ROOT_DIR=/experiment/cascades
+
 # works for SI
 cascade_fraction=0.1
 dataset_id="${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}-om${obs_method}"
 
 # copy from existing cascades
-output_dir="cascade-weighted/${dataset_id}"
-from_cascade_dir="cascade-weighted/${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}-ombfs-head"
+output_dir="${ROOT_DIR}/${dataset_id}"
+from_cascade_dir="${ROOT_DIR}/${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}-ombfs-head"
 
-print "ouput to ${output_dir}"
+echo "ouput to ${output_dir}"
 
 python3 simulate_cascades.py \
 	-g ${graph} \
@@ -35,6 +37,7 @@ python3 simulate_cascades.py \
 	-d ${output_dir} \
 	-s ${cascade_fraction} \
 	--observation_method ${obs_method} \
+	--use_edge_weights \
 	--min_size ${min_size} \
 	--max_size ${max_size}
 	# -c ${from_cascade_dir}
