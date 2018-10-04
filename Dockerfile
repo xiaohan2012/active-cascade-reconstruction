@@ -30,6 +30,10 @@ RUN (cd ${codedir}; git clone -b arc  ${rand_stt_src}; cd ./random_steiner_tree;
 RUN git config --global user.email "xiaohan2012@gmail.com"
 RUN git config --global user.name "Han Xiao"
 
-RUN pytest="pytest -W ignore"
+RUN (alias pytest="pytest -W ignore")
+
+# directories to store experiment files
+# this is useful for Triton
+RUN (mkdir -p /experiment/graphs; mkdir -p /experiment/cascades; mkdir -p /experiment/outputs;)
 
 CMD ["cd", "${workdir}"]
