@@ -16,8 +16,8 @@ sample_method="simulation"
 
 root_sampler='true_root'
 
-# random 
-query_methods=(entropy cond-entropy pagerank random)
+# entropy 
+query_methods=(cond-entropy pagerank random)
 
 # this is VERY important for simulated-based sampler
 # if it's too big (e.g, > casade size), it's extremely hard to accept the samples

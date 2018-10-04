@@ -16,13 +16,14 @@ from query_selection import (RandomQueryGenerator, EntropyQueryGenerator,
 from simulator import Simulator
 from joblib import Parallel, delayed
 from graph_helpers import remove_filters, load_graph_by_name, get_edge_weights
-from helpers import load_cascades, cascade_source
+from helpers import load_cascades, cascade_source, timeout
 from sample_pool import TreeSamplePool, SimulatedCascadePool
 from random_steiner_tree.util import from_gt
 from tree_stat import TreeBasedStatistics
 from arg_helpers import (
     add_cascade_parameter_args
 )
+from config import QUERY_TIMEOUT
 
 
 parser = argparse.ArgumentParser(description='')
@@ -133,6 +134,7 @@ else:
     raise ValueError('invalid strategy name')
 
 
+@timeout(seconds=QUERY_TIMEOUT)
 def one_round(
         g,
         obs,
@@ -140,7 +142,7 @@ def one_round(
         c_path,
         q_gen_cls,
         param,
-        q_gen_name,
+        query_method,
         output_dir,
         sampling_method,
         n_samples,
@@ -159,7 +161,9 @@ def one_round(
         print("{} processed already, skip".format(c_path))
         return
 
-    print('\nquerying {} started, using {}\n'.format(c_path, q_gen_name))
+    print('\nquerying {} started, using {}\n'.format(
+        c_path, query_method
+    ))
 
     gv = remove_filters(g)
     args = []  # sampling based method need a sampler to initialize
@@ -205,7 +209,24 @@ def one_round(
 
     if not os.path.exists(d):
         os.makedirs(d)
-    print('\nquerying {} done: taking {:.4f} secs\n'.format(c_path, time_cost))
+
+    print("""
+    query done:
+
+    - cascade_path: {cascade_path}
+    - query_method: {query_method}
+    - sampling_method: {sampling_method}
+    - time cost: {time_cost} s
+    - output path {output_path}
+
+    """.format(
+        cascade_path=c_path,
+        query_method=query_method,
+        sampling_method=sampling_method,
+        time_cost=time_cost,
+        output_path=outpath
+    ))
+        
     pkl.dump(qs, open(outpath, 'wb'))
 
     meta_data = {'time_elapsed': time_cost}

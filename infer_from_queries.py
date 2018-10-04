@@ -11,7 +11,8 @@ from graph_tool import openmp_set_num_threads
 from helpers import (
     load_cascades,
     cascade_source,
-    makedir_if_not_there
+    makedir_if_not_there,
+    timeout
 )
 from inference import infection_probability
 from graph_helpers import (
@@ -36,6 +37,7 @@ from root_sampler import (
 from arg_helpers import (
     add_cascade_parameter_args
 )
+from config import INFER_TIMEOUT
 
 
 def infer_probas_from_queries(
@@ -156,6 +158,7 @@ def infer_probas_from_queries(
     return probas_list, sampler, estimator
 
 
+@timeout(seconds=INFER_TIMEOUT)
 def one_round(
         g,
         obs,
