@@ -1,9 +1,7 @@
 #! /bin/zsh
 
-
 WRKDIR=/scratch/work/xiaoh1
 SRC_DIR=$WRKDIR/data-active-cascade-reconstruction
-# TGT_DIR=/home/xiaoh1/code/active-cascade-reconstruction
 TGT_DIR=/experiment
 
 bind_paths="${SRC_DIR}/cascades:${TGT_DIR}"
