@@ -36,8 +36,10 @@ To test the code,
 
 - `make_graph_weighted.py`: dump  graph with edge weights
 - `simulate_cascades.py`: simulate cascades and dump to files
-- `generate_queries.py`: produce queries and dump to files
-- `infer_from_queries.py`: infer the infection probabilities from queries
+- `generate_queries.py`: [batch] produce queries and dump to files
+  - `query_one_round.py`: [single] produce queries and dump to file
+- `infer_from_queries.py`: [in batch] infer the infection probabilities from queries
+  - `infer_one_round.py`: [single]
 - `query_process_illustration.py`: visualize different query strategies
 
 a typical pipeline to run experiment:
