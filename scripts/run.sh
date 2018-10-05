@@ -1,5 +1,9 @@
 #! /bin/zsh
 
+CASCADE_ROOT_DIR=/experiment/cascades
+QUERIES_ROOT_DIR=/experiment/outputs/queries
+INFERENCE_ROOT_DIR=/experiment/outputs/inference
+
 graphs=("infectious" "student" "email-univ")
 
 infection_proba=0.5
@@ -36,7 +40,7 @@ for graph in ${graphs}; do
 	dataset_id="${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}-omuniform"
 	print "dataset_id: ${dataset_id}"
 
-	cascade_dir="cascade-weighted/${dataset_id}"
+	cascade_dir="${CASCADE_ROOT_DIR}/${dataset_id}"
 	for query_method in ${query_methods}; do
 	    print "${query_method} on ${cascade_dir}"
 	        python3 generate_queries.py \
@@ -49,7 +53,7 @@ for graph in ${graphs}; do
 	    	    -p ${min_proba} \
 	    	    -m ${sample_method} \
 	    	    -c ${cascade_dir} \
-	    	    -d outputs/queries-weighted/${dataset_id}/${sample_method}/${query_method}  \
+	    	    -d ${QUERIES_ROOT_DIR}/${dataset_id}/${sample_method}/${query_method}  \
 	    	    -j ${n_jobs} --verbose \
 		    --infection_proba ${infection_proba} \
 		    --cascade_size ${cascade_fraction} \
@@ -64,8 +68,8 @@ for graph in ${graphs}; do
 	    	    -c ${cascade_dir} \
 	    	    --query_method ${query_method} \
 	    	    --root_sampler ${root_sampler} \
-	    	    -q outputs/queries-weighted/${dataset_id}/${sample_method}/${query_method} \
-	    	    -p outputs/inf-probas-weighted/${dataset_id}/${sample_method}/${query_method} \
+	    	    -q ${QUERIES_ROOT_DIR}/${dataset_id}/${sample_method}/${query_method} \
+	    	    -p ${INFERENCE_ROOT_DIR}/${dataset_id}/${sample_method}/${query_method} \
 	    	    --eval_every ${eval_every_k} \
 	    	    -j ${n_jobs} \
 		    --verbose \
