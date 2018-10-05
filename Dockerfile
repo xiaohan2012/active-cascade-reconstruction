@@ -10,11 +10,10 @@ RUN mkdir -p ${workdir}
 
 WORKDIR ${workdir}
 
-# install pip
+# install packages
 RUN pacman-key --refresh-keys
 RUN pacman -Suy --noconfirm
-RUN pacman -S python-pip  --noconfirm --needed
-RUN pacman -S emacs  --noconfirm --needed
+RUN pacman -S emacs zsh python-pip  --noconfirm --needed
 
 RUN pip install --upgrade pip
 
