@@ -1,3 +1,4 @@
+import os
 from itertools import product
 
 
@@ -49,7 +50,7 @@ for graph, query_method in product(GRAPHS, QUERY_METHODS):
         dataset_id=dataset_id
     )
     for i in range(N_ROUNDS):
-        cascade_path = cascade_dir + '{}.pkl'.format(i)
+        cascade_path = os.path.join(cascade_dir, '{}.pkl'.format(i))
         output_dir = '{output_root_dir}/{dataset_id}/{sample_method}/{query_method}'.format(
             output_root_dir=OUTPUT_ROOT_DIR,
             dataset_id=dataset_id,
