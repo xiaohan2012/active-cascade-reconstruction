@@ -137,12 +137,15 @@ def one_round(
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument('-g', '--graph', help='graph name')
+    parser.add_argument('-g', '--graph',
+                        required=True,
+                        help='graph name')
     parser.add_argument('-f', '--graph_suffix',
                         required=True,
                         help='suffix of graph name')
 
     parser.add_argument('-q', '--query_strategy',
+                        required=True,
                         choices={'random',
                                  'pagerank',
                                  'entropy',
