@@ -1,6 +1,7 @@
 #! /bin/zsh
 
 graph="email-univ"
+
 n_cascades=96
 n_observation_rounds=1
 # n_cascades=8
