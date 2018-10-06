@@ -10,7 +10,7 @@ cascade_model="si"
 graph_suffix="_0.5"
 
 obs_method="uniform"
-obs_fraction=0.1
+obs_fraction=0.03
 
 # works for IC
 min_size=100

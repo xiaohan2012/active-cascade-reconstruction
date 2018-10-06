@@ -11,7 +11,7 @@ QUERY_METHODS = ('cond-entropy', 'entropy', 'pagerank', 'random')
 # for example, for infectious (|V|=410)+ cascade_size = 0.1 and OBS_FRACTION = 0.1
 # #hidden nodes = 36.9
 # I would set N_QUERIES=15
-N_QUERIES = 50
+N_QUERIES = 15
 
 N_ROUNDS = 96
 ARG_SUFFIX = '--verbose --debug'
@@ -21,7 +21,7 @@ INFECTION_PROBA = 0.5
 GRAPH_SUFFIX = "_{}".format(INFECTION_PROBA)
 
 CASCADE_MODEL = "si"
-CASCADE_FRACTION = 0.1
+CASCADE_FRACTION = 0.03
 OBS_FRACTION = 0.1
 OBS_METHOD = "uniform"
 
