@@ -1,12 +1,19 @@
 CASCADE_ROOT_DIR = '/experiment/cascades'
 OUTPUT_ROOT_DIR = '/experiment/outputs'
 
-# "student", "email-univ"
-GRAPHS = ("infectious", )
+
+GRAPHS = ("email-univ", )
 QUERY_METHODS = ('cond-entropy', 'entropy', 'pagerank', 'random')
 
+# this is VERY important for simulated-based sampler
+# if it's too big (e.g, > casade size), it's extremely hard to accept the samples
+# I would suggest making N_QUERIES  smaller than num. hidden infections
+# for example, for infectious (|V|=410)+ cascade_size = 0.1 and OBS_FRACTION = 0.1
+# #hidden nodes = 36.9
+# I would set N_QUERIES=15
+N_QUERIES = 50
 
-N_ROUNDS = 1
+N_ROUNDS = 96
 ARG_SUFFIX = '--verbose --debug'
 
 
@@ -23,14 +30,6 @@ SAMPLING_METHOD = "simulation"
 
 ROOT_SAMPLER = 'true_root'
     
-
-# this is VERY important for simulated-based sampler
-# if it's too big (e.g, > casade size), it's extremely hard to accept the samples
-# I would suggest making N_QUERIES  smaller than num. hidden infections
-# for example, for infectious (|V|=410)+ cascade_size = 0.1 and OBS_FRACTION = 0.1
-# #hidden nodes = 36.9
-# I would set N_QUERIES=15
-N_QUERIES = 15
 
 PRUNING_PROBA = 0.05
 
