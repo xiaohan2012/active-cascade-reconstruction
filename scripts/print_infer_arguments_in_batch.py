@@ -8,18 +8,19 @@ for graph, query_method in product(GRAPHS, QUERY_METHODS):
     cascade_dir = get_cascade_dir(dataset_id)
     for i in range(N_ROUNDS):
         cascade_path = os.path.join(cascade_dir, '{}.pkl'.format(i))
-        output_dir = get_query_dir(dataset_id, query_method)
+        query_dir = get_query_dir(dataset_id, query_method)
+        output_dir = get_inference_dir(dataset_id, query_method)
         arguments = [
             ('-g', graph),
             ('-f', GRAPH_SUFFIX),
-            ('-q', query_method),
-            ('-n', N_QUERIES),
+            ('--query_method', query_method),
             ('-s', N_SAMPLES),
             ('-p', PRUNING_PROBA),
-            ('-m', SAMPLING_METHOD),
+            ('--sampling_method', SAMPLING_METHOD),
             ('-r', ROOT_SAMPLER),
             ('-c', cascade_path),
-            ('-d', output_dir),
+            ('-q', query_dir),
+            ('-p', output_dir),
             ('--infection_proba', INFECTION_PROBA),
             ('--cascade_size', CASCADE_FRACTION),
             ('--cascade_model', CASCADE_MODEL)
