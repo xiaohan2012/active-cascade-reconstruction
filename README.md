@@ -48,6 +48,11 @@ a typical pipeline to run experiment:
 2. `./scripts/run.sh`: generate queries and infer the infection proability
 3. `./scripts/eval_plot.sh`: performance evaluation and plotting
 
+
+## note on Triton
+
+use `./singularity/exec.sh ${cmd_to_exec}` to execute the command in the singularity container
+
 ---------------------
 
 # shell scripts
