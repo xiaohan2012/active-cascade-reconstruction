@@ -42,11 +42,20 @@ To test the code,
   - `infer_one_round.py`: [single]
 - `query_process_illustration.py`: visualize different query strategies
 
-a typical pipeline to run experiment:
+## typical pipeline to run experiment
 
 1. `./scripts/gen_cascade.sh`: generate the cascades
 2. `./scripts/run.sh`: generate queries and infer the infection proability
 3. `./scripts/eval_plot.sh`: performance evaluation and plotting
+
+## pipeline on Triton
+
+1. `./singularity/exec.sh ./scripts/gen_cascade.sh`: generate the cascades
+2. `python3 ./scripts/print_{query|infer}_arguments_in_batch.py  > exp_args/{query|infer}_{graph}.txt`
+   - print the arguments to be populated to slurm jobs
+   - edit `scripts/setting.py`
+3. `sbatch ./scripts/sbatch_experiment.sh`
+   - submit the jobs
 
 
 ## note on Triton
