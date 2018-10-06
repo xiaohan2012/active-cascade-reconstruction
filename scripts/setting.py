@@ -2,6 +2,7 @@ CASCADE_ROOT_DIR = '/experiment/cascades'
 OUTPUT_ROOT_DIR = '/experiment/outputs'
 
 GRAPHS = ("lattice-100", )
+
 QUERY_METHODS = ('cond-entropy', 'entropy', 'pagerank', 'random')
 
 # this is VERY important for simulated-based sampler
