@@ -1,8 +1,7 @@
 CASCADE_ROOT_DIR = '/experiment/cascades'
 OUTPUT_ROOT_DIR = '/experiment/outputs'
 
-
-GRAPHS = ("email-univ", )
+GRAPHS = ("lattice-100", )
 QUERY_METHODS = ('cond-entropy', 'entropy', 'pagerank', 'random')
 
 # this is VERY important for simulated-based sampler
@@ -11,9 +10,10 @@ QUERY_METHODS = ('cond-entropy', 'entropy', 'pagerank', 'random')
 # for example, for infectious (|V|=410)+ cascade_size = 0.1 and OBS_FRACTION = 0.1
 # #hidden nodes = 36.9
 # I would set N_QUERIES=15
-N_QUERIES = 50
+N_QUERIES = 20
 
 N_ROUNDS = 96
+
 ARG_SUFFIX = '--verbose --debug'
 
 
