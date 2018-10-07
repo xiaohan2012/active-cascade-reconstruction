@@ -18,7 +18,7 @@ from test_helpers import check_probas_so_far
 from viz_helpers import set_cycler
 
 
-plt.style.use('paper')
+# plt.style.use('paper')
 np.seterr(divide='raise', invalid='raise')
 
 if __name__ == '__main__':
@@ -48,6 +48,7 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--cascade_dirname', help='cascade directory name')
     parser.add_argument('--inf_dirname', help='')
     parser.add_argument('--query_dirname', default='queries', help='default dirname for query result')
+    parser.add_argument('--fig_dirname', default='figs', help='default fig dirname')
 
     # query and inf dir ids
     parser.add_argument('-q', '--query_dir_ids', required=True,
@@ -75,10 +76,10 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
     for k, v in args._get_kwargs():
         print("{}={}".format(k, v))
     
-    inf_result_dirname = 'outputs/{}/{}/{}'.format(args.inf_dirname,
+    inf_result_dirname = '{}/{}/{}'.format(args.inf_dirname,
                                                    args.data_id,
                                                    args.sampling_method)
-    query_dirname = 'outputs/{}/{}/{}'.format(args.query_dirname,
+    query_dirname = '{}/{}/{}'.format(args.query_dirname,
                                               args.data_id,
                                               args.sampling_method)
 
@@ -226,7 +227,7 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
     else:
         dir_suffix = '-no-mask'
 
-    dirname = 'figs/{}'.format(args.eval_method + dir_suffix)
+    dirname = '{}/{}'.format(args.fig_dirname, args.eval_method + dir_suffix)
 
     if not os.path.exists(dirname):
         os.makedirs(dirname)

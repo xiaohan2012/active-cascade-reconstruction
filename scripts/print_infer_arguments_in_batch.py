@@ -23,7 +23,8 @@ for graph, query_method in product(GRAPHS, QUERY_METHODS):
             ('-p', output_dir),
             ('--infection_proba', INFECTION_PROBA),
             ('--cascade_size', CASCADE_FRACTION),
-            ('--cascade_model', CASCADE_MODEL)
+            ('--cascade_model', CASCADE_MODEL),
+            ('--eval_every', EVAL_EVERY)
         ]
 
         str_list = []
