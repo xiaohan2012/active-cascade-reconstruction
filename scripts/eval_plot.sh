@@ -18,7 +18,7 @@ obs_methods=("uniform")
 n_queries=15
 obs_fractions=(0.1)
 
-eval_methods=(ap)
+eval_methods=(ap l1)
 
 every=3
 

@@ -18,7 +18,6 @@ from test_helpers import check_probas_so_far
 from viz_helpers import set_cycler
 
 
-# plt.style.use('paper')
 np.seterr(divide='raise', invalid='raise')
 
 if __name__ == '__main__':
@@ -34,6 +33,8 @@ if __name__ == '__main__':
                         help='wether show the 25 and 75 percentile in the plot or not')
     parser.add_argument('--show_legend', action='store_true',
                         help='wether show legend or not')
+    parser.add_argument('--style',
+                        help='plot style to use')
     
     # eval method
     parser.add_argument('-e', '--eval_method',
@@ -75,7 +76,10 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
     print('-' * 10)
     for k, v in args._get_kwargs():
         print("{}={}".format(k, v))
-    
+
+    if args.style:
+        plt.style.use('./matplotlib_style/{}.mplstyle'.format(args.style))
+
     inf_result_dirname = '{}/{}/{}'.format(args.inf_dirname,
                                                    args.data_id,
                                                    args.sampling_method)
