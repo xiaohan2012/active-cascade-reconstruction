@@ -53,6 +53,6 @@ def check_probas_so_far(probas, inf, uninf):
     # print(inf)
     # print(uninf)
     for v in inf:
-        assert probas[v] == 1.0
+        assert probas[v] == 1.0, '{} != 1.0'.format(probas[v])
     for v in uninf:
-        assert probas[v] == 0.0
+        assert probas[v] == 0.0, '{} != 0.0'.format(probas[v])

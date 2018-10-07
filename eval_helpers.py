@@ -113,7 +113,7 @@ def aggregate_scores_over_cascades_by_methods(
                 inf_result_dirname,
                 inf_dir,
                 '{}.pkl'.format(cid))
-
+            print('processing id ', cid)
             try:
                 inf_probas_list = pkl.load(open(inf_probas_path, 'rb'))
 
@@ -125,8 +125,7 @@ def aggregate_scores_over_cascades_by_methods(
                 print("**WARNING**: ignore corrupted file")
                 continue
             except IOError:
-                print('**File does not exist: ', inf_probas_path)
-                print("**WARNING**: ignore non-existing file")
+                print('WARNING**: ignore non-existing file: ', inf_probas_path)
                 continue
 
             # load queries

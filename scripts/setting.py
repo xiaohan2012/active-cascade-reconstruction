@@ -11,7 +11,6 @@ QUERY_METHODS = ('cond-entropy', 'entropy', 'pagerank', 'random')
 # for example, for infectious (|V|=410)+ cascade_size = 0.1 and OBS_FRACTION = 0.1
 # #hidden nodes = 36.9
 # I would set N_QUERIES=15
-
 N_QUERIES = 20
 
 N_ROUNDS = 96
@@ -23,7 +22,7 @@ INFECTION_PROBA = 0.5
 GRAPH_SUFFIX = "_{}".format(INFECTION_PROBA)
 
 CASCADE_MODEL = "si"
-CASCADE_FRACTION = 0.03
+CASCADE_FRACTION = 0.025
 OBS_FRACTION = 0.1
 OBS_METHOD = "uniform"
 
@@ -34,6 +33,8 @@ ROOT_SAMPLER = 'true_root'
     
 
 PRUNING_PROBA = 0.05
+
+EVAL_EVERY = 3
 
 def get_dataset_id(graph):
     return "{graph}-m{cascade_model}-s{cascade_fraction}-o{obs_fraction}-omuniform".format(

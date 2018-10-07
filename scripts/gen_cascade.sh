@@ -1,6 +1,7 @@
 #! /bin/zsh
 
-graph="email-univ"
+graph="lattice-100"
+
 n_cascades=96
 n_observation_rounds=1
 # n_cascades=8
@@ -9,7 +10,7 @@ cascade_model="si"
 graph_suffix="_0.5"
 
 obs_method="uniform"
-obs_fraction=0.03
+obs_fraction=0.1
 
 # works for IC
 min_size=100
@@ -25,7 +26,7 @@ dataset_id="${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}-om$
 output_dir="${ROOT_DIR}/${dataset_id}"
 from_cascade_dir="${ROOT_DIR}/${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}-ombfs-head"
 
-echo "ouput to ${output_dir}"
+echo "output to ${output_dir}"
 
 python3 simulate_cascades.py \
 	-g ${graph} \
