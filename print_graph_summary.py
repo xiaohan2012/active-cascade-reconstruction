@@ -3,10 +3,10 @@
 import sys
 import os
 import numpy as np
+import pandas as pd
 from graph_tool.all import load_graph, global_clustering, \
     assortativity, label_components, label_largest_component, \
     pseudo_diameter
-import pandas as pd
 
 g = load_graph(sys.argv[1])
 

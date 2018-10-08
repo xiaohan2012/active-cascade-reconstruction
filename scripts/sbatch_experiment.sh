@@ -1,13 +1,13 @@
 #!/bin/zsh
 
-#SBATCH --job-name=infectious
-#SBATCH --output=/scratch/work/xiaoh1/data-active-cascade-reconstruction/logs/infectious.txt  # %a does not work
+#SBATCH --job-name=lattice-100
+#SBATCH --output=/scratch/work/xiaoh1/data-active-cascade-reconstruction/logs/lattice-100.txt  # %a does not work
 #SBATCH --cpus-per-task 1 
 #SBATCH --time 01:00:00  # per task?
 #SBATCH --mem=1G
 #SBATCH --array=1-384 # 96 rounds x 4 strategies
 
-GRAPH=infectious  # change this for new graphs
+GRAPH=lattice-100  # change this for new graphs
 
 query_args_file=exp_args/query_${GRAPH}.txt
 infer_args_file=exp_args/infer_${GRAPH}.txt

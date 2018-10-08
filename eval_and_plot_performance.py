@@ -35,7 +35,10 @@ if __name__ == '__main__':
                         help='wether show legend or not')
     parser.add_argument('--style',
                         help='plot style to use')
+    parser.add_argument('-t', '--title',
+                        help='title')
     
+
     # eval method
     parser.add_argument('-e', '--eval_method',
                         choices=('ap', 'auc', 'p@k', 'entropy', 'map', 'mrr', 'n',
@@ -222,7 +225,8 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
     plt.locator_params(nbins=5)
     ax.set_xlabel('num. of queries')
     ax.set_ylabel(args.eval_method)
-    
+    ax.set_title(args.title)
+
     fig.tight_layout()
 
     # plt.ylim(0.2, 0.8)

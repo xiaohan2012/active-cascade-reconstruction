@@ -10,7 +10,7 @@ cascade_model="si"
 graph_suffix="_0.5"
 
 obs_method="uniform"
-obs_fraction=0.1
+obs_fraction=0.25
 
 # works for IC
 min_size=100
@@ -19,7 +19,7 @@ max_size=1000
 ROOT_DIR=/experiment/cascades
 
 # works for SI
-cascade_fraction=0.1
+cascade_fraction=0.25
 dataset_id="${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}-om${obs_method}"
 
 # copy from existing cascades

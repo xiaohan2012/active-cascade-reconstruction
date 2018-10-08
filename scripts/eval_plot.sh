@@ -2,7 +2,7 @@
 
 ROOT_DIR=/experiment
 
-graphs=("student")
+graphs=("lattice-100")
 sample_method="simulation"
 
 query_dirname=${ROOT_DIR}/outputs/queries
@@ -11,10 +11,10 @@ inf_dirname=${ROOT_DIR}/outputs/inference
 fig_dirname=${ROOT_DIR}/outputs/figs
 
 cascade_model="si"
-cascade_fractions=(0.025)  #  0.25
+cascade_fractions=(0.25)
 obs_methods=("uniform")
 n_queries=30
-obs_fractions=(0.1)
+obs_fractions=(0.25)
 
 eval_methods=(ap l1)
 
@@ -53,8 +53,8 @@ for graph in ${graphs}; do
 			--fig_dirname ${fig_dirname} \
 			--plot_step 1 \
 			--check \
-			--show_legend
-
+			--show_legend \
+			-t ${graph}
 		done
 	    done
 	done
