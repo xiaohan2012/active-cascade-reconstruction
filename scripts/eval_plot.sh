@@ -2,10 +2,8 @@
 
 ROOT_DIR=/experiment
 
-graphs=("email-univ")
+graphs=("student")
 sample_method="simulation"
-
-inf_method="inf-probas"
 
 query_dirname=${ROOT_DIR}/outputs/queries
 cascade_dirname=${ROOT_DIR}/cascades
@@ -15,7 +13,7 @@ fig_dirname=${ROOT_DIR}/outputs/figs
 cascade_model="si"
 cascade_fractions=(0.025)  #  0.25
 obs_methods=("uniform")
-n_queries=15
+n_queries=30
 obs_fractions=(0.1)
 
 eval_methods=(ap l1)
