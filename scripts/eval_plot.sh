@@ -2,24 +2,16 @@
 
 ROOT_DIR=/experiment
 
-<<<<<<< HEAD
 graphs=("lattice-100")
 sample_method="simulation"
 
-=======
-graphs=("email-univ")
-sample_method="simulation"
-
-inf_method="inf-probas"
-
->>>>>>> 854f83b7443de08b8a2303eea77890982818b72c
 query_dirname=${ROOT_DIR}/outputs/queries
 cascade_dirname=${ROOT_DIR}/cascades
 inf_dirname=${ROOT_DIR}/outputs/inference
 fig_dirname=${ROOT_DIR}/outputs/figs
 
 cascade_model="si"
-<<<<<<< HEAD
+
 cascade_fractions=(0.25)
 obs_methods=("uniform")
 n_queries=30
@@ -31,21 +23,6 @@ every=3
 
 # other_params="${other_params} --use_cache"
 # other_params="${other_params} --eval_with_mask"
-
-=======
-cascade_fractions=(0.025)  #  0.25
-obs_methods=("uniform")
-n_queries=15
-obs_fractions=(0.1)
-
-eval_methods=(ap)
-
-every=3
-
-# other_params="${other_params} --use_cache"
-# other_params="${other_params} --eval_with_mask"
-
->>>>>>> 854f83b7443de08b8a2303eea77890982818b72c
 
 query_dir_ids='random, pagerank, entropy, cond-entropy'
 inf_dir_ids='random, pagerank, entropy, cond-entropy'
@@ -76,13 +53,8 @@ for graph in ${graphs}; do
 			--fig_dirname ${fig_dirname} \
 			--plot_step 1 \
 			--check \
-<<<<<<< HEAD
 			--show_legend \
 			-t ${graph}
-=======
-			--show_legend
-
->>>>>>> 854f83b7443de08b8a2303eea77890982818b72c
 		done
 	    done
 	done

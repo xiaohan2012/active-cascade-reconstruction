@@ -14,7 +14,6 @@ QUERY_METHODS = ('cond-entropy', 'entropy', 'pagerank', 'random')
 N_QUERIES = 30
 
 N_ROUNDS = 96
-
 ARG_SUFFIX = '--verbose --debug'
 
 
@@ -22,6 +21,7 @@ INFECTION_PROBA = 0.5
 GRAPH_SUFFIX = "_{}".format(INFECTION_PROBA)
 
 CASCADE_MODEL = "si"
+
 CASCADE_FRACTION = 0.25
 OBS_FRACTION = 0.25
 OBS_METHOD = "uniform"

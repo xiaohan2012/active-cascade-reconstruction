@@ -18,10 +18,6 @@ from test_helpers import check_probas_so_far
 from viz_helpers import set_cycler
 
 
-<<<<<<< HEAD
-=======
-# plt.style.use('paper')
->>>>>>> 854f83b7443de08b8a2303eea77890982818b72c
 np.seterr(divide='raise', invalid='raise')
 
 if __name__ == '__main__':
@@ -83,14 +79,10 @@ why this? refer to plot_inference_using_weighted_vs_unweighted.sh""")
     print('-' * 10)
     for k, v in args._get_kwargs():
         print("{}={}".format(k, v))
-<<<<<<< HEAD
 
     if args.style:
         plt.style.use('./matplotlib_style/{}.mplstyle'.format(args.style))
 
-=======
-    
->>>>>>> 854f83b7443de08b8a2303eea77890982818b72c
     inf_result_dirname = '{}/{}/{}'.format(args.inf_dirname,
                                                    args.data_id,
                                                    args.sampling_method)
