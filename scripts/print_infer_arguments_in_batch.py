@@ -16,8 +16,9 @@ for graph, query_method in product(GRAPHS, QUERY_METHODS):
             ('--query_method', query_method),
             ('-s', N_SAMPLES),
             ('-p', PRUNING_PROBA),
-            ('--sampling_method', SAMPLING_METHOD),
-            ('-r', ROOT_SAMPLER),
+            # note we use "simulation" here as sampling_method 
+            # as it's set to "simulation" by default
+            # we do not specify it here
             ('-c', cascade_path),
             ('-q', query_dir),
             ('-p', output_dir),

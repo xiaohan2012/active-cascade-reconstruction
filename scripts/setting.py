@@ -1,9 +1,9 @@
 CASCADE_ROOT_DIR = '/experiment/cascades'
 OUTPUT_ROOT_DIR = '/experiment/outputs'
 
-GRAPHS = ("lattice-100", )
+GRAPHS = ("email-univ", )
 
-QUERY_METHODS = ('cond-entropy', 'entropy', 'pagerank', 'random')
+QUERY_METHODS = ('cond-entropy', 'entropy')
 
 # this is VERY important for simulated-based sampler
 # if it's too big (e.g, > casade size), it's extremely hard to accept the samples
@@ -22,12 +22,12 @@ GRAPH_SUFFIX = "_{}".format(INFECTION_PROBA)
 
 CASCADE_MODEL = "si"
 
-CASCADE_FRACTION = 0.25
-OBS_FRACTION = 0.25
+CASCADE_FRACTION = 0.025
+OBS_FRACTION = 0.1
 OBS_METHOD = "uniform"
 
 N_SAMPLES = 100  # 2500
-SAMPLING_METHOD = "simulation"
+SAMPLING_METHOD = "loop_erased"
 
 ROOT_SAMPLER = 'true_root'
     
