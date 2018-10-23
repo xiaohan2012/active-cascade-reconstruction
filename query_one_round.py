@@ -27,6 +27,8 @@ from sample_pool import TreeSamplePool, SimulatedCascadePool
 from tree_stat import TreeBasedStatistics
 from random_steiner_tree.util import from_gt
 from arg_helpers import (
+    add_input_args,
+    add_query_method_args,
     add_cascade_parameter_args
 )
 from config import QUERY_TIMEOUT, DB_CONFIG
@@ -134,57 +136,15 @@ def one_round(
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument('-g', '--graph',
-                        required=True,
-                        help='graph name')
-    parser.add_argument('--dataset',
-                        required=True,
-                        help='dataset id, e.g. lattice-100-msi-s0.25-o0.25-omuniform')
-    parser.add_argument('-f', '--graph_suffix',
-                        required=True,
-                        help='suffix of graph name')
 
-    parser.add_argument('-q', '--query_strategy',
-                        required=True,
-                        choices={'random',
-                                 'pagerank',
-                                 'entropy',
-                                 'cond-entropy',
-                                 'mutual-info',
-                                 'oracle-e',
-                                 'oracle-l'},
-                        help='query strategy')
-    parser.add_argument('-c', '--cascade_path',
-                        help='path of generated cascade')
-
-    # following applies to sampler approach
-    parser.add_argument('-n', '--n_queries', default=10, type=int,
-                        help='number of queries')
-    parser.add_argument('-m', '--sampling_method', default='loop_erased', type=str,
-                        choices={'loop_erased', 'cut', 'cut_naive', 'simulation'},
-                        help='the steiner tree sampling method')
-    parser.add_argument('-r', '--root_sampler', type=str,
-                        default='pagerank',
-                        choices={'pagerank', 'random', 'true_root'},
-                        help='the steiner tree sampling method')
-    parser.add_argument('-s', '--n_samples', default=100, type=int,
-                        help='number of samples')
-
-    # specific to prediction error-based sampler
-    parser.add_argument('-p', '--min_proba', default=0.0, type=float,
-                        help='(minimum) threshold used for pruning candidate nodes')
-    parser.add_argument('-e', '--num_estimation_nodes', default=None, type=int,
-                        help='number of nodes used for error estimation')
+    add_input_args(parser)
+    add_query_method_args(parser)
+    add_cascade_parameter_args(parser)
 
     parser.add_argument('-b', '--debug', action='store_true', help='if debug, use non-parallel')
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='if verbose, verbose information is printed')
-
-    # specific to pagerank root sampler
-    parser.add_argument('--root_pagerank_noise', default=0.0, type=float,
-                        help='the epsilon value for pagerank root sampling, the higher the more noisy')
-
-    add_cascade_parameter_args(parser)
+    
 
     args = parser.parse_args()
 
@@ -197,10 +157,10 @@ if __name__ == '__main__':
     graph_suffix = args.graph_suffix
 
     n_queries = args.n_queries
-    n_samples = args.n_samples
+    n_samples = args.query_n_samples
     root_sampler = args.root_sampler
 
-    sampling_method = args.sampling_method
+    sampling_method = args.query_sampling_method
     query_method = args.query_strategy
 
     # for prediction error-based query selector

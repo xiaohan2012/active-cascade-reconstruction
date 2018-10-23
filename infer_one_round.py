@@ -33,7 +33,10 @@ from root_sampler import (
     build_true_root_sampler
 )
 from arg_helpers import (
-    add_cascade_parameter_args
+    add_input_args,
+    add_query_method_args,
+    add_cascade_parameter_args,
+    add_inference_args
 )
 from helpers import (
     get_query_result,
@@ -208,48 +211,11 @@ def one_round(
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument('-g', '--graph',
-                        help='graph name')
-    parser.add_argument('-f', '--graph_suffix', required=True,
-                        help='suffix of graph name')
-    parser.add_argument('--dataset', required=True,
-                        help='dataset name')
-
-    # query method related
-    parser.add_argument('--query_method',
-                        help='query method used for infer hidden infections')
-    parser.add_argument('--n_queries', default=10, type=int,
-                        help='number of queries')
-    parser.add_argument('--query_sampling_method', default='loop_erased', type=str,
-                        choices={'loop_erased', 'cut', 'cut_naive', 'simulation'},
-                        help='the steiner tree sampling method')
-    parser.add_argument('--root_sampler', type=str,
-                        default='pagerank',
-                        choices={'pagerank', 'random', 'true_root'},
-                        help='the steiner tree sampling method')
-    parser.add_argument('--query_n_samples', default=100, type=int,
-                        help='number of samples')
-    parser.add_argument('--min_proba', default=0.0, type=float,
-                        help='(minimum) threshold used for pruning candidate nodes')
-
-    # cascade related
-    parser.add_argument('-c', '--cascade_path',
-                        help='directory to read cascades')
+    add_input_args(parser)
+    add_query_method_args(parser)
     add_cascade_parameter_args(parser)
+    add_inference_args(parser)
     
-    # inference related
-    parser.add_argument('--sampling_method',
-                        default='simulation',
-                        choices=('loop_erased', 'cut', 'simulation'),
-                        help='')    
-    parser.add_argument('-s', '--n_samples', type=int,
-                        default=100,
-                        help='number of samples')
-    
-    parser.add_argument('--infer_every',
-                        default=1,
-                        type=int,
-                        help='evaluate every ?')
     parser.add_argument('--debug',
                         action='store_true',
                         help='')
@@ -266,8 +232,7 @@ if __name__ == '__main__':
 
     graph_name = args.graph
     graph_suffix = args.graph_suffix
-    n_samples = args.n_samples
-
+    n_samples = args.inference_n_samples
 
     g = load_graph_by_name(
         graph_name, weighted=False,
@@ -291,8 +256,8 @@ if __name__ == '__main__':
         args.n_queries,
         args.root_sampler,
         args.min_proba,
-        args.sampling_method,
-        args.n_samples,
+        args.inference_sampling_method,
+        args.inference_n_samples,
         args.infer_every
     )
     if inf_result is not None:
@@ -322,13 +287,12 @@ if __name__ == '__main__':
             c,
             args.cascade_path,
             queries,
-            n_samples=n_samples,
+            n_samples=args.inference_n_samples,
             every=args.infer_every,
             sampling_method=args.sampling_method,
             verbose=args.verbose,
             args=args
         )
-
 
         probas, time_cost = output['probas'], output['time_cost']
 
@@ -341,8 +305,8 @@ if __name__ == '__main__':
             n_queries=args.n_queries,
             root_sampler=args.root_sampler,
             pruning_proba=args.min_proba,
-            infer_sampling_method=args.sampling_method,
-            infer_n_samples=args.n_samples,
+            infer_sampling_method=args.inference_sampling_method,
+            infer_n_samples=args.inference_n_samples,
             every=args.infer_every,
             probas=pkl.dumps(probas),
             time_elapsed=time_cost,
