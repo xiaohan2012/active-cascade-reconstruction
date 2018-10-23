@@ -71,9 +71,9 @@ def one_round(
     gv = remove_filters(g)
     args = []  # sampling based method need a sampler to initialize
 
+    gi = None
     if issubclass(query_strategy_cls, SamplingBasedGenerator):
         if sampling_method == 'simulation':
-            gi = None
             if verbose:
                 print("loading simulation-based sampler")
                 print("p={}".format(cmd_args.infection_proba))
@@ -161,7 +161,7 @@ if __name__ == '__main__':
     root_sampler = args.root_sampler
 
     sampling_method = args.query_sampling_method
-    query_method = args.query_strategy
+    query_method = args.query_method
 
     # for prediction error-based query selector
     min_proba = args.min_proba

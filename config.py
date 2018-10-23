@@ -1,4 +1,4 @@
-DEBUG = True
+DEBUG = False
 
 ONE_HOUR_IN_SECS = 3600
 

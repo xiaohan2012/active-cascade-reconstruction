@@ -289,7 +289,7 @@ if __name__ == '__main__':
             queries,
             n_samples=args.inference_n_samples,
             every=args.infer_every,
-            sampling_method=args.sampling_method,
+            sampling_method=args.inference_sampling_method,
             verbose=args.verbose,
             args=args
         )

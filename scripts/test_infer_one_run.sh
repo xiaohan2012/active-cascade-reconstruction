@@ -16,4 +16,5 @@ python3 infer_one_round.py \
 	--verbose --debug \
 	--infection_proba 0.5 \
 	--cascade_size 0.25 \
-        --cascade_model "si"       
+        --cascade_model "si" \
+	--infer_every 1
