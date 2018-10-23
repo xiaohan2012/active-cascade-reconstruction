@@ -5,22 +5,31 @@ import pickle as pkl
 import os
 import argparse
 
-
 from query_selection import (RandomQueryGenerator, EntropyQueryGenerator,
                              PRQueryGenerator, CondEntropyQueryGenerator,
                              SamplingBasedGenerator,
                              MutualInformationQueryGenerator,
                              EarliestFirstOracle, LatestFirstOracle)
 from simulator import Simulator
-from graph_helpers import remove_filters, load_graph_by_name, get_edge_weights
-from helpers import cascade_source, timeout
+from graph_helpers import (
+    remove_filters,
+    load_graph_by_name,
+    get_edge_weights
+)
+from helpers import (
+    cascade_source,
+    timeout,
+    get_now,
+    init_db,
+    get_query_result
+)
 from sample_pool import TreeSamplePool, SimulatedCascadePool
-from random_steiner_tree.util import from_gt
 from tree_stat import TreeBasedStatistics
+from random_steiner_tree.util import from_gt
 from arg_helpers import (
     add_cascade_parameter_args
 )
-from config import QUERY_TIMEOUT
+from config import QUERY_TIMEOUT, DB_CONFIG
 
 
 @timeout(seconds=QUERY_TIMEOUT)
@@ -32,7 +41,7 @@ def one_round(
         query_strategy_cls,
         query_strategy_param,
         query_method_name,
-        output_dir,
+        n_queries,
         sampling_method,
         n_samples,
         verbose,
@@ -52,17 +61,6 @@ def one_round(
     query_strategy_param: param to be passed when init the query strategy class
 
     """
-    stime = time.time()
-    c_id = os.path.basename(c_path).split('.')[0]
-    d = output_dir
-    outpath = os.path.join(d, c_id + '.pkl')
-
-    # meta data such as running time, etc
-    meta_outpath = os.path.join(d, c_id + '.meta.pkl')
-
-    if os.path.exists(outpath):
-        print("{} processed already, skip".format(c_path))
-        return
 
     print('\nquerying {} started, using {}\n'.format(
         c_path, query_method_name
@@ -71,11 +69,9 @@ def one_round(
     gv = remove_filters(g)
     args = []  # sampling based method need a sampler to initialize
 
-    weights = get_edge_weights(gv)
-    gi = from_gt(gv, weights=weights)
-
     if issubclass(query_strategy_cls, SamplingBasedGenerator):
         if sampling_method == 'simulation':
+            gi = None
             if verbose:
                 print("loading simulation-based sampler")
                 print("p={}".format(cmd_args.infection_proba))
@@ -92,6 +88,8 @@ def one_round(
                 gv, n_samples, cascade_params
             )
         else:
+            weights = get_edge_weights(gv)
+            gi = from_gt(gv, weights=weights)
             sampler = TreeSamplePool(
                 gv,
                 n_samples=n_samples,
@@ -107,39 +105,41 @@ def one_round(
     sim = Simulator(gv, q_gen, gi=gi, print_log=verbose)
 
     qs = sim.run(n_queries, obs, c)
-
+    
     time_cost = time.time() - stime
-
-    if not os.path.exists(d):
-        os.makedirs(d)
 
     print("""
     query done:
 
     - cascade_path: {cascade_path}
-    - query_method_name: {query_method_name}
+    - query_method: {query_method_name}
     - sampling_method: {sampling_method}
     - time cost: {time_cost} s
-    - output path {output_dir}
+    - db path: {db_path}
 
     """.format(
         cascade_path=c_path,
         query_method_name=query_method_name,
         sampling_method=sampling_method,
         time_cost=time_cost,
-        output_dir=outpath
+        db_path=DB_CONFIG.dbpath
     ))
-        
-    pkl.dump(qs, open(outpath, 'wb'))
+    ans = dict(
+        qs=qs,
+        time_cost=time_cost
+    )
+    return ans
 
-    meta_data = {'time_elapsed': time_cost}
-    pkl.dump(meta_data, open(meta_outpath, 'wb'))
+    
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('-g', '--graph',
                         required=True,
                         help='graph name')
+    parser.add_argument('--dataset',
+                        required=True,
+                        help='dataset id, e.g. lattice-100-msi-s0.25-o0.25-omuniform')
     parser.add_argument('-f', '--graph_suffix',
                         required=True,
                         help='suffix of graph name')
@@ -176,7 +176,6 @@ if __name__ == '__main__':
     parser.add_argument('-e', '--num_estimation_nodes', default=None, type=int,
                         help='number of nodes used for error estimation')
 
-    parser.add_argument('-d', '--output_dir', required=True, help='output path')
     parser.add_argument('-b', '--debug', action='store_true', help='if debug, use non-parallel')
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='if verbose, verbose information is printed')
@@ -201,10 +200,8 @@ if __name__ == '__main__':
     n_samples = args.n_samples
     root_sampler = args.root_sampler
 
-    # output_dir = '{}/{}'.format(args.output_dir, graph_name)
-    output_dir = args.output_dir
     sampling_method = args.sampling_method
-    query_strategy = args.query_strategy
+    query_method = args.query_strategy
 
     # for prediction error-based query selector
     min_proba = args.min_proba
@@ -213,51 +210,111 @@ if __name__ == '__main__':
     g = load_graph_by_name(graph_name, weighted=False,
                            suffix=graph_suffix)
 
-    if query_strategy == 'random':
+    if query_method == 'random':
         strategy = (RandomQueryGenerator, {})
-    elif query_strategy == 'oracle-e':
+    elif query_method == 'oracle-e':
         strategy = (EarliestFirstOracle, {})
-    elif query_strategy == 'oracle-l':
+    elif query_method == 'oracle-l':
         strategy = (LatestFirstOracle, {})
-    elif query_strategy == 'pagerank':
+    elif query_method == 'pagerank':
         strategy = (PRQueryGenerator, {})
-    elif query_strategy == 'entropy':
+    elif query_method == 'entropy':
         strategy = (EntropyQueryGenerator, {'method': 'entropy', 'root_sampler': root_sampler,
                                             'root_sampler_eps': args.root_pagerank_noise})
-    elif query_strategy == 'cond-entropy':
+    elif query_method == 'cond-entropy':
         print("min_proba={}".format(min_proba))
         print("num_estimation_nodes={}".format(num_estimation_nodes))
-        strategy = (CondEntropyQueryGenerator, {'n_node_samples': None,
-                                                'prune_nodes': True,
-                                                'root_sampler': root_sampler,
-                                                'root_sampler_eps': args.root_pagerank_noise,
-                                                'min_proba': min_proba,
-                                                'n_node_samples': num_estimation_nodes})
+        strategy = (
+            CondEntropyQueryGenerator,
+            {
+                'prune_nodes': True,
+                'root_sampler': root_sampler,
+                'root_sampler_eps': args.root_pagerank_noise,
+                'min_proba': min_proba,
+                'n_node_samples': num_estimation_nodes
+            }
+        )
 
-    elif query_strategy == 'mutual-info':
-        strategy = (MutualInformationQueryGenerator,
-                    {'n_node_samples': None,
-                     'prune_nodes': True,
-                     'root_sampler': root_sampler,
-                     'root_sampler_eps': args.root_pagerank_noise,
-                     'min_proba': min_proba,
-                     'n_node_samples': num_estimation_nodes})
+    elif query_method == 'mutual-info':
+        strategy = (
+            MutualInformationQueryGenerator,
+            {
+                'prune_nodes': True,
+                'root_sampler': root_sampler,
+                'root_sampler_eps': args.root_pagerank_noise,
+                'min_proba': min_proba,
+                'n_node_samples': num_estimation_nodes
+            }
+        )
     else:
         raise ValueError('invalid strategy name')
 
     obs, c = pkl.load(open(args.cascade_path, 'rb'))
-    strategy_cls, strategy_param = strategy
-    one_round(
-        g,
-        obs,
-        c,
-        args.cascade_path,
-        strategy_cls,
-        strategy_param,
-        query_strategy,
-        output_dir,
+
+    # database init
+    conn, cursor = init_db(args.debug)
+
+    stime = time.time()
+    c_id = int(os.path.basename(args.cascade_path).split('.')[0])
+
+    row = get_query_result(
+        cursor,
+        args.dataset,
+        c_id,
+        query_method,
         sampling_method,
         n_samples,
-        args.verbose,
-        args
+        args.n_queries,
+        args.root_sampler,
+        args.min_proba
     )
+    if row is not None:
+        print("processed already, skip")
+        conn.close()
+    else:    
+        strategy_cls, strategy_param = strategy
+        output = one_round(
+            g,
+            obs,
+            c,
+            args.cascade_path,
+            strategy_cls,
+            strategy_param,
+            query_method,
+            n_queries,
+            sampling_method,
+            n_samples,
+            args.verbose,
+            args
+        )
+
+        qs, time_cost = output['qs'], output['time_cost']
+
+        data_to_insert = dict(
+            dataset=args.dataset,
+            cascade_id=c_id,
+            query_method=query_method,
+            sampling_method=sampling_method,
+            n_samples=n_samples,
+            n_queries=args.n_queries,
+            root_sampler=args.root_sampler,
+            pruning_proba=args.min_proba,
+            queries=pkl.dumps(qs),
+            time_elapsed=time_cost,
+            created_at=get_now()
+        )
+        cursor.execute(
+            """
+        INSERT INTO
+            {table_name} ({fields})
+        VALUES
+            ({placeholders})
+        """.format(
+            table_name=DB_CONFIG.query_table_name,
+            fields=', '.join(data_to_insert.keys()),
+            placeholders=', '.join(['?'] * len(data_to_insert))
+        ),
+            tuple(data_to_insert.values())
+        )
+        conn.commit()
+        conn.close()

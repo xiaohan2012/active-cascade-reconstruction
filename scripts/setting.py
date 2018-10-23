@@ -1,3 +1,7 @@
+"""
+experiment configurations
+"""
+
 CASCADE_ROOT_DIR = '/experiment/cascades'
 OUTPUT_ROOT_DIR = '/experiment/outputs'
 

@@ -3,11 +3,13 @@ import pickle as pkl
 import errno
 import os
 import signal
+import datetime
+import sqlite3
 
 from glob import glob
 from scipy.spatial.distance import cdist
 from functools import wraps
-
+from config import DB_CONFIG
 
 def load_cascades(dirname):
     for p in glob(dirname+'/*.pkl'):
@@ -65,3 +67,127 @@ def sampling_weights_by_order(length):
 def makedir_if_not_there(d):
     if not os.path.exists(d):
         os.makedirs(d)
+
+
+def get_now():
+    return datetime.date.today().strftime("%Y-%m-%d %H:%M:%s")
+
+
+def init_db(debug=False):
+    """
+    create connection, make a cursor and create the tables if needed
+    """
+    conn = sqlite3.connect(DB_CONFIG.dbpath)
+    cursor = conn.cursor()
+
+    sqls_to_execute = (
+        DB_CONFIG.query_table_creation,
+        DB_CONFIG.inference_table_creation,
+        DB_CONFIG.eval_table_creation
+    )
+    for sql in sqls_to_execute:
+        cursor.execute(sql)
+    if debug:
+        conn.set_trace_callback(print)
+    return conn, cursor
+
+
+def get_query_result(
+        cursor,
+        dataset,
+        c_id,
+        query_method,
+        sampling_method,
+        n_samples,
+        n_queries,
+        root_sampler,
+        min_proba,
+        fields=['1']
+):
+    cursor.execute(
+        """
+        SELECT
+            {fields_str}
+        FROM
+            {table_name}
+        WHERE
+            dataset=?
+            AND cascade_id=?
+            AND query_method=?
+            AND sampling_method=?
+            AND n_samples=?
+            AND n_queries=?
+            AND root_sampler=?
+            AND pruning_proba=?
+        """.format(
+            fields_str=', '.join(fields),
+            table_name=DB_CONFIG.query_table_name
+        ),
+        (
+            dataset,
+            c_id,
+            query_method,
+            sampling_method,
+            n_samples,
+            n_queries,
+            root_sampler,
+            min_proba
+        )
+    )
+    
+    return cursor.fetchone()
+
+
+def get_inference_result(
+        cursor,
+        dataset,
+        c_id,
+        query_method,
+        sampling_method,
+        n_samples,
+        n_queries,
+        root_sampler,
+        min_proba,
+        infer_sampling_method,
+        infer_n_samples,
+        every,
+        fields=['1']
+):
+    cursor.execute(
+        """
+        SELECT
+            {fields_str}
+        FROM
+            {table_name}
+        WHERE
+            dataset=?
+            AND cascade_id=?
+            AND query_method=?
+            AND query_sampling_method=?
+            AND query_n_samples=?
+            AND n_queries=?
+            AND root_sampler=?
+            AND pruning_proba=?
+            AND infer_sampling_method=?
+            AND infer_n_samples=?
+            AND every=?
+        """.format(
+            fields_str=', '.join(fields),
+            table_name=DB_CONFIG.inference_table_name
+        ),
+        (
+            dataset,
+            c_id,
+            query_method,
+            sampling_method,
+            n_samples,
+            n_queries,
+            root_sampler,
+            min_proba,
+            infer_sampling_method,
+            infer_n_samples,
+            every
+        )
+    )
+    
+    return cursor.fetchone()

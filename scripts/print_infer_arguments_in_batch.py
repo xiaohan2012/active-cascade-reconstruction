@@ -35,4 +35,3 @@ for graph, query_method in product(GRAPHS, QUERY_METHODS):
         arg_str = ' '.join(str_list)
         arg_str += (" " + ARG_SUFFIX)
         print(arg_str)
-
