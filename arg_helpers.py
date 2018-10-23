@@ -85,3 +85,17 @@ def add_inference_args(parser):
                         type=int,
                         help='evaluate every ?')
     
+
+
+def add_eval_args(parser):
+    parser.add_argument(
+        '--metric_name',
+        choices=('ap', 'auc', 'p@k', 'entropy', 'map', 'mrr', 'n',
+                 'ratio_discovered_inf', 'l1', 'l2', 'cross_entropy'),
+        help='evalulation method'
+    )
+    parser.add_argument(
+        '--eval_with_mask',
+        action="store_true",
+        help='whether evaluate with masks or not. If True, queries and obs are excluded'
+    )

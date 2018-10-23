@@ -33,7 +33,9 @@ class DB_CONFIG:
         n_queries INTEGER,
         root_sampler TEXT,
         pruning_proba REAL,
+
         queries BLOB,
+
         time_elapsed REAL,
         created_at TEXT
     )
@@ -56,7 +58,9 @@ class DB_CONFIG:
         infer_sampling_method TEXT,
         infer_n_samples INTEGER,
         every INTEGER,
+
         probas BLOB,
+
         time_elapsed REAL,
         created_at TEXT
     )
@@ -68,14 +72,22 @@ class DB_CONFIG:
     eval_table_creation = """
     CREATE TABLE IF NOT EXISTS {table_name}
     (
+        dataset TEXT,
         cascade_id INTEGER, 
         query_method TEXT,
         query_sampling_method TEXT,
+        query_n_samples INTEGER,
         n_queries INTEGER,
-        n_samples_for_query INTEGER,
+        root_sampler TEXT,
+        pruning_proba REAL,
         infer_sampling_method TEXT,
+        infer_n_samples INTEGER,
+        every INTEGER,
+
         metric_name TEXT,
         metric_score REAL,
+        masked INTEGER,
+
         time_elapsed REAL,
         created_at TEXT
     )
