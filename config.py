@@ -10,7 +10,7 @@ else:
     INFER_TIMEOUT = ONE_HOUR_IN_SECS * 1
     
 DATA_ROOT_DIR = '/experiment'
-
+TMP_DIR = '/scratch/work/xiaoh1/data-active-cascade-reconstruction/tmp'
 
 class DB_CONFIG:
     """

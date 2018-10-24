@@ -5,6 +5,8 @@ import os
 import signal
 import datetime
 import sqlite3
+import string
+import random
 
 from glob import glob
 from scipy.spatial.distance import cdist
@@ -191,3 +193,7 @@ def get_inference_result(
     )
     
     return cursor.fetchone()
+
+
+def random_str(N=8):
+    return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(N))

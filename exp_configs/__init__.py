@@ -1,0 +1,1 @@
+from .compare_query_methods import iter_configs as compare_query_methods

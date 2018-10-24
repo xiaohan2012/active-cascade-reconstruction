@@ -1,6 +1,7 @@
 """
 experiment configurations
 """
+import sys
 import os
 
 
@@ -37,7 +38,9 @@ class ConfigBase:
             infer_n_samples=None,
             infer_every=None,
             # misc
-            arg_suffix=''
+            arg_suffix='',
+            # runtime
+            hours_per_job=1
     ):
         self.cascade_root_dir = cascade_root_dir
 
@@ -65,6 +68,8 @@ class ConfigBase:
 
         self.arg_suffix = arg_suffix
 
+        self.hours_per_job = hours_per_job
+    
     def get_dataset_id(self):
         kwargs = dict(
             graph=self.graph,
@@ -89,7 +94,7 @@ class ConfigBase:
             **kwargs
         )
 
-    def print_query_params(self):
+    def print_query_params(self, fileobj=sys.stdout):
         dataset_id = self.get_dataset_id()
         cascade_dir = self.get_cascade_dir(dataset_id)
         for i in range(self.n_rounds):
@@ -116,10 +121,10 @@ class ConfigBase:
 
             arg_str = ' '.join(str_list)
             arg_str += (" " + self.arg_suffix)
-            print(arg_str)
+            fileobj.write(arg_str + '\n')
 
 
-    def print_infer_params(self):
+    def print_infer_params(self, fileobj=sys.stdout):
         dataset_id = self.get_dataset_id()
         cascade_dir = self.get_cascade_dir(dataset_id)
         for i in range(self.n_rounds):
@@ -149,4 +154,8 @@ class ConfigBase:
 
             arg_str = ' '.join(str_list)
             arg_str += (" " + self.arg_suffix)
-            print(arg_str)                
+            fileobj.write(arg_str + '\n')
+
+    @property
+    def n_jobs(self):
+        return self.n_rounds

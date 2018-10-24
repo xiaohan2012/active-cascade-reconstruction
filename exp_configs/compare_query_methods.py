@@ -1,7 +1,7 @@
 """
 compare different query strategies on different graphs and cascades
 """
-from base import ConfigBase
+from .base import ConfigBase
 from itertools import product
 
 
@@ -18,6 +18,8 @@ class Config(ConfigBase):
         self.infer_n_samples = 100
         self.infer_every = 3
         self.arg_suffix = '--verbose --debug'
+
+        self.hours_per_job = 2
 
 
 config_dimensions = [
@@ -46,7 +48,7 @@ config_dimensions = [
             n_queries=30,
             cascade_fraction=0.25,
             obs_fraction=0.25,
-        )        
+        )
     ],
     # query related
     [
@@ -57,12 +59,10 @@ config_dimensions = [
     ]
 ]
 
-
-for dict_list in product(*config_dimensions):
-    params = {}
-    for d in dict_list:
-        params.update(d)
+def iter_configs():
+    for dict_list in product(*config_dimensions):
+        params = {}
+        for d in dict_list:
+            params.update(d)
     
-    c = Config(**params)
-    # c.print_query_params()
-    c.print_infer_params()
+        yield Config(**params)
