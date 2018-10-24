@@ -42,7 +42,9 @@ if __name__ == '__main__':
         args.min_proba,
         fields=['queries']
     )
+
     if query_result is None:
+        conn.close()
         raise IOError('query result not available')
     
     queries = pkl.loads(query_result[0])[0]
@@ -62,6 +64,7 @@ if __name__ == '__main__':
         args.infer_every,
         fields=['probas']
     )
+    conn.close()
     if inf_result is None:
         raise IOError('inf result not available')
 
@@ -104,6 +107,7 @@ if __name__ == '__main__':
         created_at=get_now()
     )
 
+    conn, cursor = init_db(True)
     cursor.execute(
         """
     INSERT INTO

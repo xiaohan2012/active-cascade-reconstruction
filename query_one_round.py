@@ -226,10 +226,11 @@ if __name__ == '__main__':
         args.root_sampler,
         args.min_proba
     )
+    conn.close()
+
     if row is not None:
         print("processed already, skip")
-        conn.close()
-    else:    
+    else:        
         strategy_cls, strategy_param = strategy
         output = one_round(
             g,
@@ -261,6 +262,8 @@ if __name__ == '__main__':
             time_elapsed=time_cost,
             created_at=get_now()
         )
+
+        conn, cursor = init_db(args.debug)
         cursor.execute(
             """
         INSERT INTO

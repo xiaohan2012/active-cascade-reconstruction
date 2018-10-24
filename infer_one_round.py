@@ -276,7 +276,9 @@ if __name__ == '__main__':
             args.min_proba,
             fields=['queries']
         )
-        if query_result is None:
+        conn.close()
+
+        if query_result is None:            
             raise IOError('row not available')
         
         queries = pkl.loads(query_result[0])[0]
@@ -312,6 +314,8 @@ if __name__ == '__main__':
             time_elapsed=time_cost,
             created_at=get_now()
         )
+
+        conn, cursor = init_db(args.debug)
         cursor.execute(
             """
         INSERT INTO

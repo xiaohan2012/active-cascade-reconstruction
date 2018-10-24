@@ -17,7 +17,7 @@ class Config(ConfigBase):
 
         self.infer_n_samples = 100
         self.infer_every = 3
-        self.arg_suffix = '--verbose --debug'
+        # self.arg_suffix = '--verbose --debug'
 
         self.hours_per_job = 2
 
