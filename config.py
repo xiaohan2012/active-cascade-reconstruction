@@ -1,4 +1,4 @@
-DEBUG = False
+DEBUG = True
 
 ONE_HOUR_IN_SECS = 3600
 
@@ -16,14 +16,16 @@ class DB_CONFIG:
     """
     configuration for the database-related stuff
     """
-    if DEBUG:
-        dbpath = '{}/outputs/result_debug.db'.format(DATA_ROOT_DIR)
-    else:
-        dbpath = '{}/outputs/result.db'.format(DATA_ROOT_DIR)
+    connection_string = 'dbname=postgres user=xiaoh1'
     
+    if DEBUG:
+        schema = 'active_dbg'
+    else:
+        schema = 'active'
+        
     query_table_name = 'queries'
     query_table_creation = """
-    CREATE TABLE IF NOT EXISTS {table_name}
+    CREATE TABLE IF NOT EXISTS {schema}.{table_name}
     (
         dataset TEXT,
         cascade_id INTEGER, 
@@ -34,18 +36,19 @@ class DB_CONFIG:
         root_sampler TEXT,
         pruning_proba REAL,
 
-        queries BLOB,
+        queries BYTEA,
 
         time_elapsed REAL,
         created_at TEXT
     )
     """.format(
-        table_name=query_table_name
+        table_name=query_table_name,
+        schema=schema
     )
     
     inference_table_name = 'inference'
     inference_table_creation = """
-    CREATE TABLE IF NOT EXISTS {table_name}
+    CREATE TABLE IF NOT EXISTS {schema}.{table_name}
     (
         dataset TEXT,
         cascade_id INTEGER, 
@@ -59,18 +62,19 @@ class DB_CONFIG:
         infer_n_samples INTEGER,
         every INTEGER,
 
-        probas BLOB,
+        probas BYTEA,
 
         time_elapsed REAL,
         created_at TEXT
     )
     """.format(
-        table_name=inference_table_name
+        table_name=inference_table_name,
+        schema=schema
     )
     
     eval_table_name = 'eval_per_cascade'
     eval_table_creation = """
-    CREATE TABLE IF NOT EXISTS {table_name}
+    CREATE TABLE IF NOT EXISTS {schema}.{table_name}
     (
         dataset TEXT,
         cascade_id INTEGER, 
@@ -86,11 +90,12 @@ class DB_CONFIG:
 
         metric_name TEXT,
         metric_score REAL,
-        masked INTEGER,
+        masked Boolean,
 
         time_elapsed REAL,
         created_at TEXT
     )
     """.format(
-        table_name=eval_table_name
+        table_name=eval_table_name,
+        schema=schema
     )

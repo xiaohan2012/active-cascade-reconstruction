@@ -4,7 +4,7 @@ import errno
 import os
 import signal
 import datetime
-import sqlite3
+import psycopg2
 import string
 import random
 
@@ -79,7 +79,7 @@ def init_db(debug=False):
     """
     create connection, make a cursor and create the tables if needed
     """
-    conn = sqlite3.connect(DB_CONFIG.dbpath)
+    conn = psycopg2.connect(DB_CONFIG.connection_string)
     cursor = conn.cursor()
 
     sqls_to_execute = (
