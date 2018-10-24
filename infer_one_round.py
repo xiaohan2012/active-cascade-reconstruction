@@ -315,13 +315,14 @@ if __name__ == '__main__':
         cursor.execute(
             """
         INSERT INTO
-            {table_name} ({fields})
+            {schema}.{table_name} ({fields})
         VALUES
             ({placeholders})
         """.format(
+            schema=DB_CONFIG.schema,
             table_name=DB_CONFIG.inference_table_name,
             fields=', '.join(data_to_insert.keys()),
-            placeholders=', '.join(['?'] * len(data_to_insert))
+            placeholders=', '.join(['%s'] * len(data_to_insert))
         ),
             tuple(data_to_insert.values())
         )

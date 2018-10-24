@@ -1,4 +1,4 @@
-DEBUG = True
+DEBUG = False
 
 ONE_HOUR_IN_SECS = 3600
 
@@ -16,7 +16,7 @@ class DB_CONFIG:
     """
     configuration for the database-related stuff
     """
-    connection_string = 'dbname=postgres user=xiaoh1'
+    connection_string = 'dbname=postgres user=xiaoh1 host=10.10.254.21'
     
     if DEBUG:
         schema = 'active_dbg'
@@ -89,8 +89,8 @@ class DB_CONFIG:
         every INTEGER,
 
         metric_name TEXT,
-        metric_score REAL,
-        masked Boolean,
+        metric_scores BYTEA,
+        masked BOOLEAN,
 
         time_elapsed REAL,
         created_at TEXT

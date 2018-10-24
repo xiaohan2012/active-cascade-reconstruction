@@ -82,6 +82,9 @@ def init_db(debug=False):
     conn = psycopg2.connect(DB_CONFIG.connection_string)
     cursor = conn.cursor()
 
+    cursor.execute(
+        """CREATE SCHEMA IF NOT EXISTS {}""".format(DB_CONFIG.schema)
+    )
     sqls_to_execute = (
         DB_CONFIG.query_table_creation,
         DB_CONFIG.inference_table_creation,
@@ -90,7 +93,8 @@ def init_db(debug=False):
     for sql in sqls_to_execute:
         cursor.execute(sql)
     if debug:
-        conn.set_trace_callback(print)
+        # conn.set_trace_callback(print)
+        pass
     return conn, cursor
 
 
@@ -111,17 +115,18 @@ def get_query_result(
         SELECT
             {fields_str}
         FROM
-            {table_name}
+            {schema}.{table_name}
         WHERE
-            dataset=?
-            AND cascade_id=?
-            AND query_method=?
-            AND sampling_method=?
-            AND n_samples=?
-            AND n_queries=?
-            AND root_sampler=?
-            AND pruning_proba=?
+            dataset=%s
+            AND cascade_id=%s
+            AND query_method=%s
+            AND sampling_method=%s
+            AND n_samples=%s
+            AND n_queries=%s
+            AND root_sampler=%s
+            AND pruning_proba=%s
         """.format(
+            schema=DB_CONFIG.schema,
             fields_str=', '.join(fields),
             table_name=DB_CONFIG.query_table_name
         ),
@@ -160,20 +165,21 @@ def get_inference_result(
         SELECT
             {fields_str}
         FROM
-            {table_name}
+            {schema}.{table_name}
         WHERE
-            dataset=?
-            AND cascade_id=?
-            AND query_method=?
-            AND query_sampling_method=?
-            AND query_n_samples=?
-            AND n_queries=?
-            AND root_sampler=?
-            AND pruning_proba=?
-            AND infer_sampling_method=?
-            AND infer_n_samples=?
-            AND every=?
+            dataset=%s
+            AND cascade_id=%s
+            AND query_method=%s
+            AND query_sampling_method=%s
+            AND query_n_samples=%s
+            AND n_queries=%s
+            AND root_sampler=%s
+            AND pruning_proba=%s
+            AND infer_sampling_method=%s
+            AND infer_n_samples=%s
+            AND every=%s
         """.format(
+            schema=DB_CONFIG.schema,
             fields_str=', '.join(fields),
             table_name=DB_CONFIG.inference_table_name
         ),

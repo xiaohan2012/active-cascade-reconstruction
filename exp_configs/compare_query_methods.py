@@ -21,7 +21,6 @@ class Config(ConfigBase):
 
         self.hours_per_job = 2
 
-
 config_dimensions = [
     # graph and cascade related
     [

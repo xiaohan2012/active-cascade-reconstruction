@@ -97,8 +97,8 @@ if __name__ == '__main__':
         every=args.infer_every,
 
         metric_name=args.metric_name,
-        metric_score=pkl.dumps(scores),
-        masked=int(args.eval_with_mask),
+        metric_scores=pkl.dumps(scores),
+        masked=args.eval_with_mask,
 
         time_elapsed=time.time() - stime,
         created_at=get_now()
@@ -107,13 +107,14 @@ if __name__ == '__main__':
     cursor.execute(
         """
     INSERT INTO
-        {table_name} ({fields})
+        {schema}.{table_name} ({fields})
     VALUES
         ({placeholders})
     """.format(
+        schema=DB_CONFIG.schema,
         table_name=DB_CONFIG.eval_table_name,
         fields=', '.join(data_to_insert.keys()),
-        placeholders=', '.join(['?'] * len(data_to_insert))
+        placeholders=', '.join(['%s'] * len(data_to_insert))
     ),
         tuple(data_to_insert.values())
     )

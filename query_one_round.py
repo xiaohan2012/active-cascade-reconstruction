@@ -117,14 +117,12 @@ def one_round(
     - query_method: {query_method_name}
     - sampling_method: {sampling_method}
     - time cost: {time_cost} s
-    - db path: {db_path}
 
     """.format(
         cascade_path=c_path,
         query_method_name=query_method_name,
         sampling_method=sampling_method,
-        time_cost=time_cost,
-        db_path=DB_CONFIG.dbpath
+        time_cost=time_cost
     ))
     ans = dict(
         qs=qs,
@@ -266,13 +264,14 @@ if __name__ == '__main__':
         cursor.execute(
             """
         INSERT INTO
-            {table_name} ({fields})
+            {schema}.{table_name} ({fields})
         VALUES
             ({placeholders})
         """.format(
+            schema=DB_CONFIG.schema,
             table_name=DB_CONFIG.query_table_name,
             fields=', '.join(data_to_insert.keys()),
-            placeholders=', '.join(['?'] * len(data_to_insert))
+            placeholders=', '.join(['%s'] * len(data_to_insert))
         ),
             tuple(data_to_insert.values())
         )
