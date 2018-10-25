@@ -185,15 +185,26 @@ def mean_reciprical_rank(y_true, p_pred):
     return scores.sum() / M.sum()
 
 
+def get_score(eval_method, y_true, y_pred):
+    if eval_method == 'ap':
+        try:
+            score = average_precision_score(y_true, y_pred)
+        except FloatingPointError:
+            score = np.nan                        
+    elif eval_method == 'l1':
+        score = np.abs(y_true - y_pred).sum()
+    else:
+        raise ValueError('not valid eval method {}'.format(eval_method))
+    return score
+
+
 def get_scores_by_queries(qs, probas, c, obs,
                           eval_method,
                           every=1,
                           eval_with_mask=True,
                           iter_callback=None,
-                          node_score_callback=None,
                           **kwargs):
     inf_nodes = set(infected_nodes(c))
-    cascade_size = len(inf_nodes)
     y_true = np.zeros((len(c), ))
     y_true[infected_nodes(c)] = 1
     obs_inc = copy(set(obs))
@@ -201,11 +212,29 @@ def get_scores_by_queries(qs, probas, c, obs,
     inf_obs = set(obs)
     uninf_obs = set()
 
+    def get_mask(obs_inc):
+        if eval_with_mask:
+            mask = np.array([(node not in obs_inc) for node in range(len(c))])
+        else:
+            mask = np.ones(len(c), dtype=np.bool)
+        return mask
+    
     scores_list = []
 
-    # print('len(qs)', len(qs))
-    # print('len(probas)', len(probas))
-    
+    # the score without any queries
+    mask = get_mask(obs_inc)
+    if len(probas) > 0:
+        inf_probas = probas[0]
+        scores_list.append(
+            get_score(
+                eval_method,
+                y_true[mask],
+                inf_probas[mask]
+            )
+        )
+    else:
+        scores_list.append(np.nan)
+
     for i_iter, query in enumerate(qs):
         if c[query] == -1:
             uninf_obs.add(query)
@@ -214,12 +243,8 @@ def get_scores_by_queries(qs, probas, c, obs,
             
         obs_inc.add(query)
 
-        scores = None  # ugly code..
-        if i_iter % every == 0:
-            # print(i_iter)
+        if i_iter % every == 0:    
             proba_index = int(i_iter / every)
-            # print('i_iter', i_iter)
-            # print('proba_index', proba_index)
             try:
                 inf_probas = probas[proba_index + 1]  # offset +1 because of the initial probas
             except IndexError:
@@ -231,67 +256,12 @@ def get_scores_by_queries(qs, probas, c, obs,
                 iter_callback(inf_probas, inf_obs, uninf_obs)
 
             # mask out the observed nodes
-            if eval_with_mask:
-                mask = np.array([(node not in obs_inc) for node in range(len(c))])
-                # print('#hidden infs to evaluate: {}'.format(int(y_true[mask].sum())))
-            else:
-                mask = np.ones(len(c), dtype=np.bool)
-
-            try:
-                if eval_method == 'ap':
-                    score = average_precision_score(y_true[mask], inf_probas[mask])
-                elif eval_method == 'p_at_k':
-                    k = kwargs['k']
-                    score = precision_at_k(y_true[mask], inf_probas[mask], k)
-                elif eval_method == 'n':
-                    score = precision_at_k(y_true[mask], inf_probas[mask], cascade_size)
-                    score *= cascade_size
-                elif eval_method == 'p@k':
-                    k = len(inf_nodes - set(obs_inc))
-                    score = precision_at_k(y_true[mask], inf_probas[mask], k)
-                elif eval_method == 'entropy':
-                    p = inf_probas[mask]
-                    p = p[(p != 0) & (p != 1)]
-                    score = (-(p * np.log(p) + (1-p) * np.log(1-p))).sum()
-                elif eval_method == 'map':
-                    score = mean_average_precision(y_true[mask], inf_probas[mask])
-                elif eval_method == 'mrr':
-                    score = mean_reciprical_rank(y_true[mask], inf_probas[mask])
-                elif eval_method == 'ratio_discovered_inf':
-                    score = sum(1 for o in obs_inc if c[o] >= 0) / len(inf_nodes)
-                elif eval_method == 'l1':
-                    scores = np.abs(y_true[mask] - inf_probas[mask])
-                elif eval_method == 'l2':
-                    scores = np.power(y_true[mask] - inf_probas[mask], 2)
-                elif eval_method == 'cross_entropy':
-                    y = y_true[mask]
-                    y = np.clip(y, EPS, 1 - EPS)  # clip it between (epsilon, 1 - epsilon)
-
-                    p = inf_probas[mask]
-                    p = np.clip(p, EPS, 1 - EPS)
-
-                    y_inv = 1 - y
-                    p_inv = 1 - p
-
-                    score0 = -(y * np.log(p))
-                    score1 = -(y_inv * np.log(p_inv))
-
-                    if node_score_callback is not None:
-                        node_score_callback([score0, score1])
-                    scores = score0 + score1
-                else:
-                    raise ValueError('not valid eval method {}'.format(eval_method))
-
-                if scores is not None:
-                    if node_score_callback is not None:
-                        node_score_callback(scores)
-                    score = scores.sum()
-
-            except FloatingPointError:
-                score = np.nan
-
+            mask = get_mask(obs_inc)
+            
+            score = get_score(
+                eval_method,
+                y_true[mask],
+                inf_probas[mask]
+            )
             scores_list.append(score)
     return scores_list
-
-
-

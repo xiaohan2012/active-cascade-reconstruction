@@ -292,6 +292,7 @@ if __name__ == '__main__':
             n_samples=args.inference_n_samples,
             every=args.infer_every,
             sampling_method=args.inference_sampling_method,
+            debug=args.debug,
             verbose=args.verbose,
             args=args
         )

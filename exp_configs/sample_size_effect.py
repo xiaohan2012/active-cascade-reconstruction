@@ -9,53 +9,64 @@ class Config(ConfigBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.pruning_proba = 0.05
         self.root_sampler = 'true_root'
         self.cascade_model = "si"
-        self.query_n_samples = 100
+
+        self.query_method = 'random'  # does not matter which
+        self.query_n_samples = 0
         self.query_sampling_method = 'simulation'
+        self.pruning_proba = 0
 
-        self.infer_n_samples = 100
-        self.infer_every = 3
+        self.infer_every = -1  # just infer at the begining
         # self.n_rounds = 2
-        # self.arg_suffix = '--verbose --debug'
+        # self.arg_suffix = '--verbose'
 
-        self.hours_per_job = 2
+        self.n_queries = 0  # no query, just infer base on intial observation
+
+        self.hours_per_job = 0
+        self.minutes_per_job = 20
 
 config_dimensions = [
-    # graph and cascade related
+    # datasets
     [
         dict(
             graph='infectious',
-            n_queries=30,
             cascade_fraction=0.1,
             obs_fraction=0.1
         ),
         dict(
             graph='email-univ',
-            n_queries=30,
             cascade_fraction=0.025,
             obs_fraction=0.1
         ),
         dict(
             graph='student',
-            n_queries=30,
             cascade_fraction=0.025,
             obs_fraction=0.1
         ),
         dict(
             graph='lattice-100',
-            n_queries=30,
             cascade_fraction=0.25,
             obs_fraction=0.25,
         )
     ],
-    # query related
+    # infer sampling algorithm
     [
-        dict(query_method='random'),
-        dict(query_method='pagerank'),
-        dict(query_method='cond-entropy'),
-        dict(query_method='entropy')
+        dict(infer_sampling_method='simulation'),
+        dict(infer_sampling_method='loop_erased')
+    ],
+    [
+        dict(infer_n_samples=10),
+        dict(infer_n_samples=20),
+        dict(infer_n_samples=40),
+        dict(infer_n_samples=80),
+        dict(infer_n_samples=160),
+        dict(infer_n_samples=320),
+        dict(infer_n_samples=640),
+        dict(infer_n_samples=1280),
+        dict(infer_n_samples=2560),
+        dict(infer_n_samples=5120),
+        dict(infer_n_samples=10240)
     ]
 ]
 

@@ -85,7 +85,7 @@ def sample_steiner_trees(g, obs,
 def sample_by_simulation(g, obs,
                          cascade_model,
                          n_samples,
-                         debug=False,
+                         debug=True,
                          **kwargs):
     samples = []
     obs = set(obs)

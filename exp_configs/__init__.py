@@ -1,1 +1,2 @@
 from .compare_query_methods import iter_configs as compare_query_methods
+from .sample_size_effect import iter_configs as sample_size_effect

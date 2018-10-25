@@ -1,4 +1,4 @@
-DEBUG = True
+DEBUG = False
 
 ONE_HOUR_IN_SECS = 3600
 
@@ -34,7 +34,7 @@ class DB_CONFIG:
         n_samples INTEGER,
         n_queries INTEGER,
         root_sampler TEXT,
-        pruning_proba REAL,
+        pruning_proba NUMERIC,
 
         queries BYTEA,
 
@@ -57,7 +57,7 @@ class DB_CONFIG:
         query_n_samples INTEGER,
         n_queries INTEGER,
         root_sampler TEXT,
-        pruning_proba REAL,
+        pruning_proba NUMERIC,
         infer_sampling_method TEXT,
         infer_n_samples INTEGER,
         every INTEGER,
@@ -83,7 +83,7 @@ class DB_CONFIG:
         query_n_samples INTEGER,
         n_queries INTEGER,
         root_sampler TEXT,
-        pruning_proba REAL,
+        pruning_proba NUMERIC,
         infer_sampling_method TEXT,
         infer_n_samples INTEGER,
         every INTEGER,

@@ -23,6 +23,8 @@ if __name__ == '__main__':
     add_query_method_args(parser)
     add_inference_args(parser)
     add_eval_args(parser)
+    parser.add_argument('--verbose', action='store_true')
+    parser.add_argument('--debug', action='store_true')
 
     args = parser.parse_args()
     

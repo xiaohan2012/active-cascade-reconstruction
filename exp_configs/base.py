@@ -37,6 +37,10 @@ class ConfigBase:
             infer_sampling_method='simulation',
             infer_n_samples=None,
             infer_every=None,
+
+            # eval
+            metric_name='ap',
+            eval_with_mask=False,
             # misc
             arg_suffix='',
             # runtime
@@ -63,12 +67,15 @@ class ConfigBase:
         self.pruning_proba = pruning_proba
 
         self.infer_sampling_method = infer_sampling_method
-        self.infer_n_samples = infer_n_samples        
+        self.infer_n_samples = infer_n_samples
         self.infer_every = infer_every
 
         self.arg_suffix = arg_suffix
 
         self.hours_per_job = hours_per_job
+        
+        self.metric_name = metric_name
+        self.eval_with_mask = eval_with_mask
     
     def get_dataset_id(self):
         kwargs = dict(
@@ -94,7 +101,7 @@ class ConfigBase:
             **kwargs
         )
 
-    def print_query_params(self, fileobj=sys.stdout):
+    def print_query_params(self, prefix="", fileobj=sys.stdout):
         dataset_id = self.get_dataset_id()
         cascade_dir = self.get_cascade_dir(dataset_id)
         for i in range(self.n_rounds):
@@ -119,12 +126,13 @@ class ConfigBase:
             for name, value in arguments:
                 str_list.append('{} {}'.format(name, value))
 
-            arg_str = ' '.join(str_list)
-            arg_str += (" " + self.arg_suffix)
+            arg_str = prefix + " "
+            arg_str += ' '.join(str_list)
+            arg_str += ( " " + self.arg_suffix)
             fileobj.write(arg_str + '\n')
 
 
-    def print_infer_params(self, fileobj=sys.stdout):
+    def print_infer_params(self, prefix="", fileobj=sys.stdout):
         dataset_id = self.get_dataset_id()
         cascade_dir = self.get_cascade_dir(dataset_id)
         for i in range(self.n_rounds):
@@ -144,7 +152,7 @@ class ConfigBase:
 	        ('--min_proba', self.pruning_proba),
 	        ('--infection_proba', self.infection_proba),
 	        ('--cascade_size', self.cascade_fraction),
-                ('--cascade_model', self.cascade_model),                
+                ('--cascade_model', self.cascade_model),
                 ('--infer_every', self.infer_every)
             ]
 
@@ -152,10 +160,44 @@ class ConfigBase:
             for name, value in arguments:
                 str_list.append('{} {}'.format(name, value))
 
-            arg_str = ' '.join(str_list)
+            arg_str = prefix + " "
+            arg_str += ' '.join(str_list)                
             arg_str += (" " + self.arg_suffix)
             fileobj.write(arg_str + '\n')
 
+    def print_eval_params(self, prefix="", fileobj=sys.stdout):
+        dataset_id = self.get_dataset_id()
+        cascade_dir = self.get_cascade_dir(dataset_id)
+        for i in range(self.n_rounds):
+            cascade_path = os.path.join(cascade_dir, '{}.pkl'.format(i))
+            arguments = [
+                ('-g', self.graph),
+                ('-f', self.graph_suffix),
+                ('--dataset', dataset_id),
+                ('-c', cascade_path),
+                ('--inference_n_samples', self.infer_n_samples),
+	        ('--inference_sampling_method', self.infer_sampling_method),
+	        ('--query_method', self.query_method),
+	        ('--n_queries', self.n_queries),
+	        ('--query_sampling_method', self.query_sampling_method),
+	        ('--root_sampler', self.root_sampler),
+	        ('--query_n_samples', self.query_n_samples),
+	        ('--min_proba', self.pruning_proba),
+                ('--metric_name', self.metric_name),
+                ('--infer_every', self.infer_every)
+            ]
+            if self.eval_with_mask:
+                arguments.append(('--eval_with_mask', ''))
+
+            str_list = []
+            for name, value in arguments:
+                str_list.append('{} {}'.format(name, value))
+
+            arg_str = prefix + " "
+            arg_str += ' '.join(str_list)                
+            arg_str += (" " + self.arg_suffix)
+            fileobj.write(arg_str + '\n')
+            
     @property
     def n_jobs(self):
         return self.n_rounds
