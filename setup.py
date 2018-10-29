@@ -27,6 +27,10 @@ extensions = [
     Extension(
         'si', ['si.pyx'],
         language=LANG
+    ),
+    Extension(
+        'ic', ['ic.pyx'],
+        language=LANG
     )
 ]
 
