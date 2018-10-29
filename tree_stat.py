@@ -101,6 +101,9 @@ class TreeBasedStatistics:
         return self._sum_entropy(p, np.ones(len(targets)))
 
     def query_score(self, query, targets, node_weights=None, return_verbose=False):
+        """
+        condition entropy on target nodes given query node
+        """
         num0, denum0 = self.count(query, 0, targets, return_denum=True)
         num1, denum1 = self.count(query, 1, targets, return_denum=True)
 
