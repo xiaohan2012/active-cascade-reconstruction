@@ -182,7 +182,7 @@ class EntropyQueryGenerator(SamplingBasedGenerator):
 
 
 class CondEntropyQueryGenerator(SamplingBasedGenerator):
-    """OUR CONTRIBUTION"""
+    """OUR CONTRIBUTION, should be equivalent to max entropy strategy"""
     def __init__(self, *args,
                  prune_nodes=False,
                  n_node_samples=None,
@@ -275,6 +275,18 @@ class CondEntropyQueryGenerator(SamplingBasedGenerator):
 
 
 class MutualInformationQueryGenerator(CondEntropyQueryGenerator):
+    """
+    I(U', q) = H(q) - H(q | U')
+             = H(q) - (H(q, U') - H(U'))
+             = H(q) - H(q, U') + H(U')
+             = H(q) + H(U-q) - H(U) <--- H(u) independent of q
+
+    - U': unobserved nodes (excluding q)
+    - U: U' + q
+    - q: candidate query
+
+    argmax_q I(U, q) = argmax_q H(q) + H(U - q)
+    """
     def _select_query(self, g, inf_nodes):
         self._prepare_for_selection(inf_nodes)
 
@@ -298,7 +310,7 @@ class MutualInformationQueryGenerator(CondEntropyQueryGenerator):
 
         # conditional entropy scores
         for q in self._cand_pool:
-            q2score[q] = score(q) + entropy_scores[q]
+            q2score[q] = score(q) + entropy_scores[q]  # shouldn't it be -score(q)?
 
         if len(self._cand_pool) == 0:
             raise NoMoreQuery
