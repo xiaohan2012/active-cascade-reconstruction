@@ -66,7 +66,7 @@ def sample_graph_by_p(g, p):
     """
     if isinstance(p, PropertyMap):
         p = p.a
-    flags = (np.random.random(p.shape) <= p)
+    flags = (np.random.random(g.num_edges()) <= p)
     p = g.new_edge_property('bool')
     p.set_2d_array(flags)
     return GraphView(g, efilt=p)

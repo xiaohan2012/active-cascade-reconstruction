@@ -13,7 +13,7 @@ from graph_helpers import (
 from inference import infection_probability
 from helpers import infected_nodes
 from random_steiner_tree import random_steiner_tree
-from cascade_generator import si
+from cascade_generator import si, ic
 
 
 def sample_steiner_trees(g, obs,
@@ -100,29 +100,22 @@ def sample_by_simulation(g, obs,
             assert 'p' in kwargs
             assert 'source' in kwargs
             assert 'stop_fraction' in kwargs
-            while True:
-                _, infection_times, tree = si(g, **kwargs)
-                inf_nodes = set(infected_nodes(infection_times))
-                if obs.issubset(inf_nodes):
-                    # if debug:
-                    #     print("accept sample")
-                    samples.append(inf_nodes)
-                    break
-                else:
-                    # if debug:
-                    #     num_captured = len(obs.intersection(inf_nodes))
-                    #     num_obs = len(obs)
-                    #     print('reject')
-                    #     print('fraction captured by sample {}/{} = {}'.format(
-                    #         num_captured,
-                    #         num_obs,
-                    #         num_captured / num_obs
-                    #     ))
-                    pass
-                # if debug:
-                #     print("reject sample")
+            func = lambda: si(g, **kwargs)
+        elif cascade_model == 'ic':
+            assert 'p' in kwargs
+            assert 'source' in kwargs
+            func = lambda: ic(g, **kwargs)
         else:
             raise ValueError('model {} unsupported'.format(cascade_model))
+        
+        while True:
+            _, infection_times, _ = func()
+            inf_nodes = set(infected_nodes(infection_times))
+            if obs.issubset(inf_nodes):
+                samples.append(inf_nodes)
+                break
+            else:
+                pass                        
         if debug:
             print("{}th sample".format(i))
 
