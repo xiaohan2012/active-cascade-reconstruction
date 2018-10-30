@@ -15,6 +15,8 @@ from helpers import infected_nodes
 from random_steiner_tree import random_steiner_tree
 from cascade_generator import si, ic
 
+from joblib import (delayed, Parallel)
+
 
 def sample_steiner_trees(g, obs,
                          method,
@@ -82,10 +84,34 @@ def sample_steiner_trees(g, obs,
     return steiner_tree_samples
 
 
+def sample_one_by_simulation(g, obs, cascade_model, **kwargs):
+    if cascade_model == 'si':
+        assert 'p' in kwargs
+        assert 'source' in kwargs
+        assert 'max_fraction' in kwargs
+        func = lambda: si(g, **kwargs)
+    elif cascade_model == 'ic':
+        assert 'p' in kwargs
+        assert 'source' in kwargs
+        func = lambda: ic(g, **kwargs)
+    else:
+        raise ValueError('model {} unsupported'.format(cascade_model))
+
+    while True:
+        _, infection_times, _ = func()
+        inf_nodes = set(infected_nodes(infection_times))
+        if obs.issubset(inf_nodes):
+            return inf_nodes
+            break
+        else:
+            pass
+
 def sample_by_simulation(g, obs,
                          cascade_model,
                          n_samples,
                          debug=True,
+                         parallel=False,
+                         n_jobs=8,
                          **kwargs):
     samples = []
     obs = set(obs)
@@ -95,30 +121,21 @@ def sample_by_simulation(g, obs,
     else:
         iters = range(n_samples)
 
-    for i in iters:
-        if cascade_model == 'si':
-            assert 'p' in kwargs
-            assert 'source' in kwargs
-            assert 'stop_fraction' in kwargs
-            func = lambda: si(g, **kwargs)
-        elif cascade_model == 'ic':
-            assert 'p' in kwargs
-            assert 'source' in kwargs
-            func = lambda: ic(g, **kwargs)
-        else:
-            raise ValueError('model {} unsupported'.format(cascade_model))
-        
-        while True:
-            _, infection_times, _ = func()
-            inf_nodes = set(infected_nodes(infection_times))
-            if obs.issubset(inf_nodes):
-                samples.append(inf_nodes)
-                break
-            else:
-                pass                        
+    if parallel:
         if debug:
-            print("{}th sample".format(i))
-
+            print('running in parallel[{}]'.format(n_jobs))
+        tasks = (
+            delayed(sample_one_by_simulation)(
+                g, obs, cascade_model, **kwargs
+            )
+            for i in iters
+        )
+        samples = Parallel(n_jobs=n_jobs)(tasks)
+    else:
+        for i in iters:
+            samples.append(
+                sample_one_by_simulation(g, obs, cascade_model, **kwargs)
+            )
     return samples
 
 

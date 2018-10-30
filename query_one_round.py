@@ -77,11 +77,11 @@ def one_round(
             if verbose:
                 print("loading simulation-based sampler")
                 print("p={}".format(cmd_args.infection_proba))
-                print("stop_fraction={}".format(cmd_args.cascade_size))
+                print("max_fraction={}".format(cmd_args.cascade_size))
 
             cascade_params = dict(
                 p=cmd_args.infection_proba,
-                stop_fraction=cmd_args.cascade_size,
+                max_fraction=cmd_args.cascade_size,
                 cascade_model=cmd_args.cascade_model,
                 source=cascade_source(c),
                 debug=False  # turn it to True if you want to see more details

@@ -12,29 +12,26 @@ from helpers import infected_nodes
 def test_sample_by_simulation(g, cascade_model):
     n_obs = 5
     p = 0.5
-    stop_fraction = 0.5
+    max_fraction = 0.5
     min_cascade_size = 10
     n_samples = 5
     for i in range(3):
         if cascade_model == 'si':
             source, times, _ = si(
                 g, p=p, source=None,
-                stop_fraction=stop_fraction
+                max_fraction=max_fraction
             )
             kwargs = dict(
-                stop_fraction=stop_fraction
+                max_fraction=max_fraction
             )
         elif cascade_model == 'ic':
-            while True:
-                source, times, _ = ic(
-                    g, p=p, source=None,
-                    min_size=min_cascade_size
-                )
-                if len(infected_nodes(times)) >= min_cascade_size:
-                    break
-
+            source, times, _ = ic(
+                g, p=p, source=None,
+                max_fraction=max_fraction,
+                min_fraction=(min_cascade_size / g.num_vertices())
+            )
             kwargs = dict(
-                min_size=min_cascade_size
+                max_fraction=max_fraction
             )
 
         inf_nodes = infected_nodes(times)

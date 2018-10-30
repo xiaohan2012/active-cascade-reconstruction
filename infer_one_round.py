@@ -183,7 +183,7 @@ def one_round(
     if sampling_method == 'simulation':
         sampler_kwargs = dict(
             p=args.infection_proba,
-            stop_fraction=args.cascade_size,
+            max_fraction=args.cascade_size,
             source=cascade_source(c),
             cascade_model=args.cascade_model,
             debug=debug

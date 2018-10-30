@@ -1,7 +1,7 @@
 from tqdm import tqdm
 from graph_helpers import observe_uninfected_node
 from random_steiner_tree.util import isolate_vertex
-from experiment import gen_input
+from cascade_generator import gen_input
 from query_selection import NoMoreQuery
 
 

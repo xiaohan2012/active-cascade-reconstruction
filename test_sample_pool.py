@@ -13,14 +13,14 @@ def test_SimulatedCascadePool(g):
     n_obs = 5
     cascade_params = dict(
         p=0.5,
-        stop_fraction=0.5,
+        max_fraction=0.5,
         cascade_model='si',
         debug=True
     )
     source, times, _ = si(
         g, source=None,
         p=cascade_params['p'],
-        stop_fraction=cascade_params['stop_fraction']
+        max_fraction=cascade_params['max_fraction']
     )
     inf_nodes = infected_nodes(times)
     obs = set(np.random.choice(inf_nodes, n_obs, replace=False))

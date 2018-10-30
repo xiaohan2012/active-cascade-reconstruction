@@ -87,7 +87,7 @@ def test_query_method(g, query_method, sampling_method, root_sampler):
     print('simulator created')
     n_queries = 10
     qs, aux = sim.run(n_queries,
-                      gen_input_kwargs={'min_size': 20},
+                      gen_input_kwargs={'min_fraction': 20. / gv.num_vertices()},
                       iter_callback=iter_callback)
     print('sim.run finished')
 
@@ -115,14 +115,14 @@ def test_under_simulated_cascade(g, query_method):
 
     cascade_params = dict(
         p=0.5,
-        stop_fraction=0.5,
+        max_fraction=0.5,
         cascade_model='si',
         debug=True
     )
     source, times, _ = si(
         g, source=None,
         p=cascade_params['p'],
-        stop_fraction=cascade_params['stop_fraction']
+        max_fraction=cascade_params['max_fraction']
     )
     cascade_params['source'] = source
 
