@@ -54,7 +54,6 @@ config_dimensions = [
     [
         dict(query_method='random'),
         dict(query_method='pagerank'),
-        dict(query_method='cond-entropy'),
         dict(query_method='entropy')
     ]
 ]
