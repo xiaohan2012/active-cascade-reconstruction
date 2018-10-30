@@ -10,7 +10,6 @@ class Config(ConfigBase):
         super().__init__(**kwargs)
 
         self.root_sampler = 'true_root'
-        self.cascade_model = "si"
 
         self.query_method = 'random'  # does not matter which
         self.query_n_samples = 0
@@ -49,6 +48,11 @@ config_dimensions = [
             cascade_fraction=0.25,
             obs_fraction=0.25,
         )
+    ],
+    # cascade model
+    [
+        # dict(cascade_model="si"),
+        dict(cascade_model="ic"),
     ],
     # infer sampling algorithm
     [

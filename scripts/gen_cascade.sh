@@ -1,17 +1,17 @@
 #! /bin/zsh
 
-graph="lattice-100"
+graph="email-univ"
 
 n_cascades=96
-cascade_model="si"
+cascade_model="ic"
 graph_suffix="_0.5"
 
 root_dir="/experiment/cascades/"
 obs_method="uniform"
 obs_fraction=0.1
 
-min_fraction=0.0
-max_fraction=0.25
+min_fraction=0.025
+max_fraction=0.025
 
 ROOT_DIR=/experiment/cascades
 
@@ -31,4 +31,3 @@ python3 simulate_cascades.py \
 	--use_edge_weights \
 	--min_fraction ${min_fraction} \
 	--max_fraction ${max_fraction}
-	# -c ${from_cascade_dir}

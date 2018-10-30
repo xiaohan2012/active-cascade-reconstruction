@@ -183,6 +183,7 @@ def one_round(
     if sampling_method == 'simulation':
         sampler_kwargs = dict(
             p=args.infection_proba,
+            min_fraction=args.cascade_size,
             max_fraction=args.cascade_size,
             source=cascade_source(c),
             cascade_model=args.cascade_model,
@@ -241,6 +242,9 @@ if __name__ == '__main__':
 
     obs, c = pkl.load(open(args.cascade_path, 'rb'))
 
+    if args.verbose:
+        print("DONE: loading input cascade")
+
     c_id = int(os.path.basename(args.cascade_path).split('.')[0])
     
     # load the queries
@@ -260,6 +264,9 @@ if __name__ == '__main__':
         args.inference_n_samples,
         args.infer_every
     )
+    if args.verbose:
+        print("DONE: query inference result")
+        
     if inf_result is not None:
         print("inference processed already, skip")
         conn.close()
@@ -278,6 +285,9 @@ if __name__ == '__main__':
         )
         conn.close()
 
+        if args.verbose:
+            print("DONE: query query strategy result")
+        
         if query_result is None:            
             raise IOError('row not available')
         
@@ -297,6 +307,9 @@ if __name__ == '__main__':
             args=args
         )
 
+        if args.verbose:
+            print("DONE: inferring probas")
+        
         probas, time_cost = output['probas'], output['time_cost']
 
         data_to_insert = dict(
@@ -333,3 +346,8 @@ if __name__ == '__main__':
         )
         conn.commit()
         conn.close()
+
+        if args.verbose:
+            print("DONE: saving result to {}.{}".format(
+                DB_CONFIG.schema, DB_CONFIG.inference_table_name
+            ))

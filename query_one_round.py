@@ -81,6 +81,7 @@ def one_round(
 
             cascade_params = dict(
                 p=cmd_args.infection_proba,
+                min_fraction=cmd_args.cascade_size,
                 max_fraction=cmd_args.cascade_size,
                 cascade_model=cmd_args.cascade_model,
                 source=cascade_source(c),
@@ -209,6 +210,9 @@ if __name__ == '__main__':
 
     obs, c = pkl.load(open(args.cascade_path, 'rb'))
 
+    if args.verbose:
+        print('loading input cascades')
+
     # database init
     conn, cursor = init_db(args.debug)
 
@@ -228,9 +232,15 @@ if __name__ == '__main__':
     )
     conn.close()
 
+    if args.verbose:
+        print('finished query strategy result')
+        
     if row is not None:
         print("processed already, skip")
-    else:        
+    else:
+        if args.verbose:
+            print('Running query strategy')
+
         strategy_cls, strategy_param = strategy
         output = one_round(
             g,
@@ -247,6 +257,9 @@ if __name__ == '__main__':
             args
         )
 
+        if args.verbose:
+            print('Finished  query strategy')
+            
         qs, time_cost = output['qs'], output['time_cost']
 
         data_to_insert = dict(
@@ -280,3 +293,8 @@ if __name__ == '__main__':
         )
         conn.commit()
         conn.close()
+
+        if args.verbose:
+            print('Saved to {}.{}'.format(
+                DB_CONFIG.schema, DB_CONFIG.query_table_name
+            ))

@@ -17,12 +17,13 @@ from graph_helpers import get_edge_weights
 from libcpp cimport bool
 
 
-cpdef si_opt(g, p, source=None, float max_fraction=0.5):
+cpdef si_opt(g, p, source=None, float min_fraction=0.0, float max_fraction=0.5):
     """
     optimized version of SI cascade generation
 
     g: the graph
     p: edge-wise infection probability
+    min_fraction: useless parameter, to make interface consistent
     max_fraction: stopping if more than N x max_fraction nodes are infected
     """
     cdef float N = <float> g.num_vertices()

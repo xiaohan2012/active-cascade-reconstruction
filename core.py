@@ -93,6 +93,8 @@ def sample_one_by_simulation(g, obs, cascade_model, **kwargs):
     elif cascade_model == 'ic':
         assert 'p' in kwargs
         assert 'source' in kwargs
+        assert 'min_fraction' in kwargs
+        assert 'max_fraction' in kwargs
         func = lambda: ic(g, **kwargs)
     else:
         raise ValueError('model {} unsupported'.format(cascade_model))
