@@ -67,6 +67,7 @@ cpdef ic_opt(g, p, source=None, float stop_fraction=0.5, debug=False):
             for _, j, edge_index in g.get_out_edges(i):
                 if debug:
                     print('trying ', (i, j))
+
                 # if the edge has not be attempted before
                 if attempted_edges.find((i, j)) == attempted_edges.end():
                     if debug:
@@ -78,8 +79,9 @@ cpdef ic_opt(g, p, source=None, float stop_fraction=0.5, debug=False):
                             print('remove {} from pool'.format(i))
                         frontiers_to_remove.add(i)
 
-                    # only considers uninfected nodes
                     attempted_edges.insert((i, j))
+
+                    # only considers uninfected nodes
                     if j not in infected:
                         if weighted:
                             inf_proba = edge_weight_by_index[edge_index]
