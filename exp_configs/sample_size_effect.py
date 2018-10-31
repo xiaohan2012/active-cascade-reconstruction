@@ -25,6 +25,8 @@ class Config(ConfigBase):
         self.hours_per_job = 0
         self.minutes_per_job = 20
 
+        self.metric_name='l1'
+
 config_dimensions = [
     # datasets
     [
