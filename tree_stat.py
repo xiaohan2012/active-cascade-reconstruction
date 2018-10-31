@@ -70,6 +70,12 @@ class TreeBasedStatistics:
     def unconditional_proba(self, targets=None):
         return self.unconditional_count(targets) / self.n_col
 
+    def node_level_entropy(self, targets=None):
+        p = self.unconditional_proba(targets)
+        ent = -(p * np.log(p) + (1-p) * np.log(1-p))
+        ent[np.isnan(ent)] = 0
+        return ent
+    
     def filter_out_extreme_targets(self, targets=None, min_value=0):
         """return targets whose min(p, 1-p) > min_value,
         where p is the unconditional probability
