@@ -3,8 +3,8 @@
 python3 evaluate_one_round.py \
 	-g lattice-100 \
 	-f " " \
-	--dataset lattice-100-msi-s0.25-o0.25-omuniform \
-	-c /experiment/cascades/lattice-100-msi-s0.25-o0.25-omuniform/1.pkl \
+	--dataset lattice-100-mic-s0.25-o0.25-omuniform \
+	-c /experiment/cascades/lattice-100-mic-s0.25-o0.25-omuniform/1.pkl \
 	--inference_n_samples 100 \
 	--inference_sampling_method "simulation" \
 	--query_method entropy \
