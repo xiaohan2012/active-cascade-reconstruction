@@ -1,6 +1,7 @@
 import random
 import math
 import numpy as np
+import pickle as pkl
 
 from graph_tool import GraphView, PropertyMap
 from graph_tool.topology import shortest_distance
@@ -11,6 +12,7 @@ from tqdm import tqdm
 from helpers import infected_nodes, sampling_weights_by_order
 from graph_helpers import BFSNodeCollector, reverse_bfs
 from si import si_opt as si
+from ic import ic_opt
 
 MAXINT = np.iinfo(np.int32).max
 
@@ -43,8 +45,6 @@ def observe_cascade(c, source, q, method='uniform',
         assert tree is not None, 'the cascade tree is required'
         vis = BFSNodeCollector()
         bfs_search(GraphView(tree, directed=False), source, vis)
-        sampling_weights_by_order
-        vis.nodes_in_order
         return vis.nodes_in_order[:num_obs]  # head
     elif method == 'bfs-tail':
         assert tree is not None, 'the cascade tree is required'
@@ -55,67 +55,58 @@ def observe_cascade(c, source, q, method='uniform',
         raise ValueError('unknown method {}'.format(method))
 
 
-def sample_graph_by_p(g, p):
+def ic(g, p, source=None, min_fraction=0.0, max_fraction=0.5):
     """
-    for IC model
-    graph_tool version of sampling a graph
-    mask the edge according to probability p and return the masked graph
-
-    g: the graph
-    p: float or np.array
+    IC cascade generator that filters out small cascades (under min_fraction)
     """
-    if isinstance(p, PropertyMap):
-        p = p.a
-    flags = (np.random.random(p.shape) <= p)
-    p = g.new_edge_property('bool')
-    p.set_2d_array(flags)
-    return GraphView(g, efilt=p)
+    N = g.num_vertices()
+    while True:
+        source, times, tree = ic_opt(
+            g, p=p, source=source,
+            max_fraction=max_fraction
+        )
+        if (len(infected_nodes(times)) / N) >= min_fraction:
+            break
+
+    return source, times, tree
 
 
-def get_infection_time(g, source, return_edges=False):
-    """for IC model
-    """
-    time, pred_map = shortest_distance(g, source=source, pred_map=True)
-    time = np.array(time.a)
-    time[time == MAXINT] = -1
-    if return_edges:
-        edges = []
-        reached = infected_nodes(time)
-        for v in reached:
-            # print(v)
-            if pred_map[v] >= 0 and pred_map[v] != v:
-                edges.append((pred_map[v], v))
-        return time, edges
+def gen_input(
+        g,
+        source=None,
+        cascade_path=None,
+        p=0.5,
+        q=0.1,
+        model='si',
+        observation_method='uniform',
+        min_fraction=0.0,
+        max_fraction=1.0,
+        return_tree=False
+):
+    if cascade_path is None:
+        if model == 'si':
+            s, c, tree = si(
+                g, p,
+                source=source,
+                max_fraction=max_fraction
+            )
+        elif model == 'ic':
+            s, c, tree = ic(
+                g, p,
+                source=source,
+                min_fraction=min_fraction,
+                max_fraction=max_fraction
+            )
+        else:
+            raise ValueError('unknown cascade model')
     else:
-        return time
+        print('load from cache')
+        c = pkl.load(open(cascade_path, 'rb'))
+        s = np.nonzero([c == 0])[1][0]
+        
+    obs = observe_cascade(c, s, q, observation_method, tree=tree)
 
-
-def ic(g, p, source=None, return_tree_edges=False,
-       min_size=0, max_size=1e10):
-    """
-    graph_tool version of simulating cascade
-    return np.ndarray on vertices as the infection time in cascade
-    uninfected node has dist -1
-    """
-    if source is None:
-        source = random.choice(np.arange(g.num_vertices(), dtype=int))
-    gv = sample_graph_by_p(g, p)
-
-    times = get_infection_time(gv, source, return_edges=False)
-    size = len(infected_nodes(times))
-
-    if size < min_size or size > max_size:
-        # size does not fit
-        # early stopping to save time
-        return source, times, None
-    
-    stuff = get_infection_time(gv, source, return_edges=return_tree_edges)
-
-    if not return_tree_edges:
-        times = stuff
-        tree_edges = None
+    if not return_tree:
+        return obs, c, None
     else:
-        times, tree_edges = stuff
-        # tree = filter_graph_by_edges(gv, tree_edges)
-    
-    return source, times, tree_edges
+        return obs, c, tree

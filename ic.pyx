@@ -19,13 +19,13 @@ from libcpp.set cimport set as cppset
 from libcpp.pair cimport pair
 
 
-cpdef ic_opt(g, p, source=None, float stop_fraction=0.5, debug=False):
+cpdef ic_opt(g, p, source=None, float max_fraction=0.5, debug=False):
     """
     optimized version of IC cascade generation
 
     g: the graph
     p: edge-wise infection probability
-    stop_fraction: stopping if more than N x stop_fraction nodes are infected
+    max_fraction: stopping if more than N x max_fraction nodes are infected
     """
     cdef float N = <float> g.num_vertices()
     cdef bool weighted = False, stop = False
@@ -97,7 +97,7 @@ cpdef ic_opt(g, p, source=None, float stop_fraction=0.5, debug=False):
                                 print('add {} to frontier'.format(j))
                             frontiers_to_add.add(j)
                             # stop when enough nodes have been infected
-                            if (len(infected) / N) >= stop_fraction:
+                            if (len(infected) / N) >= max_fraction:
                                 stop = True
                                 break
             if stop:

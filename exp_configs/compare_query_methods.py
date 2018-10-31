@@ -11,7 +11,6 @@ class Config(ConfigBase):
 
         self.pruning_proba = 0.05
         self.root_sampler = 'true_root'
-        self.cascade_model = "si"
         self.query_n_samples = 100
         self.query_sampling_method = 'simulation'
 
@@ -20,7 +19,7 @@ class Config(ConfigBase):
         # self.n_rounds = 2
         # self.arg_suffix = '--verbose --debug'
 
-        self.hours_per_job = 2
+        self.hours_per_job = 3
 
 config_dimensions = [
     # graph and cascade related
@@ -54,9 +53,12 @@ config_dimensions = [
     [
         dict(query_method='random'),
         dict(query_method='pagerank'),
-        dict(query_method='cond-entropy'),
         dict(query_method='entropy')
-    ]
+    ],
+    # cascade model
+    [
+        dict(cascade_model='ic')
+    ]    
 ]
 
 def iter_configs():

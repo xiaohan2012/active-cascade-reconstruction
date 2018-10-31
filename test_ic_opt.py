@@ -9,18 +9,18 @@ from tqdm import tqdm
 
 
 @pytest.mark.parametrize(
-    'g, stop_fraction, expected_time',
+    'g, max_fraction, expected_time',
     [
         (line(), 1.0, [0, 1, 2, 3]),
         (line(), 0.5, [0, 1, -1, -1]),
     ])
-def test_line(g, stop_fraction, expected_time):
+def test_line(g, max_fraction, expected_time):
     p = 1.0
     s, c, t = ic_opt(
         g,
         p,
         source=0,
-        stop_fraction=stop_fraction
+        max_fraction=max_fraction
     )
 
     assert s == 0
@@ -36,7 +36,7 @@ def test_zero_point_five_case(line):
             line,
             p,
             source=0,
-            stop_fraction=1.0
+            max_fraction=1.0
         )
 
         n_infected = len(infected_nodes(c))

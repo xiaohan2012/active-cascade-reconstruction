@@ -181,7 +181,7 @@ class SimulatedCascadePool():
 
             dict(
                 p=0.5,
-                stop_fraction=0.5,
+                max_fraction=0.5,
                 cascade_model='si'
             )
         """

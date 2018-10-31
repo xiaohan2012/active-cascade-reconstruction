@@ -44,7 +44,8 @@ class ConfigBase:
             # misc
             arg_suffix='',
             # runtime
-            hours_per_job=1
+            hours_per_job=1,
+            minutes_per_job=0
     ):
         self.cascade_root_dir = cascade_root_dir
 
@@ -73,6 +74,7 @@ class ConfigBase:
         self.arg_suffix = arg_suffix
 
         self.hours_per_job = hours_per_job
+        self.minutes_per_job = minutes_per_job
         
         self.metric_name = metric_name
         self.eval_with_mask = eval_with_mask

@@ -13,7 +13,9 @@ from graph_helpers import (
 from inference import infection_probability
 from helpers import infected_nodes
 from random_steiner_tree import random_steiner_tree
-from cascade_generator import si
+from cascade_generator import si, ic
+
+from joblib import (delayed, Parallel)
 
 
 def sample_steiner_trees(g, obs,
@@ -82,10 +84,36 @@ def sample_steiner_trees(g, obs,
     return steiner_tree_samples
 
 
+def sample_one_by_simulation(g, obs, cascade_model, **kwargs):
+    if cascade_model == 'si':
+        assert 'p' in kwargs
+        assert 'source' in kwargs
+        assert 'max_fraction' in kwargs
+        func = lambda: si(g, **kwargs)
+    elif cascade_model == 'ic':
+        assert 'p' in kwargs
+        assert 'source' in kwargs
+        assert 'min_fraction' in kwargs
+        assert 'max_fraction' in kwargs
+        func = lambda: ic(g, **kwargs)
+    else:
+        raise ValueError('model {} unsupported'.format(cascade_model))
+
+    while True:
+        _, infection_times, _ = func()
+        inf_nodes = set(infected_nodes(infection_times))
+        if obs.issubset(inf_nodes):
+            return inf_nodes
+            break
+        else:
+            pass
+
 def sample_by_simulation(g, obs,
                          cascade_model,
                          n_samples,
                          debug=True,
+                         parallel=False,
+                         n_jobs=8,
                          **kwargs):
     samples = []
     obs = set(obs)
@@ -95,37 +123,21 @@ def sample_by_simulation(g, obs,
     else:
         iters = range(n_samples)
 
-    for i in iters:
-        if cascade_model == 'si':
-            assert 'p' in kwargs
-            assert 'source' in kwargs
-            assert 'stop_fraction' in kwargs
-            while True:
-                _, infection_times, tree = si(g, **kwargs)
-                inf_nodes = set(infected_nodes(infection_times))
-                if obs.issubset(inf_nodes):
-                    # if debug:
-                    #     print("accept sample")
-                    samples.append(inf_nodes)
-                    break
-                else:
-                    # if debug:
-                    #     num_captured = len(obs.intersection(inf_nodes))
-                    #     num_obs = len(obs)
-                    #     print('reject')
-                    #     print('fraction captured by sample {}/{} = {}'.format(
-                    #         num_captured,
-                    #         num_obs,
-                    #         num_captured / num_obs
-                    #     ))
-                    pass
-                # if debug:
-                #     print("reject sample")
-        else:
-            raise ValueError('model {} unsupported'.format(cascade_model))
+    if parallel:
         if debug:
-            print("{}th sample".format(i))
-
+            print('running in parallel[{}]'.format(n_jobs))
+        tasks = (
+            delayed(sample_one_by_simulation)(
+                g, obs, cascade_model, **kwargs
+            )
+            for i in iters
+        )
+        samples = Parallel(n_jobs=n_jobs)(tasks)
+    else:
+        for i in iters:
+            samples.append(
+                sample_one_by_simulation(g, obs, cascade_model, **kwargs)
+            )
     return samples
 
 
