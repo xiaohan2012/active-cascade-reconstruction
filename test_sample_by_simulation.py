@@ -1,8 +1,13 @@
 import pytest
+import random
 import numpy as np
+
+from random_steiner_tree.util import from_gt
+from random_steiner_tree import random_steiner_tree
+
 from cascade_generator import (si, ic)
 from fixture import g
-from core import sample_by_simulation
+from core import (sample_by_simulation, sample_by_hybrid_simulation)
 from helpers import infected_nodes
 
 
@@ -46,4 +51,122 @@ def test_sample_by_simulation(g, cascade_model):
         )
         for s in samples:
             assert obs.issubset(s)
+
+
+@pytest.mark.parametrize(
+    "cascade_model", ['si', 'ic']
+)
+def test_sample_by_hybrid_simulation(g, cascade_model):
+    n_obs = 5
+    p = 0.5
+    max_fraction = 0.5
+    min_cascade_size = 10
+    min_fraction = (min_cascade_size / g.num_vertices())
+    n_samples = 5
+
+    def basis_generator(*args, **kwargs):
+        edges = random_steiner_tree(*args, **kwargs)
+        return [u for e in edges for u in e]
+
+    basis_kwargs = dict(
+        gi=from_gt(g),
+        method='loop_erased'
+    )
+
+    for i in range(3):
+        if cascade_model == 'si':
+            source, times, _ = si(
+                g, p=p, source=None,
+                max_fraction=max_fraction
+            )
+            cascade_kwargs = dict(
+                p=p,
+                source=source,
+                max_fraction=max_fraction
+            )
+        elif cascade_model == 'ic':
+            source, times, _ = ic(
+                g, p=p, source=None,
+                min_fraction=min_fraction,
+                max_fraction=max_fraction
+            )
+            cascade_kwargs = dict(
+                p=p,
+                source=source,
+                min_fraction=min_fraction,
+                max_fraction=max_fraction
+            )
+
+        inf_nodes = infected_nodes(times)
+        obs = set(np.random.choice(inf_nodes, n_obs, replace=False))
+
+        # append other basis generator kwargs
+        basis_kwargs['X'] = obs
+        basis_kwargs['root'] = source
+
+        samples = sample_by_hybrid_simulation(
+            g, obs,
+            cascade_model=cascade_model,
+            n_samples=n_samples,
+            cascade_kwargs=cascade_kwargs,
+            basis_generator=basis_generator,
+            basis_kwargs=basis_kwargs
+        )
+
+        for s in samples:
+            assert obs.issubset(s)
+
+
+def test_sample_by_hybrid_simulation_when_infected_is_too_large(g):
+    # when the input infections are too many, should re-generate the input infections
+    
+    # define a basis_generator that have half probability of exceeding the max size
+    N = g.num_vertices()
+    obs_fraction = 0.1
+    p = 0.5
+    max_fraction = 0.5
+    n_samples = 5
+
+    def basis_generator(obs, other_nodes, max_size):
+        ret = list(obs)
+        if random.random() > 0.5:
+            print('reasonable size')
+            n_remain = max_size - len(ret)
+            return ret + random.sample(other_nodes, n_remain)
+        else:
+            print('too large')
+            n_remain = max_size + 1 - len(ret)
+            return ret + random.sample(other_nodes, n_remain)
+
+    for i in range(3):
+        source, times, _ = si(
+            g, p=p, source=None,
+            max_fraction=max_fraction
+        )
+        cascade_kwargs = dict(
+            p=p,
+            source=source,
+            max_fraction=max_fraction
+        )
+
+        inf_nodes = infected_nodes(times)
+        n_infs = len(inf_nodes)
+        obs = set(np.random.choice(inf_nodes, int(n_infs * obs_fraction), replace=False))
         
+        basis_kwargs = dict(
+            obs=obs,
+            other_nodes=list(set(np.arange(N)) - obs),
+            max_size=int(N * max_fraction)
+        )
+
+        samples = sample_by_hybrid_simulation(
+            g, obs,
+            cascade_model='si',
+            n_samples=n_samples,
+            cascade_kwargs=cascade_kwargs,
+            basis_generator=basis_generator,
+            basis_kwargs=basis_kwargs
+        )
+
+        for s in samples:
+            assert obs.issubset(s)

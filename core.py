@@ -14,8 +14,42 @@ from inference import infection_probability
 from helpers import infected_nodes
 from random_steiner_tree import random_steiner_tree
 from cascade_generator import si, ic
+from exceptions import TooManyInfections
 
 from joblib import (delayed, Parallel)
+
+
+def uncertainty_scores(
+        g, obs,
+        sampler,
+        error_estimator
+):
+    """
+    calculate uncertainty scores based on sampled steiner trees
+
+    Args:
+
+    Graph `g`
+    list of int `obs`: list of observed nodes
+    sampler: the tree sampler
+    error_estimator: what does the actual counting
+    str `method`: {'count', 'entropy'}
+
+    Returns:
+
+    dict of (int, float): node to uncertainty score
+    """
+    if sampler.is_empty:
+        sampler.fill(obs)
+
+    p = infection_probability(g, obs, sampler, error_estimator)
+    non_obs_nodes = set(extract_nodes(g)) - set(obs)
+
+    uncert = [entropy([v, 1-v]) for v in p]
+
+    r = {n: uncert[n]
+         for n in non_obs_nodes}
+    return r
 
 
 def sample_steiner_trees(g, obs,
@@ -108,13 +142,16 @@ def sample_one_by_simulation(g, obs, cascade_model, **kwargs):
         else:
             pass
 
-def sample_by_simulation(g, obs,
-                         cascade_model,
-                         n_samples,
-                         debug=True,
-                         parallel=False,
-                         n_jobs=8,
-                         **kwargs):
+
+def sample_by_simulation(
+        g, obs,
+        cascade_model,
+        n_samples,
+        debug=True,
+        parallel=False,
+        n_jobs=8,
+        **kwargs
+):
     samples = []
     obs = set(obs)
 
@@ -141,32 +178,92 @@ def sample_by_simulation(g, obs,
     return samples
 
 
-def uncertainty_scores(g, obs,
-                       sampler,
-                       error_estimator):
+def sample_one_by_hybrid_simulation(
+        g, obs, cascade_model,
+        basis_generator,
+        basis_kwargs,
+        cascade_kwargs,
+        max_tries=100
+):
     """
-    calculate uncertainty scores based on sampled steiner trees
+    sample one cascade using the following steps
 
-    Args:
+    1. first generate a basis subgraph g' that contains the `obs` nodes
+    2. continue the simulation from g' using `cascade_model`
 
-    Graph `g`
-    list of int `obs`: list of observed nodes
-    sampler: the tree sampler
-    error_estimator: what does the actual counting
-    str `method`: {'count', 'entropy'}
+    Note: in case the basis_generator outputs too large inputs,
+    the process will repeat until a small enough one is produced
 
-    Returns:
+    Exmaple of using random steiner tree to generate the basis:
 
-    dict of (int, float): node to uncertainty score
+    >> g, gi, obs, r, p, max_fraction = ...  # input
+    >> sample_one_by_hybrid_simulation(
+        g,
+        obs,
+        cascade_model='si',
+        basis_generator=random_steiner_tree
+        basis_kwargs=dict(gi=gi, X=obs, root=r, method='lerw'),
+        cascade_kwargs=dict(p=0.5, source=r, max_fraction=0.1)
+    )
     """
-    if sampler.is_empty:
-        sampler.fill(obs)
+    for i in range(max_tries):
+        print('attempt times:', i)
+        try:
+            infected = basis_generator(**basis_kwargs)
+            cascade_kwargs['infected'] = infected
+            return sample_one_by_simulation(g, obs, cascade_model, **cascade_kwargs)
+        except TooManyInfections:
+            continue
+    raise TooManyInfections('after trying {} times'.format(max_tries))
 
-    p = infection_probability(g, obs, sampler, error_estimator)
-    non_obs_nodes = set(extract_nodes(g)) - set(obs)
 
-    uncert = [entropy([v, 1-v]) for v in p]
+def sample_by_hybrid_simulation(
+        g, obs,
+        cascade_model,
+        n_samples,
+        cascade_kwargs,
+        basis_generator,
+        basis_kwargs,
+        debug=True,
+        parallel=False,
+        n_jobs=8
+):
+    """
+    generate cascade via hybrid simulation. It's basically:
 
-    r = {n: uncert[n]
-         for n in non_obs_nodes}
-    return r
+    1. form a basis subgraph that contains the observed nodes
+    2. continue the simulation from the subgraph
+    """
+    samples = []
+    obs = set(obs)
+
+    if debug:
+        iters = tqdm(range(n_samples), total=n_samples)
+    else:
+        iters = range(n_samples)
+
+    args = (g, obs, cascade_model)
+    kwargs = dict(
+        basis_generator=basis_generator,
+        basis_kwargs=basis_kwargs,
+        cascade_kwargs=cascade_kwargs
+    )
+
+    if parallel:
+        if debug:
+            print('running in parallel[{}]'.format(n_jobs))
+        tasks = (
+            delayed(sample_one_by_hybrid_simulation)(
+                *args, **kwargs
+            )
+            for i in iters
+        )
+        samples = Parallel(n_jobs=n_jobs)(tasks)
+    else:
+        for i in iters:
+            samples.append(
+                sample_one_by_hybrid_simulation(
+                    *args, **kwargs
+                )
+            )
+    return samples
