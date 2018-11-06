@@ -34,7 +34,7 @@ def test_infer_probas_for_queries_sampling_approach(
             max_fraction=max_fraction,
             source=source,
             cascade_model=model,
-            debug=True,
+            verbose=2
         )
     else:
         n_samples = 100

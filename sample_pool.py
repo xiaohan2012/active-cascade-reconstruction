@@ -9,7 +9,11 @@ from graph_helpers import (
     extract_nodes_from_tuples
 )
 from proba_helpers import tree_probability_gt, ic_cascade_probability_gt
-from core import sample_by_simulation
+from core import (
+    sample_by_simulation,
+     sample_by_mst_plus_simulation,
+    sample_by_rst_plus_simulation
+)
 from core1 import matching_trees
 from helpers import infected_nodes
 
@@ -171,9 +175,13 @@ class TreeSamplePool():
 class SimulatedCascadePool():
     def __init__(
             self, g, n_samples,
+            approach,
+            cascade_model,
             cascade_params={}
     ):
         """
+        a pool of simulated cascades, using certain approach, one of naive, mst or rst
+
         cascade_params: dict of cascade parameters to be passed
             when simulating cascades
 
@@ -182,24 +190,47 @@ class SimulatedCascadePool():
             dict(
                 p=0.5,
                 max_fraction=0.5,
-                cascade_model='si'
             )
         """
+        assert approach in {'naive', 'mst', 'rst'}
+        self.approach = approach
+        
         self.g = g
         self.num_nodes = g.num_vertices()
         self.n_samples = n_samples
         self._cascade_params = cascade_params
         self._samples = []  # a list of sets of integers
 
+        self.cascade_model = cascade_model
+
         # for downstream compatibility
         self.with_resampling = False
 
+    def _gen_n_samples(self, obs, n, **kwargs):
+        if self.approach == 'naive':
+            return sample_by_simulation(
+                self.g, obs,
+                cascade_model=self.cascade_model,
+                n_samples=n,
+                **self._cascade_params,
+            )
+        elif self.approach in 'mst':
+            return sample_by_mst_plus_simulation(
+                self.g, obs,
+                cascade_model=self.cascade_model,
+                n_samples=n,
+                cascade_kwargs=self._cascade_params,
+            )
+        elif self.approach == 'rst':
+            return sample_by_rst_plus_simulation(
+                self.g, obs,
+                cascade_model=self.cascade_model,
+                n_samples=n,
+                cascade_kwargs=self._cascade_params,
+            )
+        
     def fill(self, obs, **kwargs):
-        self._samples = sample_by_simulation(
-            self.g, obs,
-            n_samples=self.n_samples,
-            **self._cascade_params
-        )
+        self._samples = self._gen_n_samples(obs, self.n_samples, **kwargs)
 
     def update_samples(self, inf_nodes, node_update_info, **kwargs):
         """
@@ -217,10 +248,9 @@ class SimulatedCascadePool():
         valid_samples = matching_trees(self._samples, node_update_info)
 
         # print('num. valid_samples: {}'.format(len(valid_samples)))
-        new_samples = sample_by_simulation(
-            self.g, inf_nodes,
-            n_samples=self.n_samples - len(valid_samples),
-            **self._cascade_params
+        new_samples = self._gen_n_samples(
+            obs=inf_nodes,
+            n=self.n_samples - len(valid_samples)
         )
 
         self._samples = valid_samples + new_samples

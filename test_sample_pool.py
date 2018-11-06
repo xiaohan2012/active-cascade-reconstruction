@@ -1,4 +1,5 @@
 import random
+import pytest
 import numpy as np
 from sample_pool import SimulatedCascadePool
 from graph_helpers import observe_uninfected_node
@@ -8,14 +9,17 @@ from helpers import infected_nodes
 
 
 
-def test_SimulatedCascadePool(g):
+@pytest.mark.parametrize(
+    "approach", ['mst', 'rst']  # 'naive'
+)
+def test_SimulatedCascadePool(g, approach):
+    # 'naive', 
     n_samples = 10
     n_obs = 5
     cascade_params = dict(
         p=0.5,
         max_fraction=0.5,
-        cascade_model='si',
-        debug=True
+        verbose=2
     )
     source, times, _ = si(
         g, source=None,
@@ -27,7 +31,12 @@ def test_SimulatedCascadePool(g):
 
     cascade_params['source'] = source
 
-    pool = SimulatedCascadePool(g, n_samples, cascade_params)
+    pool = SimulatedCascadePool(
+        g, n_samples,
+        cascade_model='si',
+        approach=approach,
+        cascade_params=cascade_params
+    )
     pool.fill(obs)
 
     for o in obs:

@@ -116,8 +116,7 @@ def test_under_simulated_cascade(g, query_method):
     cascade_params = dict(
         p=0.5,
         max_fraction=0.5,
-        cascade_model='si',
-        debug=True
+        verbose=2
     )
     source, times, _ = si(
         g, source=None,
@@ -129,8 +128,14 @@ def test_under_simulated_cascade(g, query_method):
     inf_nodes = infected_nodes(times)
     obs = set(np.random.choice(inf_nodes, n_obs, replace=False))
 
-    pool = SimulatedCascadePool(gv, n_samples, cascade_params)
-        
+    pool = SimulatedCascadePool(
+        gv,
+        n_samples,
+        cascade_model='si',
+        approach='mst',
+        cascade_params=cascade_params
+    )
+
     error_estimator = TreeBasedStatistics(gv)
 
     if query_method == 'entropy':

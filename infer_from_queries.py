@@ -74,9 +74,13 @@ def infer_probas_from_queries(
     probas_list = []
 
     if sampling_method == 'simulation':
+        cascade_model = sampler_kwargs['cascade_model']
+        del sampler_kwargs['cascade_model']
         sampler = SimulatedCascadePool(
             g,
             n_samples,
+            approach='mst',
+            cascade_model=cascade_model,
             cascade_params=sampler_kwargs
         )
     else:
