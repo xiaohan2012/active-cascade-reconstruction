@@ -54,7 +54,9 @@ def build_closure(g, terminals,
     return gc, eweight, r2pred
 
 
-def min_steiner_tree(g, obs_nodes, debug=False, verbose=False):
+def min_steiner_tree(g, obs_nodes, return_type='tree', debug=False, verbose=False):
+    assert return_type in {'tree', 'edges', 'nodes'}
+    
     if g.num_vertices() == len(obs_nodes):
         print('it\'s a minimum spanning tree problem')
         
@@ -72,9 +74,14 @@ def min_steiner_tree(g, obs_nodes, debug=False, verbose=False):
         recovered_edges = extract_edges_from_pred(u, v, r2pred[u])
         assert recovered_edges, 'empty!'
         for i, j in recovered_edges:
-            tree_edges.add(((i, j)))
-            
+            tree_edges.add((i, j))
+
+    if return_type == 'edges':
+        return tree_edges
+    
     tree_nodes = list(set(itertools.chain(*tree_edges)))
+    if return_type == 'nodes':
+        return tree_nodes
 
     vfilt = g.new_vertex_property('bool')
     vfilt.set_value(False)

@@ -12,11 +12,15 @@ from graph_helpers import (
 )
 from inference import infection_probability
 from helpers import infected_nodes
+
 from random_steiner_tree import random_steiner_tree
+from random_steiner_tree.util import from_gt
+
 from cascade_generator import si, ic
 from exceptions import TooManyInfections
 
 from joblib import (delayed, Parallel)
+from minimum_steiner_tree import min_steiner_tree
 
 
 def uncertainty_scores(
@@ -267,3 +271,63 @@ def sample_by_hybrid_simulation(
                 )
             )
     return samples
+
+
+def sample_by_mst_plus_simulation(
+        g, obs,
+        cascade_model,
+        n_samples,
+        cascade_kwargs,
+        **kwargs
+):
+    """
+    sample generation using minimum steiner tree (mst) + simulation
+    """
+    basis_generator = min_steiner_tree
+    basis_kwargs = dict(
+        g=g,
+        obs_nodes=obs,
+        return_type='nodes',
+        debug=kwargs.get('debug', False),
+        verbose=kwargs.get('verbose', False)
+    )
+
+    return sample_by_hybrid_simulation(
+        g, obs,
+        cascade_model, n_samples,
+        cascade_kwargs=cascade_kwargs,
+        basis_generator=basis_generator,
+        basis_kwargs=basis_kwargs,
+        **kwargs
+    )
+
+
+def sample_by_rst_plus_simulation(
+        g, obs,
+        cascade_model,
+        n_samples,
+        cascade_kwargs,
+        **kwargs
+):
+    """
+    sample generation using random steiner tree (rst) + simulation
+    """
+    def basis_generator(*args, **kwargs):
+        edges = random_steiner_tree(*args, **kwargs)
+        return [u for e in edges for u in e]
+
+    basis_kwargs = dict(
+        gi=from_gt(g),
+        method='loop_erased',
+        X=obs,
+        root=cascade_kwargs['source']
+    )
+    
+    return sample_by_hybrid_simulation(
+        g, obs,
+        cascade_model, n_samples,
+        cascade_kwargs=cascade_kwargs,
+        basis_generator=basis_generator,
+        basis_kwargs=basis_kwargs,
+        **kwargs
+    )

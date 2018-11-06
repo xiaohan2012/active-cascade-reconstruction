@@ -2,12 +2,13 @@ import pytest
 import random
 import numpy as np
 
-from random_steiner_tree.util import from_gt
-from random_steiner_tree import random_steiner_tree
-
 from cascade_generator import (si, ic)
 from fixture import g
-from core import (sample_by_simulation, sample_by_hybrid_simulation)
+from core import (
+    sample_by_simulation,
+    sample_by_mst_plus_simulation,
+    sample_by_rst_plus_simulation
+)
 from helpers import infected_nodes
 
 
@@ -56,22 +57,16 @@ def test_sample_by_simulation(g, cascade_model):
 @pytest.mark.parametrize(
     "cascade_model", ['si', 'ic']
 )
-def test_sample_by_hybrid_simulation(g, cascade_model):
+@pytest.mark.parametrize(
+    "approach", ['mst', 'rst']
+)
+def test_sample_by_hybrid_simulation(g, cascade_model, approach):
     n_obs = 5
     p = 0.5
     max_fraction = 0.5
     min_cascade_size = 10
     min_fraction = (min_cascade_size / g.num_vertices())
     n_samples = 5
-
-    def basis_generator(*args, **kwargs):
-        edges = random_steiner_tree(*args, **kwargs)
-        return [u for e in edges for u in e]
-
-    basis_kwargs = dict(
-        gi=from_gt(g),
-        method='loop_erased'
-    )
 
     for i in range(3):
         if cascade_model == 'si':
@@ -100,18 +95,22 @@ def test_sample_by_hybrid_simulation(g, cascade_model):
         inf_nodes = infected_nodes(times)
         obs = set(np.random.choice(inf_nodes, n_obs, replace=False))
 
-        # append other basis generator kwargs
-        basis_kwargs['X'] = obs
-        basis_kwargs['root'] = source
-
-        samples = sample_by_hybrid_simulation(
-            g, obs,
-            cascade_model=cascade_model,
-            n_samples=n_samples,
-            cascade_kwargs=cascade_kwargs,
-            basis_generator=basis_generator,
-            basis_kwargs=basis_kwargs
-        )
+        if approach == 'mst':
+            samples = sample_by_mst_plus_simulation(
+                g, obs,
+                cascade_model=cascade_model,
+                n_samples=n_samples,
+                cascade_kwargs=cascade_kwargs,
+            )
+        elif approach == 'rst':
+            samples = sample_by_rst_plus_simulation(
+                g, obs,
+                cascade_model=cascade_model,
+                n_samples=n_samples,
+                cascade_kwargs=cascade_kwargs,
+            )
+        else:
+            raise ValueError('yo!')
 
         for s in samples:
             assert obs.issubset(s)
@@ -170,3 +169,6 @@ def test_sample_by_hybrid_simulation_when_infected_is_too_large(g):
 
         for s in samples:
             assert obs.issubset(s)
+
+
+            
