@@ -13,13 +13,16 @@ from tqdm import tqdm
 
 from graph_helpers import get_edge_weights
 
+from exceptions import TooManyInfections
+from helpers import raise_if_not_iterable
+
 # C++ stuff
 from libcpp cimport bool
 from libcpp.set cimport set as cppset
 from libcpp.pair cimport pair
 
 
-cpdef ic_opt(g, p, source=None, float max_fraction=0.5, debug=False):
+cpdef ic_opt(g, p, source=None, infected=None, float max_fraction=0.5, int verbose=False):
     """
     optimized version of IC cascade generation
 
@@ -41,11 +44,21 @@ cpdef ic_opt(g, p, source=None, float max_fraction=0.5, debug=False):
         # is float and uniform
         assert 0 < p and p <= 1
 
-    if source is None:
+    if source is None and infected is None:
         source = random.choice(np.arange(g.num_vertices()))
-    infected = {source}
+
+    if infected is None:
+        infected = {source}
+    else:
+        raise_if_not_iterable(infected)
+        infected = set(infected)
+        # check size
+        cascade_fraction = len(infected) / g.num_vertices()
+        if cascade_fraction > max_fraction:
+            raise TooManyInfections
+
     infection_times = np.ones(g.num_vertices()) * -1
-    infection_times[source] = 0
+    infection_times[list(infected)] = 0
 
     edges = []
 
@@ -53,29 +66,31 @@ cpdef ic_opt(g, p, source=None, float max_fraction=0.5, debug=False):
         edge_weight_by_index = np.array(p.ma)
 
     frontier_pool = copy(infected)
+    max_num_infections = int(max_fraction * N)
 
-    while len(infected) < N and len(frontier_pool) > 0:
+    while len(infected) < max_num_infections and len(frontier_pool) > 0:
         # print('current cascade size: {}'.format(len(frontier_pool)))
         time += 1
-        if debug:
+        if verbose >= 0:
             print('at time ', time)
             print('frontier_pool', frontier_pool)
             print('active_degree', active_degree)
+
         frontiers_to_remove = set()
         frontiers_to_add = set()
         for i in frontier_pool:
             for _, j, edge_index in g.get_out_edges(i):
-                if debug:
+                if verbose >= 1:
                     print('trying ', (i, j))
 
                 # if the edge has not be attempted before
                 if attempted_edges.find((i, j)) == attempted_edges.end():
-                    if debug:
+                    if verbose >= 1:
                         print('go into ', (i, j))
                     active_degree[i] -= 1
                     if active_degree[i] == 0:
                         # no more out edges to go
-                        if debug:
+                        if verbose >= 1:
                             print('remove {} from pool'.format(i))
                         frontiers_to_remove.add(i)
 
@@ -93,8 +108,9 @@ cpdef ic_opt(g, p, source=None, float max_fraction=0.5, debug=False):
                             infection_times[j] = time
                             edges.append((i, j))
 
-                            if debug:
+                            if verbose >= 0:
                                 print('add {} to frontier'.format(j))
+
                             frontiers_to_add.add(j)
                             # stop when enough nodes have been infected
                             if (len(infected) / N) >= max_fraction:

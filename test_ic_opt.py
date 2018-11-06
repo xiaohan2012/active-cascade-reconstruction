@@ -4,6 +4,8 @@ from numpy.testing import assert_array_equal, assert_almost_equal
 from ic import ic_opt
 from fixture import g, line
 from helpers import infected_nodes
+from exceptions import TooManyInfections
+
 from collections import Counter
 from tqdm import tqdm
 
@@ -48,3 +50,32 @@ def test_zero_point_five_case(line):
     assert_almost_equal(probas[2], 0.25, decimal=1)
     assert_almost_equal(probas[3], 0.125, decimal=1)
     assert_almost_equal(probas[4], 0.125, decimal=1)
+
+
+@pytest.mark.parametrize(
+    'g, infected, max_fraction, expected_time',
+    [
+        (line(), [0, 3], 1.0, [0, 1, 1, 0]),
+        (line(), [0, 1], 1.0, [0, 0, 1, 2]),
+        (line(), [0, 1, 2, 3], 1.0, [0, 0, 0, 0]),
+        (line(), [0, 3], 0.5, [0, -1, -1, 0]),
+    ])
+def test_input_with_infected(g, infected, max_fraction, expected_time):
+    g.set_directed(False)  # to undirected
+    p = 1.0
+    s, c, t = ic_opt(
+        g,
+        p,
+        source=None,
+        max_fraction=max_fraction,
+        infected=infected,
+        verbose=5
+    )
+
+    assert s is None
+    assert_array_equal(c, expected_time)
+
+
+def test_input_with_too_many_infected(line):
+    with pytest.raises(TooManyInfections):
+        ic_opt(line, 1.0, infected=[0, 1, 2], max_fraction=0.5)

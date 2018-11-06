@@ -1,0 +1,2 @@
+class TooManyInfections(Exception):
+    pass

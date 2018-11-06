@@ -141,7 +141,7 @@ def get_query_result(
             min_proba
         )
     )
-    
+
     return cursor.fetchone()
 
 
@@ -197,9 +197,16 @@ def get_inference_result(
             every
         )
     )
-    
+
     return cursor.fetchone()
 
 
 def random_str(N=8):
     return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(N))
+
+
+def raise_if_not_iterable(obj):
+    try:
+        _ = (e for e in obj)
+    except TypeError:
+        print(obj, 'is not iterable')
