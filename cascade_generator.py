@@ -55,14 +55,16 @@ def observe_cascade(c, source, q, method='uniform',
         raise ValueError('unknown method {}'.format(method))
 
 
-def ic(g, p, source=None, min_fraction=0.0, max_fraction=0.5):
+def ic(g, p, source=None, infected=None, min_fraction=0.0, max_fraction=0.5):
     """
     IC cascade generator that filters out small cascades (under min_fraction)
     """
     N = g.num_vertices()
     while True:
         source, times, tree = ic_opt(
-            g, p=p, source=source,
+            g, p=p,
+            source=source,
+            infected=infected,
             max_fraction=max_fraction
         )
         if (len(infected_nodes(times)) / N) >= min_fraction:
@@ -103,7 +105,7 @@ def gen_input(
         print('load from cache')
         c = pkl.load(open(cascade_path, 'rb'))
         s = np.nonzero([c == 0])[1][0]
-        
+
     obs = observe_cascade(c, s, q, observation_method, tree=tree)
 
     if not return_tree:
