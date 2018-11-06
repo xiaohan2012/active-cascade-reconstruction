@@ -6,6 +6,7 @@ from cascade_generator import (si, ic)
 from fixture import g
 from core import (
     sample_by_simulation,
+    sample_by_hybrid_simulation,
     sample_by_mst_plus_simulation,
     sample_by_rst_plus_simulation
 )
@@ -20,6 +21,7 @@ def test_sample_by_simulation(g, cascade_model):
     p = 0.5
     max_fraction = 0.5
     min_cascade_size = 10
+    min_fraction = (min_cascade_size / g.num_vertices())
     n_samples = 5
     for i in range(3):
         if cascade_model == 'si':
@@ -31,13 +33,15 @@ def test_sample_by_simulation(g, cascade_model):
                 max_fraction=max_fraction
             )
         elif cascade_model == 'ic':
+
             source, times, _ = ic(
                 g, p=p, source=None,
                 max_fraction=max_fraction,
-                min_fraction=(min_cascade_size / g.num_vertices())
+                min_fraction=min_fraction
             )
             kwargs = dict(
-                max_fraction=max_fraction
+                max_fraction=max_fraction,
+                min_fraction=min_fraction
             )
 
         inf_nodes = infected_nodes(times)
