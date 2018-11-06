@@ -19,7 +19,7 @@ class Config(ConfigBase):
         # self.n_rounds = 2
         # self.arg_suffix = '--verbose --debug'
 
-        self.hours_per_job = 3
+        self.hours_per_job = 6
 
 config_dimensions = [
     # graph and cascade related
@@ -51,8 +51,8 @@ config_dimensions = [
     ],
     # query related
     [
-        dict(query_method='random'),
-        dict(query_method='pagerank'),
+        # dict(query_method='random'),
+        # dict(query_method='pagerank'),
         dict(query_method='entropy')
     ],
     # cascade model
