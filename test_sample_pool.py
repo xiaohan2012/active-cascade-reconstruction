@@ -38,6 +38,7 @@ def test_SimulatedCascadePool(g):
 
     # node addition case
     # add 10 nodes
+    print("node addition case")
     for i in range(10):
         node_to_add = list(set(inf_nodes) - obs)[0]
 
@@ -51,6 +52,7 @@ def test_SimulatedCascadePool(g):
 
     # node removal case
     # remove 10 nodes
+    print("node removal case")
     for i in range(10):
         node_to_remove = random.choice(list(random.choice(pool.samples) - obs))
 
