@@ -25,11 +25,13 @@ from helpers import (
 )
 from sample_pool import TreeSamplePool, SimulatedCascadePool
 from tree_stat import TreeBasedStatistics
+from core import SIMULATION_METHODS
 from random_steiner_tree.util import from_gt
 from arg_helpers import (
     add_input_args,
     add_query_method_args,
-    add_cascade_parameter_args
+    add_cascade_parameter_args,
+    add_debug_args
 )
 from config import QUERY_TIMEOUT, DB_CONFIG
 
@@ -73,22 +75,25 @@ def one_round(
 
     gi = None
     if issubclass(query_strategy_cls, SamplingBasedGenerator):
-        if sampling_method == 'simulation':
+        if sampling_method in SIMULATION_METHODS:
             if verbose:
                 print("loading simulation-based sampler")
                 print("p={}".format(cmd_args.infection_proba))
                 print("max_fraction={}".format(cmd_args.cascade_size))
 
-            cascade_params = dict(
+            cascade_kwargs = dict(
                 p=cmd_args.infection_proba,
                 min_fraction=cmd_args.cascade_size,
                 max_fraction=cmd_args.cascade_size,
-                cascade_model=cmd_args.cascade_model,
                 source=cascade_source(c),
-                debug=False  # turn it to True if you want to see more details
+                verbose=verbose
             )
+            
             sampler = SimulatedCascadePool(
-                gv, n_samples, cascade_params
+                gv, n_samples,
+                cascade_model=cmd_args.cascade_model,
+                approach=sampling_method,
+                cascade_params=cascade_kwargs
             )
         else:
             weights = get_edge_weights(gv)
@@ -138,13 +143,9 @@ if __name__ == '__main__':
 
     add_input_args(parser)
     add_query_method_args(parser)
-    add_cascade_parameter_args(parser)
-
-    parser.add_argument('-b', '--debug', action='store_true', help='if debug, use non-parallel')
-    parser.add_argument('-v', '--verbose', action='store_true',
-                        help='if verbose, verbose information is printed')
+    add_cascade_parameter_args(parser)    
+    add_debug_args(parser)
     
-
     args = parser.parse_args()
 
     print("Args:")

@@ -55,7 +55,7 @@ def observe_cascade(c, source, q, method='uniform',
         raise ValueError('unknown method {}'.format(method))
 
 
-def ic(g, p, source=None, infected=None, min_fraction=0.0, max_fraction=0.5):
+def ic(g, p, source=None, infected=None, min_fraction=0.0, max_fraction=0.5, **kwargs):
     """
     IC cascade generator that filters out small cascades (under min_fraction)
     """
@@ -65,7 +65,8 @@ def ic(g, p, source=None, infected=None, min_fraction=0.0, max_fraction=0.5):
             g, p=p,
             source=source,
             infected=infected,
-            max_fraction=max_fraction
+            max_fraction=max_fraction,
+            **kwargs
         )
         if (len(infected_nodes(times)) / N) >= min_fraction:
             break

@@ -1,3 +1,6 @@
+from core import SIMULATION_METHODS
+
+
 def add_input_args(parser):
     parser.add_argument('-g', '--graph',
                         required=True,
@@ -27,7 +30,7 @@ def add_query_method_args(parser):
     parser.add_argument('-n', '--n_queries', default=10, type=int,
                         help='number of queries')
     parser.add_argument('-m', '--query_sampling_method', default='loop_erased', type=str,
-                        choices={'loop_erased', 'cut', 'cut_naive', 'simulation'},
+                        choices=('loop_erased', 'cut') + SIMULATION_METHODS,
                         help='the steiner tree sampling method')
     parser.add_argument('-r', '--root_sampler', type=str,
                         default='pagerank',
@@ -75,7 +78,7 @@ def add_inference_args(parser):
     # inference related
     parser.add_argument('--inference_sampling_method',
                         default='simulation',
-                        choices=('loop_erased', 'cut', 'simulation'),
+                        choices=('loop_erased', 'cut') + SIMULATION_METHODS,
                         help='')    
     parser.add_argument('--inference_n_samples', type=int,
                         default=100,
@@ -98,4 +101,15 @@ def add_eval_args(parser):
         '--eval_with_mask',
         action="store_true",
         help='whether evaluate with masks or not. If True, queries and obs are excluded'
+    )
+
+
+def add_debug_args(parser):
+    parser.add_argument(
+        '-b', '--debug',
+        action='store_true', help='whether debug or not'
+    )
+    parser.add_argument(
+        '-v', '--verbose', type=int, default=0,
+        help='vebose level to be used'
     )

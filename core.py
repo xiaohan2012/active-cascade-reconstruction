@@ -22,6 +22,7 @@ from exceptions import TooManyInfections
 from joblib import (delayed, Parallel)
 from minimum_steiner_tree import min_steiner_tree
 
+SIMULATION_METHODS = ('naive', 'mst', 'rst')
 
 def uncertainty_scores(
         g, obs,

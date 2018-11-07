@@ -27,6 +27,7 @@ from random_steiner_tree.util import (
     from_gt,
     isolate_vertex
 )
+from core import SIMULATION_METHODS
 from tree_stat import TreeBasedStatistics
 from root_sampler import (
     build_root_sampler_by_pagerank_score,
@@ -36,7 +37,8 @@ from arg_helpers import (
     add_input_args,
     add_query_method_args,
     add_cascade_parameter_args,
-    add_inference_args
+    add_inference_args,
+    add_debug_args
 )
 from helpers import (
     get_query_result,
@@ -57,7 +59,7 @@ def infer_probas_from_queries(
         every=1,
         iter_callback=None,
         verbose=False,
-        sampler_kwargs={},
+        cascade_kwargs={},
 ):
     n_nodes = g.num_vertices()
 
@@ -79,11 +81,17 @@ def infer_probas_from_queries(
     
     probas_list = []
 
-    if sampling_method == 'simulation':
+    if sampling_method in SIMULATION_METHODS:
+        assert 'cascade_model' in cascade_kwargs
+        cascade_model = cascade_kwargs['cascade_model']
+        del cascade_kwargs['cascade_model']
+
         sampler = SimulatedCascadePool(
             g,
             n_samples,
-            cascade_params=sampler_kwargs
+            cascade_model=cascade_model,
+            approach=sampling_method,
+            cascade_params=cascade_kwargs
         )
     else:
         sampler = TreeSamplePool(
@@ -175,19 +183,19 @@ def one_round(
         every=1,
         sampling_method='loop_erased',
         debug=False,
-        verbose=False,
+        verbose=0,
         args=None
 ):
     stime = time.time()
 
-    if sampling_method == 'simulation':
+    if sampling_method in SIMULATION_METHODS:
         sampler_kwargs = dict(
             p=args.infection_proba,
             min_fraction=args.cascade_size,
             max_fraction=args.cascade_size,
             source=cascade_source(c),
             cascade_model=args.cascade_model,
-            debug=debug
+            verbose=verbose
         )
     else:
         sampler_kwargs = dict()
@@ -200,7 +208,7 @@ def one_round(
         n_samples=n_samples,
         every=every,
         verbose=verbose,
-        sampler_kwargs=sampler_kwargs
+        cascade_kwargs=sampler_kwargs
     )
 
     time_elapsed = time.time() - stime
@@ -216,13 +224,7 @@ if __name__ == '__main__':
     add_query_method_args(parser)
     add_cascade_parameter_args(parser)
     add_inference_args(parser)
-    
-    parser.add_argument('--debug',
-                        action='store_true',
-                        help='')
-    parser.add_argument('--verbose',
-                        action='store_true',
-                        help='')
+    add_debug_args(parser)
 
     args = parser.parse_args()
 
