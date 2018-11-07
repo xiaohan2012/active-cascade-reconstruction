@@ -71,7 +71,7 @@ cpdef ic_opt(g, p, source=None, infected=None, float max_fraction=0.5, int verbo
     while len(infected) < max_num_infections and len(frontier_pool) > 0:
         # print('current cascade size: {}'.format(len(frontier_pool)))
         time += 1
-        if verbose >= 0:
+        if verbose >= 1:
             print('at time ', time)
             print('frontier_pool', frontier_pool)
             print('active_degree', active_degree)
@@ -80,17 +80,17 @@ cpdef ic_opt(g, p, source=None, infected=None, float max_fraction=0.5, int verbo
         frontiers_to_add = set()
         for i in frontier_pool:
             for _, j, edge_index in g.get_out_edges(i):
-                if verbose >= 1:
+                if verbose >= 2:
                     print('trying ', (i, j))
 
                 # if the edge has not be attempted before
                 if attempted_edges.find((i, j)) == attempted_edges.end():
-                    if verbose >= 1:
+                    if verbose >= 2:
                         print('go into ', (i, j))
                     active_degree[i] -= 1
                     if active_degree[i] == 0:
                         # no more out edges to go
-                        if verbose >= 1:
+                        if verbose >= 2:
                             print('remove {} from pool'.format(i))
                         frontiers_to_remove.add(i)
 
@@ -108,7 +108,7 @@ cpdef ic_opt(g, p, source=None, infected=None, float max_fraction=0.5, int verbo
                             infection_times[j] = time
                             edges.append((i, j))
 
-                            if verbose >= 0:
+                            if verbose >= 1:
                                 print('add {} to frontier'.format(j))
 
                             frontiers_to_add.add(j)

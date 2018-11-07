@@ -6,7 +6,8 @@ from arg_helpers import (
     add_input_args,
     add_query_method_args,
     add_inference_args,
-    add_eval_args
+    add_eval_args,
+    add_debug_args
 )
 from helpers import (
     init_db,
@@ -23,8 +24,7 @@ if __name__ == '__main__':
     add_query_method_args(parser)
     add_inference_args(parser)
     add_eval_args(parser)
-    parser.add_argument('--verbose', action='store_true')
-    parser.add_argument('--debug', action='store_true')
+    add_debug_args(parser)
 
     args = parser.parse_args()
     

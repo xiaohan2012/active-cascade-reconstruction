@@ -212,7 +212,6 @@ def sample_one_by_hybrid_simulation(
     )
     """
     for i in range(max_tries):
-        print('attempt times:', i)
         try:
             infected = basis_generator(**basis_kwargs)
             cascade_kwargs['infected'] = infected

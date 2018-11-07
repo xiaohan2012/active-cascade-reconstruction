@@ -13,7 +13,7 @@ class Config(ConfigBase):
 
         self.query_method = 'random'  # does not matter which
         self.query_n_samples = 0
-        self.query_sampling_method = 'simulation'
+        self.query_sampling_method = 'naive'
         self.pruning_proba = 0
 
         self.infer_every = -1  # just infer at the begining
@@ -23,9 +23,9 @@ class Config(ConfigBase):
         self.n_queries = 0  # no query, just infer base on intial observation
 
         self.hours_per_job = 0
-        self.minutes_per_job = 20
+        self.minutes_per_job = 10
 
-        self.metric_name='l1'
+        self.metric_name='ap'
 
 config_dimensions = [
     # datasets
@@ -53,13 +53,15 @@ config_dimensions = [
     ],
     # cascade model
     [
-        # dict(cascade_model="si"),
+        dict(cascade_model="si"),
         dict(cascade_model="ic"),
     ],
     # infer sampling algorithm
     [
-        dict(infer_sampling_method='simulation'),
-        dict(infer_sampling_method='loop_erased')
+        # dict(infer_sampling_method='simulation'),
+        # dict(infer_sampling_method='loop_erased'),
+        dict(infer_sampling_method='mst'),
+        dict(infer_sampling_method='rst')
     ],
     [
         dict(infer_n_samples=10),

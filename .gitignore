@@ -114,5 +114,7 @@ tmp/
 unused
 core1.cpp
 si.cpp
+ic.cpp
 *.prof
 logs/
+flycheck*.py

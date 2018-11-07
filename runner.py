@@ -79,7 +79,7 @@ if __name__ == '__main__':
     if args.debug:
         for config in configs:
             config.n_rounds = 1
-            config.arg_suffix = '--verbose --debug'
+            config.arg_suffix = '--verbose 0 --debug'
             config.print_query_params(prefix="./singularity/exec.sh python3 query_one_round.py ")
             print('\n')
             config.print_infer_params(prefix="./singularity/exec.sh python3 infer_one_round.py ")
