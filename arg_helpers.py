@@ -113,3 +113,7 @@ def add_debug_args(parser):
         '-v', '--verbose', type=int, default=0,
         help='vebose level to be used'
     )
+    parser.add_argument(
+        '--nowrite', action='store_true',
+        help='if set, do not write to db'
+    )

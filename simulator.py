@@ -23,7 +23,8 @@ class Simulator():
         if obs is None or c is None:
             obs, c = gen_input(self.g, **gen_input_kwargs)[:2]
 
-        self.q_gen.receive_observation(obs, c)
+        if n_queries > 0:
+            self.q_gen.receive_observation(obs, c)
 
         aux = {'graph_changed': False,
                'obs': obs,

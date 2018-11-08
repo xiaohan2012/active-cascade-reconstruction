@@ -172,7 +172,7 @@ def infer_probas_from_queries(
     return probas_list, sampler, estimator
 
 
-@timeout(seconds=INFER_TIMEOUT)
+@timeout(seconds=INFER_TIMEOUT, error_message="Exceeds {} seconds".format(INFER_TIMEOUT))
 def one_round(
         g,
         obs,
@@ -314,42 +314,45 @@ if __name__ == '__main__':
         
         probas, time_cost = output['probas'], output['time_cost']
 
-        data_to_insert = dict(
-            dataset=args.dataset,
-            cascade_id=c_id,
-            query_method=args.query_method,
-            query_sampling_method=args.query_sampling_method,
-            query_n_samples=args.query_n_samples,
-            n_queries=args.n_queries,
-            root_sampler=args.root_sampler,
-            pruning_proba=args.min_proba,
-            infer_sampling_method=args.inference_sampling_method,
-            infer_n_samples=args.inference_n_samples,
-            every=args.infer_every,
-            probas=pkl.dumps(probas),
-            time_elapsed=time_cost,
-            created_at=get_now()
-        )
+        if not args.nowrite:
+            data_to_insert = dict(
+                dataset=args.dataset,
+                cascade_id=c_id,
+                query_method=args.query_method,
+                query_sampling_method=args.query_sampling_method,
+                query_n_samples=args.query_n_samples,
+                n_queries=args.n_queries,
+                root_sampler=args.root_sampler,
+                pruning_proba=args.min_proba,
+                infer_sampling_method=args.inference_sampling_method,
+                infer_n_samples=args.inference_n_samples,
+                every=args.infer_every,
+                probas=pkl.dumps(probas),
+                time_elapsed=time_cost,
+                created_at=get_now()
+            )
 
-        conn, cursor = init_db(args.debug)
-        cursor.execute(
-            """
-        INSERT INTO
-            {schema}.{table_name} ({fields})
-        VALUES
-            ({placeholders})
-        """.format(
-            schema=DB_CONFIG.schema,
-            table_name=DB_CONFIG.inference_table_name,
-            fields=', '.join(data_to_insert.keys()),
-            placeholders=', '.join(['%s'] * len(data_to_insert))
-        ),
-            tuple(data_to_insert.values())
-        )
-        conn.commit()
-        conn.close()
+            conn, cursor = init_db(args.debug)
+            cursor.execute(
+                """
+            INSERT INTO
+                {schema}.{table_name} ({fields})
+            VALUES
+                ({placeholders})
+            """.format(
+                schema=DB_CONFIG.schema,
+                table_name=DB_CONFIG.inference_table_name,
+                fields=', '.join(data_to_insert.keys()),
+                placeholders=', '.join(['%s'] * len(data_to_insert))
+            ),
+                tuple(data_to_insert.values())
+            )
+            conn.commit()
+            conn.close()
 
-        if args.verbose:
-            print("DONE: saving result to {}.{}".format(
-                DB_CONFIG.schema, DB_CONFIG.inference_table_name
-            ))
+            if args.verbose:
+                print("DONE: saving result to {}.{}".format(
+                    DB_CONFIG.schema, DB_CONFIG.inference_table_name
+                ))
+        else:
+            print('DONE: not writing to database')
