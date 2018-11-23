@@ -50,12 +50,12 @@ To test the code,
 
 ## pipeline on Triton
 
-1. `./singularity/exec.sh ./scripts/gen_cascade.sh`: generate the cascades
-2. `python3 ./scripts/print_{query|infer}_arguments_in_batch.py  > exp_args/{query|infer}_{graph}.txt`
-   - print the arguments to be populated to slurm jobs
-   - edit `scripts/setting.py`
-3. `sbatch ./scripts/sbatch_experiment.sh`
-   - submit the jobs
+1. edit the configuration file under `exp_configs/`
+2. `python3 runner.py --name {name_of_the_config_file_editted_before}`
+   - the sbatch file path will be printed as `${path_of_sbatch_file}`
+3. `sbatch ${path_of_sbatch_file}` to submit the job
+   - the result will be saved to postgres DB
+4. optionally, you can view the result in the database
 
 
 ## note on Triton
@@ -63,6 +63,8 @@ To test the code,
 use `./singularity/exec.sh ${cmd_to_exec}` to execute the command in the singularity container
 
 ---------------------
+
+possibly deprecated
 
 # shell scripts
 
