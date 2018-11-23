@@ -18,6 +18,7 @@ FROM
     active.eval_per_cascade
 WHERE
     metric_name = '{metric}'
+    AND infer_n_samples <= 2560
 ORDER BY dataset, infer_n_samples, infer_sampling_method
 """.format(metric=metric)
 )

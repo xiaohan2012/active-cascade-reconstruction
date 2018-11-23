@@ -16,7 +16,8 @@ def gen_sbatch_string(
         query_file_name,
         infer_file_name,
         eval_file_name,
-        n_jobs_at_a_time=800,
+        n_jobs_at_a_time=32,
+        mem=5
 ):
     return """#!/bin/zsh
 
@@ -24,7 +25,7 @@ def gen_sbatch_string(
 #SBATCH --output={logfile_name}  # %a does not work
 #SBATCH --cpus-per-task 1 
 #SBATCH --time {hours_per_job}:{minutes_per_job}:00  # per task?
-#SBATCH --mem=1G
+#SBATCH --mem={mem}G
 #SBATCH --array=1-{n_jobs}%{n_jobs_at_a_time}
 
 query_args_file={query_file_name}
@@ -37,9 +38,9 @@ query_args=`sed "${{n}}q;d" ${{query_args_file}}`
 infer_args=`sed "${{n}}q;d" ${{infer_args_file}}`
 eval_args=`sed "${{n}}q;d" ${{eval_args_file}}`
 
-eval "./singularity/exec.sh python3 query_one_round.py ${{query_args}}"
-eval "./singularity/exec.sh python3 infer_one_round.py ${{infer_args}}"
-eval "./singularity/exec.sh python3 evaluate_one_round.py ${{eval_args}}"
+eval "srun ./singularity/exec.sh python3 query_one_round.py ${{query_args}}"
+eval "srun ./singularity/exec.sh python3 infer_one_round.py ${{infer_args}}"
+eval "srun ./singularity/exec.sh python3 evaluate_one_round.py ${{eval_args}}"
 """.format(
     job_name=job_name,
     hours_per_job=str(hours_per_job).zfill(2),
@@ -49,7 +50,8 @@ eval "./singularity/exec.sh python3 evaluate_one_round.py ${{eval_args}}"
     logfile_name=logfile_name,
     query_file_name=query_file_name,
     infer_file_name=infer_file_name,
-    eval_file_name=eval_file_name
+    eval_file_name=eval_file_name,
+    mem=mem
 )
 
 def gen_tmp_file(prefix="", suffix=""):

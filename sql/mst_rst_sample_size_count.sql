@@ -3,10 +3,10 @@ select
 from
     active.inference
 where
-    infer_sampling_method in ('mst', 'rst') and n_queries = 0
+    infer_sampling_method in ('mst', 'rst') and n_queries = 0 and infer_n_samples <= 2560
 group by
     dataset, infer_sampling_method, infer_n_samples
-having
-    count(1) != 96
+-- having
+--     count(1) != 96
 order by
     dataset, infer_sampling_method, infer_n_samples asc;

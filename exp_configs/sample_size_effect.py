@@ -22,19 +22,19 @@ class Config(ConfigBase):
 
         self.n_queries = 0  # no query, just infer base on intial observation
 
-        self.hours_per_job = 0
-        self.minutes_per_job = 10
+        self.hours_per_job = 10
+        self.minutes_per_job = 0
 
         self.metric_name='ap'
 
 config_dimensions = [
     # datasets
     [
-        dict(
-            graph='infectious',
-            cascade_fraction=0.1,
-            obs_fraction=0.1
-        ),
+        # dict(
+        #     graph='infectious',
+        #     cascade_fraction=0.1,
+        #     obs_fraction=0.1
+        # ),
         dict(
             graph='email-univ',
             cascade_fraction=0.025,
@@ -45,22 +45,22 @@ config_dimensions = [
             cascade_fraction=0.025,
             obs_fraction=0.1
         ),
-        dict(
-            graph='lattice-100',
-            cascade_fraction=0.25,
-            obs_fraction=0.25,
-        )
+        # dict(
+        #     graph='lattice-100',
+        #     cascade_fraction=0.25,
+        #     obs_fraction=0.25,
+        # )
     ],
     # cascade model
     [
-        dict(cascade_model="si"),
+        # dict(cascade_model="si"),
         dict(cascade_model="ic"),
     ],
     # infer sampling algorithm
     [
         # dict(infer_sampling_method='simulation'),
         # dict(infer_sampling_method='loop_erased'),
-        dict(infer_sampling_method='mst'),
+        # dict(infer_sampling_method='mst'),
         dict(infer_sampling_method='rst')
     ],
     [
@@ -72,9 +72,7 @@ config_dimensions = [
         dict(infer_n_samples=320),
         dict(infer_n_samples=640),
         dict(infer_n_samples=1280),
-        dict(infer_n_samples=2560),
-        dict(infer_n_samples=5120),
-        dict(infer_n_samples=10240)
+        dict(infer_n_samples=2560)
     ]
 ]
 

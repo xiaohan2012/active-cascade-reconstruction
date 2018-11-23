@@ -36,7 +36,7 @@ from arg_helpers import (
 from config import QUERY_TIMEOUT, DB_CONFIG
 
 
-@timeout(seconds=QUERY_TIMEOUT, error_message="Exceeds {} seconds".format(INFER_TIMEOUT))
+@timeout(seconds=QUERY_TIMEOUT, error_message="Exceeds {} seconds".format(QUERY_TIMEOUT))
 def one_round(
         g,
         obs,

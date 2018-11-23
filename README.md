@@ -57,6 +57,10 @@ To test the code,
    - the result will be saved to postgres DB
 4. optionally, you can view the result in the database
 
+## plotting scripts
+
+- `sample_size_effect_plot.py`: inference performance by effect of sample size using different sampling methods
+- `compare_query_methods_plot.py`: comparing different query strategies
 
 ## note on Triton
 

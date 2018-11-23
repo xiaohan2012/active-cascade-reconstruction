@@ -6,8 +6,8 @@ if DEBUG:
     QUERY_TIMEOUT = 60
     INFER_TIMEOUT = 60
 else:
-    QUERY_TIMEOUT = ONE_HOUR_IN_SECS * 1  # multiply by hours
-    INFER_TIMEOUT = ONE_HOUR_IN_SECS * 1
+    QUERY_TIMEOUT = ONE_HOUR_IN_SECS * 12  # multiply by hours
+    INFER_TIMEOUT = ONE_HOUR_IN_SECS * 12
     
 DATA_ROOT_DIR = '/experiment'
 TMP_DIR = '/scratch/work/xiaoh1/data-active-cascade-reconstruction/tmp'
