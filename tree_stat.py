@@ -147,3 +147,7 @@ class TreeBasedStatistics:
                 'p1': p1,
                 'errors': errors
             }
+
+    @property
+    def is_matrix_initialized(self):
+        return self._m is not None

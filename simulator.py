@@ -16,14 +16,20 @@ class Simulator():
         self.q_gen = query_generator
         self.print_log = print_log
 
-    def run(self, n_queries, obs=None, c=None, gen_input_kwargs={},
-            iter_callback=None):
+    def run(self,
+            n_queries,
+            obs=None,
+            c=None,
+            gen_input_kwargs={},
+            iter_callback=None,
+            force_receive_obs=False
+    ):
         """return the list of query nodes
         """
         if obs is None or c is None:
             obs, c = gen_input(self.g, **gen_input_kwargs)[:2]
 
-        if n_queries > 0:
+        if n_queries > 0 or force_receive_obs:
             self.q_gen.receive_observation(obs, c)
 
         aux = {'graph_changed': False,

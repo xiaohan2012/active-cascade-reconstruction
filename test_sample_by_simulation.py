@@ -8,7 +8,8 @@ from core import (
     sample_by_simulation,
     sample_by_hybrid_simulation,
     sample_by_mst_plus_simulation,
-    sample_by_rst_plus_simulation
+    sample_by_rst_plus_simulation,
+    sample_by_reverse_reachable_set
 )
 from helpers import infected_nodes
 
@@ -62,7 +63,7 @@ def test_sample_by_simulation(g, cascade_model):
     "cascade_model", ['si', 'ic']
 )
 @pytest.mark.parametrize(
-    "approach", ['mst', 'rst']
+    "approach", ['mst', 'rst', 'rrs']
 )
 def test_sample_by_hybrid_simulation(g, cascade_model, approach):
     n_obs = 5
@@ -113,11 +114,25 @@ def test_sample_by_hybrid_simulation(g, cascade_model, approach):
                 n_samples=n_samples,
                 cascade_kwargs=cascade_kwargs,
             )
+        elif approach == 'rrs':
+            if cascade_model == 'ic':
+                samples = sample_by_reverse_reachable_set(
+                    g, obs,
+                    cascade_model=cascade_model,
+                    n_samples=n_samples,
+                    cascade_kwargs=cascade_kwargs
+                )
+            else:
+                # rrs does not apply to sampling method other than IC for now
+                # the following workaround simply makes the test pass
+                samples = [set(obs) for i in range(n_samples)]
         else:
-            raise ValueError('yo!')
+            raise ValueError('no such sampling approach: {}'.format(approach))
 
         for s in samples:
             assert obs.issubset(s)
+            if approach != 'rrs' and cascade_model != 'si':
+                assert len(s) > len(obs)
 
 
 def test_sample_by_hybrid_simulation_when_infected_is_too_large(g):

@@ -123,19 +123,21 @@ class SamplingBasedGenerator(BaseQueryGenerator):
         elif self.root_sampler_name == 'random':
             self.root_sampler = None  # equivalent to 'random'
 
-    # @profile            
+
     def receive_observation(self, obs, c, **kwargs):
         self._update_root_sampler(obs, c, **kwargs)
 
-        self.sampler.fill(obs,
-                          root_sampler=self.root_sampler)
+        self.sampler.fill(
+            obs,
+            root_sampler=self.root_sampler
+        )
         # add samples to error estimator
         self.error_estimator.build_matrix(self.sampler.samples)
 
         # print('DONE: sampler.fill')
         super(SamplingBasedGenerator, self).receive_observation(obs, c)
 
-    # @profile
+
     def update_observation(self, g, inf_nodes, node, label, c):
         """update the tree samples"""
         # rigorously speaking,
@@ -161,7 +163,8 @@ class SamplingBasedGenerator(BaseQueryGenerator):
         self._cand_pool = set(
             self.error_estimator.filter_out_extreme_targets(
                 self._cand_pool,
-                min_value=self.min_proba))
+                min_value=self.min_proba)
+        )
 
 
 class EntropyQueryGenerator(SamplingBasedGenerator):
@@ -200,6 +203,7 @@ class CondEntropyQueryGenerator(SamplingBasedGenerator):
     def _sample_nodes_for_estimation(self):
         # use node samples to estimate prediction error
         cand_node_samples = list(self._cand_pool)
+
         node_sample_inf_proba = self.error_estimator.unconditional_proba(cand_node_samples)
         # node_sample_inf_proba = np.array(
         #     [len(matching_trees(self.sampler.samples, n, 1)) / len(self.sampler.samples)

@@ -192,10 +192,13 @@ def build_simulator_using_cond_entropy_query_selector(g, **kwargs):
         return_type='nodes'  # using tree nodes
     )
 
-    q_gen = CondEntropyQueryGenerator(gv, pool,
-                                          error_estimator=TreeBasedStatistics(gv),
-                                          root_sampler='random',
-                                          **kwargs)
+    q_gen = CondEntropyQueryGenerator(
+        gv, pool,
+        error_estimator=TreeBasedStatistics(gv),
+        root_sampler='random',
+        **kwargs
+    )
+    
     return Simulator(gv, q_gen, gi=gi, print_log=True), q_gen
 
 
@@ -206,9 +209,10 @@ def test_cond_entropy_with_candidate_pruning(g, repeat_id):
 
     for min_proba in min_probas:
         sim, q_gen = build_simulator_using_cond_entropy_query_selector(
-            g, prune_nodes=True, min_proba=min_proba)
+            g, prune_nodes=True, min_proba=min_proba
+        )
 
-        sim.run(0)  # just get the candidates
+        sim.run(0, force_receive_obs=True)  # just get the candidates
         q_gen.prune_candidates()  # and prune the candidates
 
         cand_nums.append(len(q_gen._cand_pool))
@@ -222,25 +226,9 @@ def test_cond_entropy_sample_nodes_for_estimation(g):
     n_node_samples_list = [10, 20, 30, 40, 50]
     for n_node_samples in n_node_samples_list:
         sim, q_gen = build_simulator_using_cond_entropy_query_selector(
-            g, n_node_samples=n_node_samples)
-        sim.run(0)
+            g, n_node_samples=n_node_samples
+        )
+        sim.run(0, force_receive_obs=True)
 
         samples = q_gen._sample_nodes_for_estimation()
         assert len(samples) == n_node_samples
-
-
-@pytest.mark.parametrize("graph, c", [(line(), np.array([0, 1, 2, -1]))])
-@pytest.mark.parametrize("method", ['earliest', 'latest'])
-def test_oracle_strategy(graph, c, method):
-    graph = remove_filters(graph)
-    if method == 'earliest':
-        q_gen = EarliestFirstOracle(graph)
-        expected = [1, 2]
-    elif method == 'latest':
-        q_gen = LatestFirstOracle(graph)
-        expected = [2, 1]
-
-    sim = Simulator(graph, q_gen)
-    qs, _ = sim.run(100, obs=[0], c=c)  # will hiddenly raise NoMoreQuery
-
-    assert qs == expected

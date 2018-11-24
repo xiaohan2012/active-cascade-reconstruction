@@ -22,7 +22,7 @@ from exceptions import TooManyInfections
 from joblib import (delayed, Parallel)
 from minimum_steiner_tree import min_steiner_tree
 
-SIMULATION_METHODS = ('naive', 'mst', 'rst')
+SIMULATION_METHODS = ('naive', 'mst', 'rst', 'rrs')
 
 def uncertainty_scores(
         g, obs,
@@ -329,5 +329,37 @@ def sample_by_rst_plus_simulation(
         cascade_kwargs=cascade_kwargs,
         basis_generator=basis_generator,
         basis_kwargs=basis_kwargs,
+        **kwargs
+    )
+
+
+def sample_by_reverse_reachable_set(
+        g, obs,
+        cascade_model,
+        n_samples,
+        cascade_kwargs,
+        **kwargs
+):
+    """
+    sample generation using Reverse Reachable Set
+    
+    https://www.slideshare.net/cigdemaslay/wsdm-2018-tutorial-on-influence-maximization-in-social-networks
+
+    starting from page 72
+    """
+    # the basis generator simply returns the terminals X
+    # it relies on the simulator to simulate infections from X
+    def dummy_basis_generator():
+        return set(list(obs))
+
+    assert cascade_model.lower() == 'ic', 'only works for IC models for now'
+    
+    return sample_by_hybrid_simulation(
+        g, obs,
+        cascade_model,
+        n_samples,
+        cascade_kwargs=cascade_kwargs,
+        basis_generator=dummy_basis_generator,
+        basis_kwargs=dict(),
         **kwargs
     )
