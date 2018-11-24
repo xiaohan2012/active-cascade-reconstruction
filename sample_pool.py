@@ -11,8 +11,10 @@ from graph_helpers import (
 from proba_helpers import tree_probability_gt, ic_cascade_probability_gt
 from core import (
     sample_by_simulation,
-     sample_by_mst_plus_simulation,
-    sample_by_rst_plus_simulation
+    sample_by_mst_plus_simulation,
+    sample_by_rst_plus_simulation,
+    sample_by_reverse_reachable_set,
+    SIMULATION_METHODS
 )
 from core1 import matching_trees
 from helpers import infected_nodes
@@ -192,7 +194,7 @@ class SimulatedCascadePool():
                 max_fraction=0.5,
             )
         """
-        assert approach in {'naive', 'mst', 'rst'}
+        assert approach in SIMULATION_METHODS
         self.approach = approach
         
         self.g = g
@@ -226,7 +228,14 @@ class SimulatedCascadePool():
                 self.g, obs,
                 cascade_model=self.cascade_model,
                 n_samples=n,
-                cascade_kwargs=self._cascade_params,
+                cascade_kwargs=self._cascade_params
+            )
+        elif self.approach == 'rrs':
+            return sample_by_reverse_reachable_set(
+                self.g, obs,
+                cascade_model=self.cascade_model,
+                n_samples=n,
+                cascade_kwargs=self._cascade_params
             )
         
     def fill(self, obs, **kwargs):

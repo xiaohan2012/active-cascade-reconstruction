@@ -3,7 +3,7 @@ select
 from
     active.inference
 where
-    infer_sampling_method in ('mst', 'rst') and n_queries = 0 and infer_n_samples <= 2560
+    infer_sampling_method in ('mst', 'rst', 'rrs') and n_queries = 0 and infer_n_samples <= 2560
 group by
     dataset, infer_sampling_method, infer_n_samples
 -- having

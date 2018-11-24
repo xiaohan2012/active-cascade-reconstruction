@@ -4,13 +4,13 @@ import numpy as np
 from sample_pool import SimulatedCascadePool
 from graph_helpers import observe_uninfected_node
 from fixture import g
-from cascade_generator import si
+from cascade_generator import ic
 from helpers import infected_nodes
 
 
 
 @pytest.mark.parametrize(
-    "approach", ['mst', 'rst']  # 'naive'
+    "approach", ['mst', 'rst', 'rrs']  # 'naive'
 )
 def test_SimulatedCascadePool(g, approach):
     # 'naive', 
@@ -18,12 +18,14 @@ def test_SimulatedCascadePool(g, approach):
     n_obs = 5
     cascade_params = dict(
         p=0.5,
-        max_fraction=0.5,
+        min_fraction=0.25,
+        max_fraction=0.25,
         verbose=2
     )
-    source, times, _ = si(
+    source, times, _ = ic(
         g, source=None,
         p=cascade_params['p'],
+        min_fraction=cascade_params['min_fraction'],
         max_fraction=cascade_params['max_fraction']
     )
     inf_nodes = infected_nodes(times)
@@ -33,7 +35,7 @@ def test_SimulatedCascadePool(g, approach):
 
     pool = SimulatedCascadePool(
         g, n_samples,
-        cascade_model='si',
+        cascade_model='ic',
         approach=approach,
         cascade_params=cascade_params
     )

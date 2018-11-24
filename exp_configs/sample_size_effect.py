@@ -30,11 +30,11 @@ class Config(ConfigBase):
 config_dimensions = [
     # datasets
     [
-        # dict(
-        #     graph='infectious',
-        #     cascade_fraction=0.1,
-        #     obs_fraction=0.1
-        # ),
+        dict(
+            graph='infectious',
+            cascade_fraction=0.1,
+            obs_fraction=0.1
+        ),
         dict(
             graph='email-univ',
             cascade_fraction=0.025,
@@ -45,11 +45,11 @@ config_dimensions = [
             cascade_fraction=0.025,
             obs_fraction=0.1
         ),
-        # dict(
-        #     graph='lattice-100',
-        #     cascade_fraction=0.25,
-        #     obs_fraction=0.25,
-        # )
+        dict(
+            graph='lattice-100',
+            cascade_fraction=0.25,
+            obs_fraction=0.25,
+        )
     ],
     # cascade model
     [
@@ -61,7 +61,8 @@ config_dimensions = [
         # dict(infer_sampling_method='simulation'),
         # dict(infer_sampling_method='loop_erased'),
         # dict(infer_sampling_method='mst'),
-        dict(infer_sampling_method='rst')
+        # dict(infer_sampling_method='rst'),
+        dict(infer_sampling_method='rrs')
     ],
     [
         dict(infer_n_samples=10),
